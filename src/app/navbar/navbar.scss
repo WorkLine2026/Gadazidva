@@ -1,0 +1,766 @@
+// ====================================
+// Color Variables
+// ====================================
+$primary-blue: #1e40af;
+$primary-blue-light: #3b82f6;
+$primary-blue-dark: #1d4ed8;
+$secondary-orange: #f97316;
+$secondary-orange-light: #ff6b35;
+$secondary-orange-medium: #f7931e;
+
+$text-dark: #1a202c;
+$text-gray-dark: #4a5568;
+$text-gray: #4b5563;
+$text-gray-light: #cbd5e0;
+
+$bg-white: #ffffff;
+$bg-light: #f8f9ff;
+$bg-gray-light: #f7fafc;
+$bg-gray: #f3f4f6;
+
+$border-light: #e2e8f0;
+$border-lighter: #e5e7eb;
+$border-lightest: rgba(229, 231, 235, 0.5);
+
+$shadow-color-blue: rgba(30, 64, 175, 0.03);
+$shadow-color-orange: rgba(249, 115, 22, 0.25);
+
+// ====================================
+// Typography
+// ====================================
+$font-stack: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif;
+$font-weight-medium: 500;
+$font-weight-semibold: 600;
+$font-weight-bold: 700;
+$font-weight-extrabold: 800;
+
+// ====================================
+// Transitions & Animations
+// ====================================
+$transition-fast: all 0.25s ease;
+$transition-default: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+$transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+// ====================================
+// Mixins
+// ====================================
+
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@mixin flex-between {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+@mixin button-base {
+  font-family: inherit;
+  border: none;
+  cursor: pointer;
+  transition: $transition-default;
+  @include flex-center;
+  font-weight: $font-weight-semibold;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+}
+
+@mixin transition-transform-hover {
+  &:hover {
+    transform: translateY(-2px);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+@mixin glass-effect {
+  background: linear-gradient(135deg, $bg-white 0%, $bg-light 100%);
+  backdrop-filter: blur(0px);
+  border: 1px solid rgba($bg-white, 0.8);
+}
+
+@mixin underline-animation {
+  position: relative;
+  
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 0;
+    height: 2.5px;
+    background: linear-gradient(90deg, $primary-blue 0%, $primary-blue-light 100%);
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 2px;
+  }
+
+  &:hover {
+    color: $primary-blue;
+    
+    &::after {
+      width: 100%;
+    }
+  }
+
+  &.active {
+    color: $primary-blue;
+    font-weight: $font-weight-bold;
+    
+    &::after {
+      width: 100%;
+    }
+  }
+}
+
+// ====================================
+// Navbar Container
+// ====================================
+
+.navbar {
+  @include glass-effect;
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  right: 20px;
+  z-index: 1000;
+  border-radius: 24px;
+  box-shadow: 0 8px 32px $shadow-color-blue;
+  font-family: $font-stack;
+  transition: $transition-default;
+
+  @media (max-width: 768px) {
+    top: 12px;
+    left: 12px;
+    right: 12px;
+    border-radius: 18px;
+  }
+
+  @media (max-width: 640px) {
+    top: 10px;
+    left: 10px;
+    right: 10px;
+    border-radius: 16px;
+  }
+
+  @media (max-width: 480px) {
+    top: 8px;
+    left: 8px;
+    right: 8px;
+    border-radius: 14px;
+  }
+
+  @media (max-width: 360px) {
+    top: 6px;
+    left: 6px;
+    right: 6px;
+    border-radius: 12px;
+  }
+}
+
+.nav-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 18px 40px;
+  @include flex-between;
+  gap: 50px;
+  position: relative;
+
+  @media (min-width: 1025px) and (max-width: 1440px) {
+    padding: 18px 40px;
+    gap: 50px;
+  }
+
+  @media (min-width: 1441px) {
+    padding: 20px 50px;
+    gap: 60px;
+  }
+
+  @media (max-width: 1024px) {
+    padding: 16px 32px;
+    gap: 30px;
+  }
+
+  @media (max-width: 768px) {
+    padding: 14px 24px;
+    gap: 20px;
+  }
+
+  @media (max-width: 640px) {
+    padding: 12px 20px;
+    gap: 15px;
+  }
+
+  @media (max-width: 480px) {
+    padding: 10px 16px;
+    gap: 10px;
+  }
+
+  @media (max-width: 360px) {
+    padding: 8px 12px;
+    gap: 8px;
+  }
+}
+
+// ====================================
+// Logo
+// ====================================
+
+.logo {
+  @include flex-center;
+  gap: 12px;
+  cursor: pointer;
+  user-select: none;
+  flex-shrink: 0;
+  transition: $transition-default;
+
+  &:hover {
+    transform: translateY(-2px);
+
+    .logo-icon-box {
+      transform: scale(1.08) rotate(-5deg);
+      box-shadow: 0 6px 24px rgba($secondary-orange-light, 0.35);
+    }
+  }
+}
+
+.logo-icon-box {
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, $secondary-orange-light 0%, $secondary-orange-medium 100%);
+  border-radius: 10px;
+  @include flex-center;
+  box-shadow: 0 4px 16px rgba($secondary-orange-light, 0.25);
+  transition: $transition-default;
+
+  @media (min-width: 1441px) {
+    width: 44px;
+    height: 44px;
+  }
+
+  @media (max-width: 1024px) {
+    width: 36px;
+    height: 36px;
+  }
+
+  @media (max-width: 768px) {
+    width: 34px;
+    height: 34px;
+  }
+
+  @media (max-width: 480px) {
+    width: 32px;
+    height: 32px;
+  }
+
+  @media (max-width: 360px) {
+    width: 28px;
+    height: 28px;
+  }
+}
+
+.arrow-icon {
+  width: 20px;
+  height: 20px;
+  color: $bg-white;
+
+  @media (min-width: 1441px) {
+    width: 22px;
+    height: 22px;
+  }
+
+  @media (max-width: 1024px) {
+    width: 18px;
+    height: 18px;
+  }
+
+  @media (max-width: 768px) {
+    width: 16px;
+    height: 16px;
+  }
+
+  @media (max-width: 480px) {
+    width: 15px;
+    height: 15px;
+  }
+
+  @media (max-width: 360px) {
+    width: 12px;
+    height: 12px;
+  }
+}
+
+.logo-text {
+  font-size: 18px;
+  font-weight: $font-weight-extrabold;
+  letter-spacing: -0.5px;
+  color: $text-dark;
+  @include flex-center;
+
+  @media (min-width: 1441px) {
+    font-size: 20px;
+  }
+
+  @media (max-width: 1024px) {
+    font-size: 16px;
+  }
+
+  @media (max-width: 768px) {
+    font-size: 15px;
+  }
+
+  @media (max-width: 640px) {
+    font-size: 14px;
+  }
+
+  @media (max-width: 360px) {
+    font-size: 12px;
+  }
+
+  .highlight {
+    color: $primary-blue;
+    font-weight: $font-weight-semibold;
+    margin-left: 2px;
+  }
+}
+
+// ====================================
+// Navigation Links
+// ====================================
+
+.nav-links {
+  display: flex;
+  list-style: none;
+  gap: 40px;
+  margin: 0;
+  padding: 0;
+  flex: 1;
+
+  @media (min-width: 1441px) {
+    gap: 50px;
+  }
+
+  @media (max-width: 1024px) {
+    gap: 30px;
+  }
+
+  @media (max-width: 768px) {
+    gap: 30px;
+  }
+
+  @media (max-width: 640px) {
+    flex-direction: column;
+    gap: 12px;
+    border-bottom: 1px solid $border-light;
+    padding-bottom: 16px;
+  }
+
+  @media (max-width: 480px) {
+    gap: 8px;
+    border-bottom: 1px solid $border-light;
+    padding-bottom: 12px;
+  }
+
+  @media (max-width: 360px) {
+    gap: 4px;
+    border-bottom: 1px solid $border-light;
+    padding-bottom: 8px;
+  }
+
+  a {
+    text-decoration: none;
+    color: $text-gray-dark;
+    font-size: 14px;
+    font-weight: $font-weight-medium;
+    padding: 8px 0;
+    transition: $transition-fast;
+    letter-spacing: 0.3px;
+
+    @include underline-animation;
+
+    @media (min-width: 1441px) {
+      font-size: 15px;
+    }
+
+    @media (max-width: 1024px) {
+      font-size: 13px;
+    }
+
+    @media (max-width: 640px) {
+      font-size: 14px;
+      padding: 6px 0;
+    }
+
+    @media (max-width: 480px) {
+      font-size: 13px;
+      padding: 5px 0;
+    }
+
+    @media (max-width: 360px) {
+      font-size: 11px;
+      padding: 4px 0;
+    }
+  }
+}
+
+// ====================================
+// Navigation Actions
+// ====================================
+
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-shrink: 0;
+
+  @media (max-width: 1024px) {
+    gap: 10px;
+  }
+
+  @media (max-width: 640px) {
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+  }
+
+  @media (max-width: 480px) {
+    gap: 8px;
+  }
+
+  @media (max-width: 360px) {
+    gap: 6px;
+  }
+}
+
+// ====================================
+// Buttons
+// ====================================
+
+.btn {
+  @include button-base;
+
+  @media (max-width: 1024px) {
+    padding: 10px 20px;
+    font-size: 12px;
+  }
+
+  @media (max-width: 640px) {
+    width: 100%;
+    padding: 12px 20px;
+    font-size: 13px;
+  }
+
+  @media (max-width: 480px) {
+    width: 100%;
+    padding: 10px 16px;
+    font-size: 12px;
+  }
+
+  @media (max-width: 360px) {
+    width: 100%;
+    padding: 8px 12px;
+    font-size: 10px;
+  }
+
+  // ====== ხელმოწერის ღილაკი (Sign In) ======
+  &-signin {
+    padding: 11px 24px;
+    font-size: 13px;
+    background: transparent;
+    color: $text-gray-dark;
+    border: 1.5px solid $border-light;
+    border-radius: 12px;
+
+    @include transition-transform-hover;
+
+    &:hover {
+      background-color: $bg-gray-light;
+      border-color: #cbd5e0;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    @media (max-width: 360px) {
+      border-radius: 8px;
+    }
+  }
+
+  // ====== რეგისტრაცია ღილაკი (Register) ======
+  &-register {
+    padding: 11px 28px;
+    font-size: 13px;
+    background: transparent;
+    color: $secondary-orange;
+    border: 2px solid $secondary-orange;
+    border-radius: 16px;
+    position: relative;
+    overflow: hidden;
+
+    @include transition-transform-hover;
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: $secondary-orange;
+      transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      z-index: -1;
+    }
+
+    &:hover {
+      color: $bg-white;
+      box-shadow: 0 6px 20px $shadow-color-orange;
+
+      &::before {
+        left: 0;
+      }
+    }
+
+    @media (max-width: 1024px) {
+      padding: 10px 22px;
+    }
+
+    @media (max-width: 360px) {
+      border-radius: 12px;
+
+      &::before {
+        display: none;
+      }
+
+      &:hover {
+        background-color: $secondary-orange;
+        color: $bg-white;
+      }
+    }
+  }
+
+  // ====== ძირითადი ღილაკი (Primary - Blue) ======
+  &-primary {
+    padding: 12px 28px;
+    font-size: 13px;
+    background: linear-gradient(135deg, $primary-blue 0%, $primary-blue-dark 100%);
+    color: $bg-white;
+    border-radius: 14px;
+    box-shadow: 0 4px 16px rgba($primary-blue, 0.2);
+
+    @include transition-transform-hover;
+
+    &:hover {
+      box-shadow: 0 8px 24px rgba($primary-blue, 0.3);
+      background: linear-gradient(135deg, $primary-blue-dark 0%, $primary-blue 100%);
+    }
+
+    @media (max-width: 1024px) {
+      padding: 10px 22px;
+    }
+  }
+
+  // ====== მეორეული ღილაკი (Secondary - Orange) ======
+  &-secondary {
+    padding: 12px 28px;
+    font-size: 13px;
+    background: transparent;
+    color: $secondary-orange;
+    border: 2px solid $secondary-orange;
+    border-radius: 14px;
+
+    @include transition-transform-hover;
+
+    &:hover {
+      background: $secondary-orange;
+      color: $bg-white;
+      box-shadow: 0 6px 20px $shadow-color-orange;
+    }
+
+    @media (max-width: 1024px) {
+      padding: 10px 22px;
+    }
+  }
+}
+
+// ====================================
+// Hamburger Menu
+// ====================================
+
+.hamburger {
+  display: none;
+  flex-direction: column;
+  gap: 5px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  z-index: 1001;
+  padding: 8px;
+
+  @media (max-width: 640px) {
+    display: flex;
+  }
+
+  span {
+    width: 24px;
+    height: 2.5px;
+    background-color: $text-dark;
+    border-radius: 2px;
+    transition: $transition-default;
+
+    @media (max-width: 480px) {
+      width: 20px;
+      height: 2px;
+    }
+
+    @media (max-width: 360px) {
+      width: 16px;
+      height: 1.5px;
+    }
+  }
+
+  &.active {
+    span:nth-child(1) {
+      transform: rotate(45deg) translate(8px, 8px);
+    }
+
+    span:nth-child(2) {
+      opacity: 0;
+    }
+
+    span:nth-child(3) {
+      transform: rotate(-45deg) translate(7px, -7px);
+    }
+  }
+}
+
+// ====================================
+// Nav Wrapper (Mobile Menu)
+// ====================================
+
+.nav-wrapper {
+  display: contents;
+
+  @media (max-width: 640px) {
+    display: none;
+    position: absolute;
+    top: calc(100% + 12px);
+    left: 0;
+    right: 0;
+    background: $bg-white;
+    border-radius: 16px;
+    padding: 20px 24px;
+    box-shadow: 0 8px 32px rgba($primary-blue, 0.12);
+    flex-direction: column;
+    gap: 16px;
+    z-index: 999;
+
+    &.active {
+      display: flex;
+    }
+  }
+
+  @media (max-width: 480px) {
+    padding: 14px 16px;
+    gap: 12px;
+    top: calc(100% + 8px);
+  }
+
+  @media (max-width: 360px) {
+    left: -6px;
+    right: -6px;
+    padding: 12px 12px;
+    gap: 8px;
+    top: calc(100% + 6px);
+    border-radius: 10px;
+    box-shadow: 0 6px 24px rgba($primary-blue, 0.1);
+  }
+}
+
+// ====================================
+// Responsive Display Classes
+// ====================================
+
+@media (max-width: 768px) {
+  .btn-secondary {
+    display: none;
+  }
+
+  .btn-secondary {
+    @media (max-width: 640px) {
+      display: block;
+    }
+  }
+}
+
+// ====================================
+// Accessibility
+// ====================================
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .navbar,
+  .logo,
+  .logo-icon-box,
+  .nav-links a,
+  .btn,
+  .hamburger span {
+    transition: none !important;
+  }
+}
+
+// ====================================
+// Dark Mode Support
+// ====================================
+
+@media (prefers-color-scheme: dark) {
+  .navbar {
+    background: linear-gradient(135deg, $text-dark 0%, #2d3748 100%);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  }
+
+  .logo-text {
+    color: #f8f9fa;
+  }
+
+  .nav-links a {
+    color: $text-gray-light;
+  }
+
+  .btn {
+    &-signin {
+      color: $text-gray-light;
+      border-color: #4a5568;
+
+      &:hover {
+        background-color: #2d3748;
+        border-color: #718096;
+      }
+    }
+  }
+
+  .nav-wrapper {
+    @media (max-width: 640px) {
+      background: #2d3748;
+    }
+  }
+
+  .hamburger span {
+    background-color: #f8f9fa;
+  }
+}
+
+// ====================================
+// Print Styles
+// ====================================
+
+@media print {
+  .navbar {
+    display: none;
+  }
+}

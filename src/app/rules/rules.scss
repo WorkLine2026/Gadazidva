@@ -1,0 +1,380 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@400;500;600;700&display=swap');
+
+// Design Tokens
+$color-dark-bg: #0f1419;
+$color-dark-card: #1a1f2e;
+$color-dark-border: #2a2f3f;
+$color-gold: #d4af37;
+$color-gold-hover: #e5c158;
+$color-text-primary: #ffffff;
+$color-text-secondary: #b0b9c8;
+$color-blue-accent: #1e40af;
+$color-orange-accent: #f97316;
+$color-red-warning: #ef4444;
+$color-green-success: #10b981;
+
+$font-family-georgian: 'Noto Sans Georgian', sans-serif;
+$font-size-base: 16px;
+
+// Spacing
+$spacing-xs: 8px;
+$spacing-sm: 12px;
+$spacing-md: 16px;
+$spacing-lg: 24px;
+$spacing-xl: 32px;
+$spacing-2xl: 48px;
+
+// Breakpoints
+$breakpoint-mobile: 640px;
+$breakpoint-tablet: 1024px;
+
+// ============================================
+// MAIN CONTAINER
+// ============================================
+.rules {
+  font-family: $font-family-georgian;
+  color: $color-text-primary;
+  background: linear-gradient(135deg, $color-dark-bg 0%, #1a1f2e 50%, #0f1419 100%);
+  padding: $spacing-2xl $spacing-lg;
+  min-height: 100vh;
+
+  @media (max-width: $breakpoint-mobile) {
+    padding: $spacing-xl $spacing-md;
+  }
+}
+
+// ============================================
+// HEADER SECTION
+// ============================================
+.rules-header {
+  text-align: center;
+  margin-bottom: $spacing-2xl;
+  max-width: 900px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-bottom: $spacing-2xl;
+  border-bottom: 2px solid $color-dark-border;
+}
+
+.rules-title {
+  font-size: 52px;
+  font-weight: 700;
+  margin-bottom: $spacing-lg;
+  background: linear-gradient(135deg, $color-gold, $color-gold-hover);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+
+  @media (max-width: $breakpoint-mobile) {
+    font-size: 36px;
+  }
+}
+
+.rules-subtitle {
+  font-size: 18px;
+  color: $color-text-secondary;
+  margin-bottom: $spacing-lg;
+  line-height: 1.6;
+
+  @media (max-width: $breakpoint-mobile) {
+    font-size: 16px;
+  }
+}
+
+.rules-meta {
+  display: flex;
+  justify-content: center;
+  gap: $spacing-lg;
+  flex-wrap: wrap;
+}
+
+.rules-updated {
+  color: $color-gold;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+// ============================================
+// TABLE OF CONTENTS
+// ============================================
+.rules-toc {
+  background: rgba($color-gold, 0.03);
+  border: 1px solid $color-dark-border;
+  border-radius: 12px;
+  padding: $spacing-xl;
+  margin-bottom: $spacing-2xl;
+  max-width: 900px;
+  margin-left: auto;
+  margin-right: auto;
+  top: 20px;
+  
+
+  @media (max-width: $breakpoint-tablet) {
+    position: static;
+  }
+}
+
+.toc-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: $color-gold;
+  margin-bottom: $spacing-lg;
+}
+
+.toc-list {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: $spacing-md;
+
+  @media (max-width: $breakpoint-mobile) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.toc-link {
+  color: $color-text-secondary;
+  text-decoration: none;
+  padding: $spacing-sm $spacing-md;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  font-size: 14px;
+  display: inline-block;
+  cursor: pointer;
+
+  &:hover {
+    color: $color-gold;
+    background: rgba($color-gold, 0.1);
+    transform: translateX(4px);
+  }
+}
+
+// ============================================
+// MAIN CONTENT
+// ============================================
+.rules-content {
+  max-width: 900px;
+  margin-left: auto;
+  margin-right: auto;
+  margin-bottom: $spacing-2xl;
+}
+
+// Section
+.rule-section {
+  margin-bottom: $spacing-2xl;
+  scroll-margin-top: 100px;
+}
+
+.section-title {
+  font-size: 32px;
+  font-weight: 700;
+  color: $color-gold;
+  margin-bottom: $spacing-lg;
+  padding-bottom: $spacing-lg;
+  border-bottom: 2px solid $color-dark-border;
+
+  @media (max-width: $breakpoint-mobile) {
+    font-size: 24px;
+  }
+}
+
+// Block
+.rule-block {
+  background: $color-dark-card;
+  border: 1px solid $color-dark-border;
+  border-radius: 12px;
+  padding: $spacing-lg;
+  margin-bottom: $spacing-lg;
+  transition: all 0.3s ease;
+
+  &:hover {
+    border-color: $color-gold;
+    box-shadow: 0 8px 32px rgba($color-gold, 0.1);
+  }
+}
+
+.block-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: $color-gold;
+  margin-bottom: $spacing-md;
+  line-height: 1.5;
+}
+
+.block-text {
+  color: $color-text-secondary;
+  font-size: 15px;
+  line-height: 1.7;
+  margin: 0;
+
+  strong {
+    color: $color-gold;
+  }
+}
+
+.rule-list {
+  list-style: none;
+  padding: 0;
+  margin: $spacing-md 0;
+
+  li {
+    color: $color-text-secondary;
+    margin-bottom: $spacing-sm;
+    padding-left: $spacing-lg;
+    position: relative;
+    font-size: 14px;
+    line-height: 1.6;
+
+    &::before {
+      content: '▸';
+      position: absolute;
+      left: 0;
+      color: $color-orange-accent;
+      font-weight: bold;
+      font-size: 18px;
+    }
+
+    strong {
+      color: $color-gold;
+    }
+  }
+}
+
+// ============================================
+// FINAL NOTE
+// ============================================
+.rules-final {
+  background: linear-gradient(135deg, rgba($color-gold, 0.1), rgba($color-orange-accent, 0.1));
+  border: 2px solid $color-dark-border;
+  border-radius: 16px;
+  padding: $spacing-xl;
+  text-align: center;
+  max-width: 900px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.final-note {
+  color: $color-text-secondary;
+  font-size: 16px;
+  line-height: 1.7;
+  margin: 0;
+
+  strong {
+    color: $color-gold;
+  }
+}
+
+// ============================================
+// RESPONSIVE ADJUSTMENTS
+// ============================================
+@media (max-width: $breakpoint-mobile) {
+  .rules {
+    padding: $spacing-lg $spacing-md;
+  }
+
+  .rule-block {
+    padding: $spacing-md;
+  }
+
+  .block-title {
+    font-size: 16px;
+  }
+
+  .block-text {
+    font-size: 14px;
+  }
+
+  .rule-list li {
+    padding-left: $spacing-md;
+    font-size: 13px;
+  }
+}
+
+// ============================================
+// PRINT STYLES
+// ============================================
+@media print {
+  .rules {
+    background: white;
+    color: black;
+    padding: 20px;
+  }
+
+  .rules-title,
+  .section-title,
+  .block-title {
+    color: #000;
+  }
+
+  .rule-block {
+    background: #f9f9f9;
+    border: 1px solid #ddd;
+    page-break-inside: avoid;
+  }
+
+  .toc-link:hover {
+    background: none;
+  }
+
+  .rules-toc {
+    position: static;
+    background: #f9f9f9;
+  }
+}
+
+// ============================================
+// SCROLLBAR STYLING
+// ============================================
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: $color-dark-bg;
+}
+
+::-webkit-scrollbar-thumb {
+  background: $color-gold;
+  border-radius: 5px;
+
+  &:hover {
+    background: $color-gold-hover;
+  }
+}
+
+// ============================================
+// ANIMATION
+// ============================================
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.rule-section {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+// ============================================
+// ACCESSIBILITY
+// ============================================
+a {
+  &:focus {
+    outline: 2px solid $color-gold;
+    outline-offset: 2px;
+  }
+}
+
+.block-text,
+.rule-list li {
+  &:focus-visible {
+    outline: 2px solid $color-gold;
+    outline-offset: 4px;
+  }
+}

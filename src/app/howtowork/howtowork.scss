@@ -1,0 +1,487 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@400;500;600;700&display=swap');
+
+// Design Tokens
+$color-dark-bg: #0f1419;
+$color-dark-card: #1a1f2e;
+$color-dark-border: #2a2f3f;
+$color-gold: #d4af37;
+$color-gold-hover: #e5c158;
+$color-text-primary: #ffffff;
+$color-text-secondary: #b0b9c8;
+$color-blue-accent: #1e40af;
+$color-orange-accent: #f97316;
+$color-success: #10b981;
+
+$font-family-georgian: 'Noto Sans Georgian', sans-serif;
+$font-size-base: 16px;
+
+// Spacing
+$spacing-xs: 8px;
+$spacing-sm: 12px;
+$spacing-md: 16px;
+$spacing-lg: 24px;
+$spacing-xl: 32px;
+$spacing-2xl: 48px;
+
+// Breakpoints
+$breakpoint-mobile: 640px;
+$breakpoint-tablet: 1024px;
+
+// Utilities
+.how-it-works {
+  font-family: $font-family-georgian;
+  color: $color-text-primary;
+  background: linear-gradient(135deg, $color-dark-bg 0%, #1a1f2e 50%, #0f1419 100%);
+  padding: $spacing-2xl $spacing-lg;
+  min-height: 100vh;
+
+  @media (max-width: $breakpoint-mobile) {
+    padding: $spacing-xl $spacing-md;
+  }
+}
+
+// ============================================
+// INTRO SECTION
+// ============================================
+.how-intro {
+  text-align: center;
+  margin-bottom: $spacing-2xl;
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.how-title {
+  font-size: 48px;
+  font-weight: 700;
+  margin-bottom: $spacing-lg;
+  background: linear-gradient(135deg, $color-gold, $color-gold-hover);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+
+  @media (max-width: $breakpoint-mobile) {
+    font-size: 32px;
+  }
+}
+
+.how-description {
+  font-size: 18px;
+  color: $color-text-secondary;
+  line-height: 1.6;
+
+  @media (max-width: $breakpoint-mobile) {
+    font-size: 16px;
+  }
+}
+
+// ============================================
+// TWO-COLUMN FLOWS
+// ============================================
+.how-flows {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: $spacing-2xl;
+  margin-bottom: $spacing-2xl;
+
+  @media (max-width: $breakpoint-tablet) {
+    grid-template-columns: 1fr;
+    gap: $spacing-xl;
+  }
+}
+
+.flow-column {
+  background: $color-dark-card;
+  border: 1px solid $color-dark-border;
+  border-radius: 16px;
+  padding: $spacing-xl;
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+
+  &:hover {
+    border-color: $color-gold;
+    box-shadow: 0 8px 32px rgba($color-gold, 0.1);
+  }
+
+  &.sender-flow {
+    border-left: 4px solid $color-blue-accent;
+  }
+
+  &.driver-flow {
+    border-left: 4px solid $color-orange-accent;
+  }
+}
+
+// Flow Header
+.flow-header {
+  margin-bottom: $spacing-xl;
+  padding-bottom: $spacing-lg;
+  border-bottom: 2px solid $color-dark-border;
+}
+
+.flow-title {
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: $spacing-md;
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+
+  @media (max-width: $breakpoint-mobile) {
+    font-size: 24px;
+  }
+}
+
+.flow-icon {
+  font-size: 32px;
+  display: inline-block;
+}
+
+.flow-subtitle {
+  color: $color-text-secondary;
+  font-size: 14px;
+}
+
+// ============================================
+// STEPS CONTAINER
+// ============================================
+.steps-container {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-lg;
+  margin-bottom: $spacing-xl;
+}
+
+.step-card {
+  background: rgba($color-gold, 0.02);
+  border: 1px solid $color-dark-border;
+  border-radius: 12px;
+  padding: $spacing-lg;
+  display: flex;
+  gap: $spacing-lg;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 4px;
+    background: linear-gradient(180deg, $color-gold, transparent);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  &:hover {
+    border-color: $color-gold;
+    background: rgba($color-gold, 0.05);
+    box-shadow: 0 4px 16px rgba($color-gold, 0.1);
+
+    &::before {
+      opacity: 1;
+    }
+  }
+}
+
+.step-number {
+  min-width: 56px;
+  width: 56px;
+  height: 56px;
+  background: linear-gradient(135deg, $color-gold, $color-gold-hover);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 24px;
+  color: $color-dark-bg;
+  flex-shrink: 0;
+}
+
+.step-content {
+  flex: 1;
+}
+
+.step-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: $spacing-md;
+  color: $color-text-primary;
+}
+
+.step-description {
+  color: $color-text-secondary;
+  margin-bottom: $spacing-md;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.step-details {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 $spacing-md 0;
+
+  li {
+    color: $color-text-secondary;
+    margin-bottom: $spacing-sm;
+    padding-left: $spacing-md;
+    position: relative;
+    font-size: 14px;
+    line-height: 1.5;
+
+    &::before {
+      content: '▸';
+      position: absolute;
+      left: 0;
+      color: $color-gold;
+      font-weight: bold;
+    }
+
+    strong {
+      color: $color-gold;
+    }
+  }
+}
+
+.step-note {
+  background: rgba($color-gold, 0.08);
+  border-left: 3px solid $color-gold;
+  padding: $spacing-sm $spacing-md;
+  border-radius: 4px;
+  font-size: 13px;
+  color: $color-text-secondary;
+
+  strong {
+    color: $color-gold;
+  }
+}
+
+// ============================================
+// FLOW BENEFITS
+// ============================================
+.flow-benefits {
+  background: rgba($color-gold, 0.03);
+  border: 1px solid $color-dark-border;
+  border-radius: 12px;
+  padding: $spacing-lg;
+  margin-top: $spacing-xl;
+}
+
+.benefits-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: $spacing-lg;
+  color: $color-gold;
+}
+
+.benefits-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: $spacing-md;
+}
+
+.benefit-item {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+  padding: $spacing-sm;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: rgba($color-gold, 0.08);
+  }
+}
+
+.benefit-icon {
+  font-size: 24px;
+  min-width: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.benefit-text {
+  color: $color-text-secondary;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+// ============================================
+// FAQ SECTION
+// ============================================
+.how-faq {
+  background: $color-dark-card;
+  border: 1px solid $color-dark-border;
+  border-radius: 16px;
+  padding: $spacing-xl;
+  margin-bottom: $spacing-2xl;
+  backdrop-filter: blur(10px);
+}
+
+.faq-title {
+  font-size: 32px;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: $spacing-2xl;
+  color: $color-gold;
+
+  @media (max-width: $breakpoint-mobile) {
+    font-size: 24px;
+  }
+}
+
+.faq-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: $spacing-lg;
+
+  @media (max-width: $breakpoint-tablet) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.faq-item {
+  background: rgba($color-gold, 0.02);
+  border: 1px solid $color-dark-border;
+  border-radius: 12px;
+  padding: $spacing-lg;
+  transition: all 0.3s ease;
+
+  &:hover {
+    border-color: $color-gold;
+    box-shadow: 0 4px 16px rgba($color-gold, 0.1);
+  }
+}
+
+.faq-question {
+  font-size: 16px;
+  font-weight: 600;
+  color: $color-gold;
+  margin-bottom: $spacing-md;
+  line-height: 1.5;
+}
+
+.faq-answer {
+  color: $color-text-secondary;
+  font-size: 14px;
+  line-height: 1.6;
+  margin: 0;
+}
+
+// ============================================
+// CTA SECTION
+// ============================================
+.how-cta {
+  text-align: center;
+  background: linear-gradient(135deg, rgba($color-gold, 0.1), rgba($color-orange-accent, 0.1));
+  border: 1px solid $color-dark-border;
+  border-radius: 16px;
+  padding: $spacing-2xl;
+  margin-top: $spacing-2xl;
+
+  @media (max-width: $breakpoint-mobile) {
+    padding: $spacing-xl;
+  }
+}
+
+.cta-title {
+  font-size: 36px;
+  font-weight: 700;
+  margin-bottom: $spacing-lg;
+  background: linear-gradient(135deg, $color-gold, $color-gold-hover);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+
+  @media (max-width: $breakpoint-mobile) {
+    font-size: 28px;
+  }
+}
+
+.cta-description {
+  color: $color-text-secondary;
+  font-size: 16px;
+  margin-bottom: $spacing-lg;
+  line-height: 1.6;
+}
+
+.cta-buttons {
+  display: flex;
+  gap: $spacing-md;
+  justify-content: center;
+  flex-wrap: wrap;
+
+  @media (max-width: $breakpoint-mobile) {
+    flex-direction: column;
+  }
+}
+
+// ============================================
+// BUTTON STYLES
+// ============================================
+.button {
+  padding: $spacing-md $spacing-lg;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: $font-family-georgian;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: $spacing-sm;
+
+  &:active {
+    transform: scale(0.98);
+  }
+}
+
+.button-primary {
+  background: linear-gradient(135deg, $color-gold, $color-gold-hover);
+  color: $color-dark-bg;
+
+  &:hover {
+    box-shadow: 0 8px 24px rgba($color-gold, 0.3);
+    transform: translateY(-2px);
+  }
+}
+
+.button-secondary {
+  background: rgba($color-orange-accent, 0.2);
+  color: $color-orange-accent;
+  border: 1px solid $color-orange-accent;
+
+  &:hover {
+    background: rgba($color-orange-accent, 0.3);
+    border-color: $color-gold;
+    color: $color-gold;
+  }
+}
+
+// ============================================
+// RESPONSIVE ADJUSTMENTS
+// ============================================
+@media (max-width: $breakpoint-mobile) {
+  .step-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .step-number {
+    min-width: 48px;
+    width: 48px;
+    height: 48px;
+    font-size: 20px;
+  }
+
+  .flow-benefits {
+    margin-top: $spacing-lg;
+  }
+}
