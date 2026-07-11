@@ -1,197 +1,1062 @@
-/* ========== ბაზისური სტილები ========== */
-.profile-wrapper {
-  min-height: 100vh;
-  background: #f8fafc;
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  color: #0f172a;
-  padding: 40px 20px;
+// ============================================
+// PROFILE COMPONENT - BEAUTIFUL SCSS STYLING
+// ============================================
+
+// ========== DESIGN TOKENS ==========
+$color-primary: #2563eb;
+$color-primary-dark: #1e40af;
+$color-primary-light: #eff6ff;
+$color-accent: #f97316;
+$color-accent-light: #ffedd5;
+
+$color-success: #10b981;
+$color-error: #ef4444;
+$color-warning: #f59e0b;
+
+$color-bg: #f8fafc;
+$color-bg-light: #f1f5f9;
+$color-border: #e2e8f0;
+$color-border-light: #f1f5f9;
+$color-text-primary: #0f172a;
+$color-text-secondary: #475569;
+$color-text-tertiary: #64748b;
+
+$spacing-xs: 4px;
+$spacing-sm: 8px;
+$spacing-md: 12px;
+$spacing-lg: 16px;
+$spacing-xl: 20px;
+$spacing-2xl: 24px;
+$spacing-3xl: 32px;
+$spacing-4xl: 40px;
+
+$border-radius-sm: 8px;
+$border-radius-md: 12px;
+$border-radius-lg: 16px;
+$border-radius-xl: 20px;
+$border-radius-2xl: 24px;
+$border-radius-3xl: 28px;
+
+$font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+$font-size-xs: 12px;
+$font-size-sm: 13px;
+$font-size-base: 14px;
+$font-size-md: 15px;
+$font-size-lg: 16px;
+$font-size-xl: 18px;
+$font-size-2xl: 20px;
+$font-size-3xl: 22px;
+$font-size-4xl: 24px;
+
+$shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
+$shadow-md: 0 4px 16px rgba(0, 0, 0, 0.06);
+$shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.08);
+$shadow-xl: 0 20px 50px rgba(0, 0, 0, 0.1);
+
+$transition-fast: 0.15s ease;
+$transition-base: 0.2s ease;
+$transition-slow: 0.3s ease;
+
+// ========== UTILITY MIXINS ==========
+
+@mixin button-base {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: $spacing-md;
+  padding: $spacing-md $spacing-lg;
+  border: none;
+  border-radius: $border-radius-md;
+  font-family: $font-family;
+  font-weight: 600;
+  font-size: $font-size-sm;
+  cursor: pointer;
+  transition: all $transition-fast;
+  text-decoration: none;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+}
+
+@mixin glass-effect {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+@mixin gradient-primary {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: #ffffff;
+}
+
+@mixin gradient-accent {
+  background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+  color: #ffffff;
+}
+
+@mixin flex-between {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+@mixin flex-center {
   display: flex;
   justify-content: center;
+  align-items: center;
+}
+
+// ========== GLOBAL STYLES ==========
+
+.profile-wrapper {
+  min-height: 100vh;
+  background: $color-bg;
+  font-family: $font-family;
+  color: $color-text-primary;
+  padding: $spacing-4xl $spacing-lg;
+  display: flex;
+  justify-content: center;
+
+  @media (max-width: 768px) {
+    padding: $spacing-2xl $spacing-lg;
+  }
 }
 
 .profile-container {
   width: 100%;
-  max-width: 1200px; /* გავზარდეთ მაქსიმალური სიგანე გვერდიგვერდ განლაგებისთვის */
+  max-width: 1400px;
   background: #ffffff;
-  border-radius: 24px;
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.01);
-  padding: 40px;
+  border-radius: $border-radius-2xl;
+  box-shadow: $shadow-lg;
+  padding: $spacing-4xl;
   display: flex;
   flex-direction: column;
-  gap: 32px;
+  gap: $spacing-3xl;
+
+  @media (max-width: 768px) {
+    padding: $spacing-2xl;
+    border-radius: $border-radius-xl;
+  }
 }
 
-/* ========== ჰედერი (HEADER) ========== */
+// ========== HEADER ==========
+
 .profile-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 1px solid #f1f5f9;
-  padding-bottom: 24px;
+  @include flex-between;
+  border-bottom: 2px solid $color-border-light;
+  padding-bottom: $spacing-2xl;
+  gap: $spacing-2xl;
+
+  @media (max-width: 640px) {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 }
 
-.profile-title { font-size: 22px; font-weight: 700; }
-.back-btn, .menu-btn {
-  background: #ffffff; border: 1px solid #e2e8f0; padding: 10px 18px; border-radius: 12px;
-  cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 14px; color: #475569;
+.profile-title {
+  font-size: $font-size-4xl;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  margin: 0;
+
+  @media (max-width: 640px) {
+    font-size: $font-size-2xl;
+  }
 }
 
-/* ==================== 🛠️ ორსვეტიანი ახალი წყობა ==================== */
+.back-btn,
+.menu-btn {
+  @include button-base;
+  background: #ffffff;
+  color: $color-text-secondary;
+  border: 1px solid $color-border;
+
+  &:hover {
+    background: $color-bg-light;
+    border-color: $color-text-secondary;
+    color: $color-text-primary;
+  }
+
+  &:active {
+    background: $color-border;
+  }
+}
+
+// ========== LAYOUT GRID ==========
+
 .profile-layout-grid {
-  display: flex;
-  gap: 32px;
-  align-items: flex-start;
+  display: grid;
+  grid-template-columns: 380px 1fr;
+  gap: $spacing-3xl;
+  align-items: start;
+
+  @media (max-width: 1024px) {
+    grid-template-columns: 320px 1fr;
+    gap: $spacing-2xl;
+  }
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    gap: $spacing-2xl;
+  }
 }
 
-/* მარცხენა სვეტი (ფიქსირებული ზომა გვერდზე) */
 .profile-sidebar-column {
-  flex: 0 0 380px; 
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: $spacing-2xl;
+
+  @media (max-width: 768px) {
+    flex-direction: row;
+    align-items: stretch;
+    gap: $spacing-2xl;
+
+    > * {
+      flex: 1;
+    }
+  }
+
+  @media (max-width: 480px) {
+    flex-direction: column;
+  }
 }
 
-/* მარჯვენა სვეტი (იკავებს მთელ დარჩენილ ადგილს სიგანეზე) */
 .profile-main-column {
-  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-2xl;
 }
 
-/* ========== მარცხენა სვეტის იუზერ ქარდი ========== */
+// ========== USER CARD ==========
+
 .user-card {
-  background: linear-gradient(135deg, #f3e8ff 0%, #e0e7ff 100%);
-  border-radius: 24px;
-  padding: 32px;
+  position: relative;
+  background: linear-gradient(135deg, #f3e8ff 0%, #e0e7ff 50%, #dbeafe 100%);
+  border-radius: $border-radius-2xl;
+  padding: $spacing-3xl;
   display: flex;
-  flex-direction: column; /* სვეტურად შიგნით, რადგან თავად ქარდი ვიწროვდება */
-  gap: 24px;
+  flex-direction: column;
+  gap: $spacing-2xl;
   align-items: center;
   text-align: center;
+  overflow: hidden;
+  box-shadow: $shadow-md;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 200px;
+    height: 200px;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.3) 0%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+  }
+
+  @media (max-width: 768px) {
+    padding: $spacing-2xl;
+  }
 }
 
 .avatar {
+  position: relative;
+  z-index: 1;
   width: 110px;
   height: 110px;
-  border-radius: 28px;
-  background: #ffffff;
+  border-radius: $border-radius-3xl;
+  background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 36px;
+  font-size: $font-size-4xl;
   font-weight: 700;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.1);
   border: 4px solid #ffffff;
+  color: $color-primary;
+
+  @media (max-width: 768px) {
+    width: 90px;
+    height: 90px;
+    font-size: $font-size-2xl;
+  }
 }
 
 .user-info-block {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+  width: 100%;
+}
+
+.user-name {
+  font-size: $font-size-4xl;
+  font-weight: 700;
+  color: $color-text-primary;
+  letter-spacing: -0.3px;
+
+  @media (max-width: 480px) {
+    font-size: $font-size-xl;
+  }
+}
+
+.user-profession {
+  font-size: $font-size-md;
+  color: $color-text-tertiary;
+}
+
+.role-badge {
+  display: inline-block;
+  font-size: $font-size-xs;
+  padding: $spacing-sm $spacing-md;
+  border-radius: $border-radius-md;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: $spacing-sm;
+  align-self: center;
+
+  &.role-driver {
+    background: linear-gradient(135deg, #e0f2fe, #bae6fd);
+    color: #0369a1;
+  }
+
+  &.role-sender {
+    background: linear-gradient(135deg, #fce7f3, #fbcfe8);
+    color: #be123c;
+  }
+}
+
+.user-status-inline {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+  width: 100%;
+  padding: $spacing-lg;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: $border-radius-lg;
+  font-size: $font-size-sm;
+
+  .verified {
+    color: $color-success;
+    font-weight: 700;
+  }
+
+  .unverified {
+    color: $color-error;
+    font-weight: 700;
+  }
+}
+
+.user-actions {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  gap: $spacing-md;
+  width: 100%;
+  justify-content: center;
+
+  @media (max-width: 480px) {
+    flex-direction: column;
+  }
+}
+
+.edit-btn {
+  @include button-base;
+  @include gradient-primary;
+  flex: 1;
+  box-shadow: $shadow-md;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: $shadow-lg;
+  }
+
+  @media (max-width: 480px) {
+    flex: auto;
+  }
+}
+
+.btn-secondary-outline {
+  @include button-base;
+  background: rgba(255, 255, 255, 0.8);
+  color: $color-text-primary;
+  border: 2px solid #ffffff;
+  backdrop-filter: blur(10px);
+
+  &:hover {
+    background: #ffffff;
+    box-shadow: $shadow-md;
+  }
+}
+
+// ========== STATS CONTAINER ==========
+
+.stats-container {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: $spacing-xl;
+  width: 100%;
+  border-top: 2px solid rgba(255, 255, 255, 0.6);
+  padding-top: $spacing-xl;
+}
+
+.stat-box {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
+  gap: $spacing-sm;
+  padding: $spacing-md;
 }
 
-.user-name { font-size: 24px; font-weight: 700; color: #0f172a; }
-.user-profession { font-size: 14px; color: #64748b; }
-.role-badge { display: inline-block; font-size: 11px; padding: 4px 12px; border-radius: 8px; font-weight: 600; text-transform: uppercase; margin-top: 6px;}
-.role-driver { background: #e0f2fe; color: #0369a1; }
-.role-sender { background: #fce7f3; color: #b91c1c; }
-
-.user-status-inline { display: flex; flex-direction: column; gap: 4px; font-size: 13px; }
-.verified { color: #10b981; font-weight: 600; }
-.unverified { color: #ef4444; font-weight: 600; }
-
-.user-actions { display: flex; gap: 8px; width: 100%; justify-content: center; }
-.edit-btn { background: #0f172a; color: #ffffff; border: none; padding: 10px 18px; border-radius: 10px; font-weight: 600; font-size: 13px; cursor: pointer; }
-.btn-secondary-outline { background: #ffffff; color: #0f172a; border: 1px solid #e2e8f0; padding: 10px 18px; border-radius: 10px; font-weight: 600; font-size: 13px; cursor: pointer; }
-
-/* სტატისტიკა ქარდის შიგნით */
-.stats-container {
-  display: flex;
-  justify-content: space-around;
-  width: 100%;
-  border-top: 1px solid rgba(0, 0, 0, 0.05);
-  padding-top: 20px;
-}
-
-.stat-box { display: flex; flex-direction: column; align-items: center; }
-.stat-value { font-size: 20px; font-weight: 700; color: #0f172a; }
-.stat-label { font-size: 12px; color: #64748b; margin-top: 4px; }
-
-/* ========== მარჯვენა სვეტი: პარამეტრების სია (სიგანეზე გაშლილი) ========== */
-.main-settings-menu {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.menu-group-title {
-  font-size: 14px;
+.stat-value {
+  font-size: $font-size-2xl;
   font-weight: 700;
-  color: #64748b;
+  color: $color-text-primary;
+}
+
+.stat-label {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
+// ========== INFO CARD (CAR DETAILS) ==========
+
+.info-card {
+  border: 1px solid $color-border;
+  border-radius: $border-radius-xl;
+  padding: $spacing-xl;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  transition: all $transition-base;
+
+  &:hover {
+    border-color: $color-primary;
+    box-shadow: $shadow-md;
+  }
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: $spacing-md;
+  margin-top: $spacing-md;
+}
+
+.info-item {
+  background: linear-gradient(135deg, $color-bg-light, $color-bg);
+  padding: $spacing-md;
+  border-radius: $border-radius-lg;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+  transition: all $transition-fast;
+
+  &:hover {
+    background: $color-bg-light;
+    transform: translateY(-1px);
+  }
+}
+
+.info-label {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.info-value {
+  font-size: $font-size-md;
+  font-weight: 700;
+  color: $color-text-primary;
+}
+
+.plate-number {
+  font-family: 'Courier New', monospace;
+  background: linear-gradient(135deg, $color-primary-light, $color-bg-light);
+  color: $color-primary;
+  padding: $spacing-xs $spacing-md;
+  border-radius: $border-radius-sm;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+// ========== EDIT SECTION ==========
+
+.edit-section {
+  border: 1px solid $color-border;
+  border-radius: $border-radius-xl;
+  padding: $spacing-3xl;
+  background: #ffffff;
+  box-shadow: $shadow-sm;
+
+  h3 {
+    font-size: $font-size-xl;
+    font-weight: 700;
+    margin-bottom: $spacing-sm;
+    color: $color-text-primary;
+  }
+
+  > p {
+    font-size: $font-size-sm;
+    color: $color-text-tertiary;
+    margin-bottom: $spacing-2xl;
+  }
+
+  @media (max-width: 640px) {
+    padding: $spacing-2xl;
+  }
+}
+
+.profile-form {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xl;
+  margin-top: $spacing-xl;
+}
+
+.form-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: $spacing-xl;
+
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.form-row {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+}
+
+.field-label {
+  font-size: $font-size-sm;
+  font-weight: 700;
+  color: $color-text-secondary;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.input-field {
+  padding: $spacing-md $spacing-lg;
+  border: 2px solid $color-border;
+  border-radius: $border-radius-lg;
+  background: $color-bg-light;
+  font-family: $font-family;
+  font-size: $font-size-md;
+  color: $color-text-primary;
+  outline: none;
+  transition: all $transition-fast;
+
+  &:focus {
+    border-color: $color-primary;
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  }
+
+  &:disabled {
+    background: $color-bg;
+    color: $color-text-tertiary;
+    cursor: not-allowed;
+    border-color: $color-border;
+  }
+
+  &::placeholder {
+    color: $color-text-tertiary;
+  }
+}
+
+.form-actions {
+  display: flex;
+  gap: $spacing-lg;
+  margin-top: $spacing-xl;
+
+  @media (max-width: 640px) {
+    flex-direction: column;
+  }
+}
+
+.btn-primary,
+.btn-secondary {
+  @include button-base;
+  padding: $spacing-md $spacing-2xl;
+  font-size: $font-size-md;
+  border-radius: $border-radius-lg;
+}
+
+.btn-primary {
+  @include gradient-primary;
+  box-shadow: $shadow-md;
+
+  &:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: $shadow-lg;
+  }
+}
+
+.btn-secondary {
+  background: $color-bg-light;
+  color: $color-text-secondary;
+  border: 1px solid $color-border;
+
+  &:hover:not(:disabled) {
+    background: $color-border;
+    color: $color-text-primary;
+  }
+}
+
+// ========== REQUESTS SECTION ==========
+
+.requests-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+  gap: $spacing-xl;
+  margin-top: $spacing-xl;
+
+  @media (max-width: 1024px) {
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  }
+
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.request-card {
+  background: #ffffff;
+  border: 1px solid $color-border;
+  border-radius: $border-radius-xl;
+  padding: $spacing-xl;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-lg;
+  transition: all $transition-base;
+  box-shadow: $shadow-sm;
+  overflow: hidden;
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, $color-primary, $color-accent);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform $transition-base;
+  }
+
+  &:hover {
+    border-color: $color-primary;
+    box-shadow: $shadow-lg;
+    transform: translateY(-4px);
+
+    &::before {
+      transform: scaleX(1);
+    }
+  }
+}
+
+.request-header {
+  @include flex-between;
+  gap: $spacing-lg;
+
+  @media (max-width: 480px) {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+.request-route {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+  font-weight: 700;
+  color: $color-text-primary;
+
+  .route-from {
+    padding: $spacing-sm $spacing-md;
+    background: $color-primary-light;
+    color: $color-primary;
+    border-radius: $border-radius-md;
+    font-size: $font-size-md;
+  }
+
+  .route-arrow {
+    color: $color-text-tertiary;
+    font-size: $font-size-lg;
+  }
+
+  .route-to {
+    padding: $spacing-sm $spacing-md;
+    background: $color-accent-light;
+    color: $color-accent;
+    border-radius: $border-radius-md;
+    font-size: $font-size-md;
+  }
+}
+
+.status-badge {
+  display: inline-block;
+  font-size: $font-size-xs;
+  padding: $spacing-sm $spacing-md;
+  border-radius: $border-radius-md;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+
+  &.status-pending {
+    background: #fef3c7;
+    color: #92400e;
+  }
+
+  &.status-accepted {
+    background: #dcfce7;
+    color: #166534;
+  }
+
+  &.status-in-transit {
+    background: #dbeafe;
+    color: #0c4a6e;
+  }
+
+  &.status-delivered {
+    background: #d1fae5;
+    color: #065f46;
+  }
+
+  &.status-cancelled {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+}
+
+.request-body {
+  padding: $spacing-lg 0;
+  border-top: 1px solid $color-border-light;
+  border-bottom: 1px solid $color-border-light;
+}
+
+.request-info-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: $spacing-md;
+
+  @media (max-width: 480px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.info-box {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+  padding: $spacing-md;
+  background: $color-bg;
+  border-radius: $border-radius-lg;
+  text-align: center;
+}
+
+.info-box-label {
+  font-size: $font-size-xs;
+  color: $color-text-tertiary;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.info-box-value {
+  font-size: $font-size-md;
+  font-weight: 700;
+  color: $color-text-primary;
+}
+
+.request-footer {
+  @include flex-between;
+  gap: $spacing-lg;
+
+  @media (max-width: 480px) {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+.btn-view-details {
+  @include button-base;
+  background: $color-primary-light;
+  color: $color-primary;
+  font-weight: 700;
+
+  &:hover {
+    background: $color-primary;
+    color: #ffffff;
+  }
+}
+
+// ========== MENU SECTION ==========
+
+.menu-group-title {
+  font-size: $font-size-sm;
+  font-weight: 700;
+  color: $color-text-tertiary;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: $spacing-lg;
+}
+
 .menu-list {
   background: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 20px;
+  border: 1px solid $color-border;
+  border-radius: $border-radius-xl;
   overflow: hidden;
+  box-shadow: $shadow-sm;
 }
 
 .menu-item-row {
   width: 100%;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 22px 28px; /* გაზრდილი შიდა სივრცე უფრო დიდი სიგანისთვის */
+  @include flex-between;
+  padding: $spacing-xl $spacing-2xl;
   background: #ffffff;
   border: none;
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid $color-border-light;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all $transition-fast;
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &:hover {
+    background: $color-bg;
+
+    .menu-item-arrow {
+      transform: translateX(6px);
+      color: $color-text-primary;
+    }
+  }
+
+  @media (max-width: 640px) {
+    padding: $spacing-lg $spacing-xl;
+  }
 }
 
-.menu-list .menu-item-row:last-child { border-bottom: none; }
-.menu-item-row:hover { background: #f8fafc; }
-.menu-item-left { display: flex; align-items: center; gap: 20px; }
-.menu-item-icon { font-size: 20px; background: #f1f5f9; padding: 10px; border-radius: 12px; }
-.menu-item-text { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; }
-.menu-item-title { font-size: 16px; font-weight: 600; color: #0f172a; }
-.menu-item-sub { font-size: 13px; color: #64748b; }
-.menu-item-arrow { color: #94a3b8; font-size: 16px; transition: transform 0.2s; }
-.menu-item-row:hover .menu-item-arrow { transform: translateX(4px); color: #0f172a; }
+.menu-item-left {
+  display: flex;
+  align-items: center;
+  gap: $spacing-xl;
+}
 
-.logout-row .menu-item-icon { background: #fff1f2; color: #e11d48; }
-.logout-row .menu-item-title { color: #e11d48; }
-.delete-row .menu-item-title { color: #991b1b; }
+.menu-item-icon {
+  font-size: $font-size-2xl;
+  background: $color-bg;
+  padding: $spacing-lg;
+  border-radius: $border-radius-lg;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 48px;
+  min-height: 48px;
+}
 
-/* ავტომობილის დეტალების პატარა ქარდი */
-.info-card { border: 1px solid #e2e8f0; border-radius: 20px; padding: 20px; background: #ffffff; }
-.info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
-.info-item { background: #f8fafc; padding: 12px; border-radius: 10px; display: flex; flex-direction: column; gap: 4px; }
-.info-label { font-size: 12px; color: #64748b; }
-.info-value { font-size: 14px; font-weight: 600; }
-.plate-number { font-family: monospace; background: #e2e8f0; padding: 2px 6px; border-radius: 4px; }
+.menu-item-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: $spacing-sm;
+}
 
-/* რედაქტირების ფორმის სტილი */
-.edit-section { border: 1px solid #e2e8f0; border-radius: 20px; padding: 28px; background: #ffffff; }
-.profile-form { display: flex; flex-direction: column; gap: 16px; margin-top: 20px; }
-.form-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-.form-row { display: flex; flex-direction: column; gap: 6px; }
-.field-label { font-size: 14px; font-weight: 600; color: #475569; }
-.input-field { padding: 12px 16px; border: 1px solid #cbd5e1; border-radius: 12px; background: #f8fafc; outline: none; }
-.input-field:focus { border-color: #3b82f6; background: #ffffff; }
-.form-actions { display: flex; gap: 12px; }
-.btn-primary { background: #3b82f6; color: white; border: none; padding: 12px 24px; border-radius: 12px; font-weight: 600; cursor: pointer; }
-.btn-secondary { background: #f1f5f9; color: #475569; border: none; padding: 12px 24px; border-radius: 12px; font-weight: 600; cursor: pointer; }
+.menu-item-title {
+  font-size: $font-size-md;
+  font-weight: 700;
+  color: $color-text-primary;
+}
 
-/* ========== მობილურის ადაპტაცია (ავტომატურად ჩამოიშლება ქვემოთ, თუ ეკრანი პატარაა) ========== */
-@media (max-width: 868px) {
-  .profile-layout-grid {
-    flex-direction: column;
-    align-items: stretch;
+.menu-item-sub {
+  font-size: $font-size-sm;
+  color: $color-text-tertiary;
+}
+
+.menu-item-arrow {
+  color: $color-text-tertiary;
+  font-size: $font-size-xl;
+  transition: all $transition-base;
+}
+
+.logout-row {
+  &:hover {
+    background: rgba(239, 68, 68, 0.05);
   }
-  .profile-sidebar-column {
-    flex: 1;
+
+  .menu-item-icon {
+    background: #fee2e2;
+    color: $color-error;
+  }
+
+  .menu-item-title {
+    color: $color-error;
+  }
+}
+
+.delete-row {
+  &:hover {
+    background: rgba(153, 27, 27, 0.05);
+  }
+
+  .menu-item-title {
+    color: #991b1b;
+  }
+}
+
+// ========== LOADING STATE ==========
+
+.loading-skeleton {
+  height: 200px;
+  background: linear-gradient(90deg, $color-bg 25%, $color-bg-light 50%, $color-bg 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+  border-radius: $border-radius-xl;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: $color-text-tertiary;
+  font-weight: 600;
+}
+
+@keyframes loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+// ========== EMPTY STATE ==========
+
+.empty-state {
+  text-align: center;
+  padding: $spacing-4xl $spacing-2xl;
+  background: $color-bg;
+  border-radius: $border-radius-xl;
+  color: $color-text-tertiary;
+
+  div:nth-child(1) {
+    font-size: 48px;
+    margin-bottom: $spacing-xl;
+  }
+
+  div:nth-child(2) {
+    font-size: $font-size-md;
+    font-weight: 700;
+    color: $color-text-primary;
+    margin-bottom: $spacing-md;
+  }
+
+  div:nth-child(3) {
+    font-size: $font-size-sm;
+  }
+}
+
+// ========== ERROR MESSAGE ==========
+
+.error-message {
+  background: #fee2e2;
+  border: 1px solid #fecaca;
+  color: #991b1b;
+  padding: $spacing-xl $spacing-lg;
+  border-radius: $border-radius-lg;
+  font-size: $font-size-sm;
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+  animation: slideIn $transition-base;
+
+  &::before {
+    content: '⚠️';
+    font-size: $font-size-lg;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// ========== RESPONSIVE BREAKPOINTS ==========
+
+@media (max-width: 1440px) {
+  .profile-container {
+    max-width: 1200px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .profile-container {
+    padding: $spacing-3xl;
+  }
+}
+
+@media (max-width: 768px) {
+  .profile-wrapper {
+    padding: $spacing-2xl $spacing-md;
+  }
+
+  .profile-container {
+    padding: $spacing-2xl;
+    gap: $spacing-2xl;
+  }
+
+  .profile-header {
+    padding-bottom: $spacing-xl;
+    gap: $spacing-lg;
+  }
+}
+
+@media (max-width: 480px) {
+  .profile-wrapper {
+    padding: $spacing-lg;
+  }
+
+  .profile-container {
+    padding: $spacing-xl;
+    border-radius: $border-radius-xl;
+  }
+
+  .user-card {
+    padding: $spacing-xl;
+  }
+
+  .requests-grid {
+    gap: $spacing-lg;
+  }
+
+  .menu-item-row {
+    padding: $spacing-md $spacing-lg;
   }
 }
