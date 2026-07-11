@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
+import { environment } from '../environment/environment';
 
 // ===== INTERFACES =====
 
@@ -69,27 +70,18 @@ export interface CreateRequestResponse {
   message?: string;
 }
 
+export interface GetUserRequestsResponse {
+  success: boolean;
+  requests?: any[];
+  message?: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
 export class ParcelService {
 
-  getUserRequests(): Observable<any> {
-  const token = localStorage.getItem('authToken');
-  return this.http
-    .get<any>(
-      `${this.apiUrl}/parcels/my-requests`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      }
-    )
-    .pipe(catchError(this.handleError));
-    throw new Error('Method not implemented.');
-}
- 
-  private apiUrl = 'http://localhost:3000/api';
+  private apiUrl = `${environment.apiUrl}/parcels`;
 
   constructor(private http: HttpClient) {}
 
@@ -121,8 +113,26 @@ export class ParcelService {
 
     return this.http
       .post<CreateRequestResponse>(
-        `${this.apiUrl}/parcels/request`,
+        `${this.apiUrl}/request`,
         payload
+      )
+      .pipe(catchError(this.handleError));
+  }
+
+  /**
+   * სენდერის ჩემი განცხადებები
+   * @returns Observable<GetUserRequestsResponse>
+   */
+  getUserRequests(): Observable<GetUserRequestsResponse> {
+    const token = localStorage.getItem('authToken');
+    return this.http
+      .get<GetUserRequestsResponse>(
+        `${this.apiUrl}/my-requests`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
       )
       .pipe(catchError(this.handleError));
   }

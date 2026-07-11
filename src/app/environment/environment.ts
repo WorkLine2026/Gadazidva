@@ -1,6 +1,4 @@
-
 export const environment = {
-  production: false,
-  apiUrl: 'http://localhost:10000' // შენი ბექენდის URL
+  production: true,
+  apiUrl: 'https://ggzavnabeck.onrender.com/api'
 };
- 

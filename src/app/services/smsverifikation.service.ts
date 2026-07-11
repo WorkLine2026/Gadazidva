@@ -83,7 +83,8 @@ export interface DeleteAccountResponse {
   providedIn: 'root'
 })
 export class SmsVerificationService {
-  private apiUrl = `${environment.apiUrl}/api/auth`;
+  // ✅ environment.apiUrl უკვე '/api' შეიცავს, ამიტომ მხოლოდ '/auth' დამატებული
+  private apiUrl = `${environment.apiUrl}/auth`;
   private resetToken: string = '';
   private userPhone: string = '';
   private authToken: string = '';
