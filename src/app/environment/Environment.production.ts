@@ -1,4 +1,4 @@
 export const environment = {
   production: true,
-  apiUrl: 'https://ggzavnabeck.onrender.com/api' // შენი პროდ API
+  apiUrl: 'https://ggzavnabeck.onrender.com' // შენი პროდ API
 };
