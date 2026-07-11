@@ -1,0 +1,194 @@
+<section class="auth-wrapper">
+  <div class="auth-card">
+
+    <!-- ========== ნაბიჯი 1: რეგისტრაციის ფორმა ========== -->
+    <ng-container *ngIf="currentStep === 'form'">
+      <div class="auth-header">
+        <div class="brand-logo">
+          <span class="logo-accent">მიკრო</span>ლოგისტიკა
+        </div>
+        <h1 class="auth-title">შექმენი ანგარიში</h1>
+        <p class="auth-subtitle">აირჩიეთ თქვენი როლი და გაიარეთ სწრაფი რეგისტრაცია</p>
+      </div>
+
+      <div class="role-selector">
+        <button type="button" class="role-tab" [class.active]="activeRole === 'sender'" (click)="selectRole('sender')">
+          <span class="role-icon">📦</span>
+          <div class="role-info">
+            <span class="role-name">გამგზავნი</span>
+            <span class="role-desc">მსურს ამანათის გაგზავნა</span>
+          </div>
+        </button>
+
+        <button type="button" class="role-tab" [class.active]="activeRole === 'driver'" (click)="selectRole('driver')">
+          <span class="role-icon">🚗</span>
+          <div class="role-info">
+            <span class="role-name">მძღოლი</span>
+            <span class="role-desc">ვგეგმავ მგზავრობას</span>
+          </div>
+        </button>
+      </div>
+
+      <div *ngIf="errorMessage" class="error-banner">
+        <span class="error-circle-icon">✕</span>
+        <span class="error-message-text">{{ errorMessage }}</span>
+      </div>
+
+      <form [formGroup]="registerForm" (ngSubmit)="onRegister()" class="register-form">
+        <div class="form-grid">
+          <div class="form-row">
+            <label class="field-label">სახელი</label>
+            <input type="text"  class="input-field" formControlName="firstName" [class.has-error]="isFieldInvalid('firstName')" />
+            <span class="error-text" *ngIf="isFieldInvalid('firstName')">სახელის შევსება სავალდებულოა</span>
+          </div>
+
+          <div class="form-row">
+            <label class="field-label">გვარი</label>
+            <input type="text"  class="input-field" formControlName="lastName" [class.has-error]="isFieldInvalid('lastName')" />
+            <span class="error-text" *ngIf="isFieldInvalid('lastName')">გვარის შევსება სავალდებულოა</span>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <label class="field-label">პირადი ნომერი</label>
+          <input type="text" placeholder="01012345678" class="input-field" formControlName="personalNumber" [class.has-error]="isFieldInvalid('personalNumber')" />
+          <span class="error-text" *ngIf="isFieldInvalid('personalNumber')">შეიყვანეთ სწორი პირადი ნომერი</span>
+        </div>
+
+        <div class="form-row">
+          <label class="field-label">ტელეფონის ნომერი</label>
+          <div class="phone-input-wrapper">
+            <span class="phone-prefix">+995</span>
+            <input type="tel" placeholder="599 00 00 00" class="input-field phone-input" formControlName="phone" [class.has-error]="isFieldInvalid('phone')" />
+          </div>
+          <span class="error-text" *ngIf="isFieldInvalid('phone')">მიუთითეთ სწორი ნომერი</span>
+        </div>
+
+        <div class="form-row">
+          <label class="field-label">ელ-ფოსტა</label>
+          <input type="email" placeholder="example@domain.com" class="input-field" formControlName="email" [class.has-error]="isFieldInvalid('email')" />
+          <span class="error-text" *ngIf="isFieldInvalid('email')">შეიყვანეთ ვალიდური ელ-ფოსტა</span>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-row">
+            <label class="field-label">პაროლი</label>
+            <input type="password" placeholder="••••••••" class="input-field" formControlName="password" [class.has-error]="isFieldInvalid('password')" />
+            <span class="error-text" *ngIf="isFieldInvalid('password')">მინიმუმ 6 სიმბოლო</span>
+          </div>
+
+          <div class="form-row">
+            <label class="field-label">გაიმეორეთ პაროლი</label>
+            <input type="password" placeholder="••••••••" class="input-field" formControlName="confirmPassword" [class.has-error]="isFieldInvalid('confirmPassword')" />
+            <span class="error-text" *ngIf="isFieldInvalid('confirmPassword')">პაროლები არ ემთხვევა</span>
+          </div>
+        </div>
+
+        <!-- Sender-ის ველები - ეს რეგისტრაციის დროს აიკლოსწ, მოგვიანებით profile-ში დაემატება -->
+        <!-- თუ გთხოვ მოდი დეშბორდზე დაამატებ ამანათის დეტალები -->
+
+
+        <!-- Driver-ის ველები - მხოლოდ driver role-ის დროს -->
+        <div *ngIf="activeRole === 'driver'" class="driver-extra-fields">
+          <div class="section-divider"><span>ავტომობილის მონაცემები</span></div>
+
+          <div class="form-grid">
+            <div class="form-row">
+              <label class="field-label">მოდელი / მარკა</label>
+              <input type="text" placeholder="Toyota Prius" class="input-field" formControlName="carModel" [class.has-error]="isFieldInvalid('carModel')" />
+              <span class="error-text" *ngIf="isFieldInvalid('carModel')">ავტომობილის მოდელი სავალდებულოა</span>
+            </div>
+
+            <div class="form-row">
+              <label class="field-label">სახელმწიფო ნომერი</label>
+              <input type="text" placeholder="AA-123-AA" class="input-field plate-number" formControlName="carPlate" [class.has-error]="isFieldInvalid('carPlate')" />
+              <span class="error-text" *ngIf="isFieldInvalid('carPlate')">ნომერი უნდა იყოს სწორ ფორმატში (AA-123-AA)</span>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <label class="field-label">მართვის მოწმობის ნომერი</label>
+            <input type="text" placeholder="DL1234567" class="input-field" formControlName="driverLicenseNumber" [class.has-error]="isFieldInvalid('driverLicenseNumber')" />
+            <span class="error-text" *ngIf="isFieldInvalid('driverLicenseNumber')">მართვის მოწმობის ნომერი სავალდებულოა</span>
+          </div>
+        </div>
+
+        <div class="terms-checkbox">
+          <label class="checkbox-container">
+            <input type="checkbox" formControlName="agreeTerms" />
+            <span class="checkmark"></span>
+            <span class="checkbox-text">
+              ვეცნობი და ვეთანხმები პლატფორმის <a href="#" class="terms-link">წესებსა და კონფიდენციალურობის პოლიტიკას</a>
+            </span>
+          </label>
+        </div>
+
+        <button type="submit" class="submit-btn" [disabled]="registerForm.invalid || isSendingCode">
+          <span *ngIf="!isSendingCode">გაგრძელება — SMS კოდის გაგზავნა</span>
+          <span *ngIf="isSendingCode" class="loader-wrap">
+            <span class="loading-circle"></span> კოდი იგზავნება...
+          </span>
+        </button>
+      </form>
+    </ng-container>
+
+    <!-- ========== ნაბიჯი 2: SMS ვერიფიკაცია ========== -->
+    <ng-container *ngIf="currentStep === 'verification'">
+      <div class="auth-header">
+        <div class="brand-logo">
+          <span class="logo-accent">მიკრო</span>ლოგისტიკა
+        </div>
+        <h1 class="auth-title">დაადასტურეთ ნომერი</h1>
+        <p class="auth-subtitle">
+          გამოგზავნილია 4-ნიშნა კოდი ნომერზე <strong>{{ maskedPhone }}</strong>
+        </p>
+      </div>
+
+
+      <div *ngIf="verificationError" class="error-banner">
+        <span class="error-circle-icon">✕</span>
+        <span class="error-messagAe-text">{{ verificationError }}</span>
+      </div>
+
+      <form [formGroup]="verificationForm" (ngSubmit)="onVerifyCode()" class="register-form">
+        <div class="form-row">
+          <label class="field-label">ვერიფიკაციის კოდი</label>
+          <input
+            type="text"
+            inputmode="numeric"
+            maxlength="4"
+            placeholder="0000"
+            class="input-field otp-input"
+            formControlName="code"
+            [class.has-error]="isVerificationCodeInvalid()"
+          />
+          <span class="error-text" *ngIf="isVerificationCodeInvalid()">შეიყვანეთ 4-ნიშნა კოდი</span>
+        </div>
+
+        <button type="submit" class="submit-btn" [disabled]="verificationForm.invalid || isVerifying">
+          <span *ngIf="!isVerifying">დადასტურება</span>
+          <span *ngIf="isVerifying" class="loader-wrap">
+            <span class="loading-circle"></span> მოწმდება...
+          </span>
+        </button>
+
+        <div class="resend-row">
+          <button
+            type="button"
+            class="button-link-sm"
+            (click)="resendCode()"
+            [disabled]="resendCooldown > 0 || isSendingCode"
+          >
+            <span *ngIf="resendCooldown === 0">კოდის ხელახლა გაგზავნა</span>
+            <span *ngIf="resendCooldown > 0">ხელახლა გაგზავნა {{ resendCooldown }} წმ-ში</span>
+          </button>
+
+          <button type="button" class="button-link-sm" (click)="backToForm()">
+            ← ნომრის შეცვლა
+          </button>
+        </div>
+      </form>
+    </ng-container>
+
+  </div>
+</section>

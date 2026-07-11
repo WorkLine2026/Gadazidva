@@ -4,9 +4,21 @@ import { NavbarComponent } from './navbar/navbar';
 import { FooterComponent} from './footer/footer';
 import { HowToWorkComponent } from './howtowork/howtowork';
 import {  RulesComponent } from './rules/rules';
+import { LoginComponent } from './Register Login forgortpassword/login-component/login-component';
+import { RegisterComponent } from './Register Login forgortpassword/registercomponent/registercomponent';
+import { ForgotPasswordComponent } from './Register Login forgortpassword/forgot-password/forgot-password';
+
+import { ProfileComponent } from '../app/profile-component/profile-component';
+import { SendParcelComponent } from '../app/profile-component/send-parcel-component/send-parcel-component';
+import { PickupParcelComponent } from '../app/profile-component/pickup-parcel-component/pickup-parcel-component';
+
 export const routes: Routes = [
+    // ========== PUBLIC ROUTES ==========
     {
         path: '', component: HomeComponent
+    },
+    {
+        path: 'home', component: HomeComponent
     },
     {
         path: 'howtowork', component: HowToWorkComponent
@@ -19,6 +31,33 @@ export const routes: Routes = [
     },
     {
         path: 'rules', component: RulesComponent
+    },
+    
+    // ========== AUTH ROUTES ==========
+    {
+        path: 'login', component: LoginComponent
+    },
+    {
+        path: 'register', component: RegisterComponent
+    },
+    {
+        path: 'forgot-password', component: ForgotPasswordComponent
+    },
+    
+   
+    {
+        path: 'profile', component: ProfileComponent
+    },
+    {
+        path: 'send', component: SendParcelComponent
+    },
+     {
+        path: 'pickup', component: PickupParcelComponent
+     }
+    ,
+    
+    // ========== WILDCARD (404) ==========
+    {
+        path: '**', redirectTo: 'home'
     }
-
 ];

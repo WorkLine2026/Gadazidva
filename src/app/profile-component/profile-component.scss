@@ -1,0 +1,197 @@
+/* ========== ბაზისური სტილები ========== */
+.profile-wrapper {
+  min-height: 100vh;
+  background: #f8fafc;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  color: #0f172a;
+  padding: 40px 20px;
+  display: flex;
+  justify-content: center;
+}
+
+.profile-container {
+  width: 100%;
+  max-width: 1200px; /* გავზარდეთ მაქსიმალური სიგანე გვერდიგვერდ განლაგებისთვის */
+  background: #ffffff;
+  border-radius: 24px;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.01);
+  padding: 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+/* ========== ჰედერი (HEADER) ========== */
+.profile-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #f1f5f9;
+  padding-bottom: 24px;
+}
+
+.profile-title { font-size: 22px; font-weight: 700; }
+.back-btn, .menu-btn {
+  background: #ffffff; border: 1px solid #e2e8f0; padding: 10px 18px; border-radius: 12px;
+  cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 14px; color: #475569;
+}
+
+/* ==================== 🛠️ ორსვეტიანი ახალი წყობა ==================== */
+.profile-layout-grid {
+  display: flex;
+  gap: 32px;
+  align-items: flex-start;
+}
+
+/* მარცხენა სვეტი (ფიქსირებული ზომა გვერდზე) */
+.profile-sidebar-column {
+  flex: 0 0 380px; 
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* მარჯვენა სვეტი (იკავებს მთელ დარჩენილ ადგილს სიგანეზე) */
+.profile-main-column {
+  flex: 1;
+}
+
+/* ========== მარცხენა სვეტის იუზერ ქარდი ========== */
+.user-card {
+  background: linear-gradient(135deg, #f3e8ff 0%, #e0e7ff 100%);
+  border-radius: 24px;
+  padding: 32px;
+  display: flex;
+  flex-direction: column; /* სვეტურად შიგნით, რადგან თავად ქარდი ვიწროვდება */
+  gap: 24px;
+  align-items: center;
+  text-align: center;
+}
+
+.avatar {
+  width: 110px;
+  height: 110px;
+  border-radius: 28px;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36px;
+  font-weight: 700;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+  border: 4px solid #ffffff;
+}
+
+.user-info-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.user-name { font-size: 24px; font-weight: 700; color: #0f172a; }
+.user-profession { font-size: 14px; color: #64748b; }
+.role-badge { display: inline-block; font-size: 11px; padding: 4px 12px; border-radius: 8px; font-weight: 600; text-transform: uppercase; margin-top: 6px;}
+.role-driver { background: #e0f2fe; color: #0369a1; }
+.role-sender { background: #fce7f3; color: #b91c1c; }
+
+.user-status-inline { display: flex; flex-direction: column; gap: 4px; font-size: 13px; }
+.verified { color: #10b981; font-weight: 600; }
+.unverified { color: #ef4444; font-weight: 600; }
+
+.user-actions { display: flex; gap: 8px; width: 100%; justify-content: center; }
+.edit-btn { background: #0f172a; color: #ffffff; border: none; padding: 10px 18px; border-radius: 10px; font-weight: 600; font-size: 13px; cursor: pointer; }
+.btn-secondary-outline { background: #ffffff; color: #0f172a; border: 1px solid #e2e8f0; padding: 10px 18px; border-radius: 10px; font-weight: 600; font-size: 13px; cursor: pointer; }
+
+/* სტატისტიკა ქარდის შიგნით */
+.stats-container {
+  display: flex;
+  justify-content: space-around;
+  width: 100%;
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+  padding-top: 20px;
+}
+
+.stat-box { display: flex; flex-direction: column; align-items: center; }
+.stat-value { font-size: 20px; font-weight: 700; color: #0f172a; }
+.stat-label { font-size: 12px; color: #64748b; margin-top: 4px; }
+
+/* ========== მარჯვენა სვეტი: პარამეტრების სია (სიგანეზე გაშლილი) ========== */
+.main-settings-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.menu-group-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.menu-list {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.menu-item-row {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 22px 28px; /* გაზრდილი შიდა სივრცე უფრო დიდი სიგანისთვის */
+  background: #ffffff;
+  border: none;
+  border-bottom: 1px solid #f1f5f9;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.menu-list .menu-item-row:last-child { border-bottom: none; }
+.menu-item-row:hover { background: #f8fafc; }
+.menu-item-left { display: flex; align-items: center; gap: 20px; }
+.menu-item-icon { font-size: 20px; background: #f1f5f9; padding: 10px; border-radius: 12px; }
+.menu-item-text { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; }
+.menu-item-title { font-size: 16px; font-weight: 600; color: #0f172a; }
+.menu-item-sub { font-size: 13px; color: #64748b; }
+.menu-item-arrow { color: #94a3b8; font-size: 16px; transition: transform 0.2s; }
+.menu-item-row:hover .menu-item-arrow { transform: translateX(4px); color: #0f172a; }
+
+.logout-row .menu-item-icon { background: #fff1f2; color: #e11d48; }
+.logout-row .menu-item-title { color: #e11d48; }
+.delete-row .menu-item-title { color: #991b1b; }
+
+/* ავტომობილის დეტალების პატარა ქარდი */
+.info-card { border: 1px solid #e2e8f0; border-radius: 20px; padding: 20px; background: #ffffff; }
+.info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
+.info-item { background: #f8fafc; padding: 12px; border-radius: 10px; display: flex; flex-direction: column; gap: 4px; }
+.info-label { font-size: 12px; color: #64748b; }
+.info-value { font-size: 14px; font-weight: 600; }
+.plate-number { font-family: monospace; background: #e2e8f0; padding: 2px 6px; border-radius: 4px; }
+
+/* რედაქტირების ფორმის სტილი */
+.edit-section { border: 1px solid #e2e8f0; border-radius: 20px; padding: 28px; background: #ffffff; }
+.profile-form { display: flex; flex-direction: column; gap: 16px; margin-top: 20px; }
+.form-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.form-row { display: flex; flex-direction: column; gap: 6px; }
+.field-label { font-size: 14px; font-weight: 600; color: #475569; }
+.input-field { padding: 12px 16px; border: 1px solid #cbd5e1; border-radius: 12px; background: #f8fafc; outline: none; }
+.input-field:focus { border-color: #3b82f6; background: #ffffff; }
+.form-actions { display: flex; gap: 12px; }
+.btn-primary { background: #3b82f6; color: white; border: none; padding: 12px 24px; border-radius: 12px; font-weight: 600; cursor: pointer; }
+.btn-secondary { background: #f1f5f9; color: #475569; border: none; padding: 12px 24px; border-radius: 12px; font-weight: 600; cursor: pointer; }
+
+/* ========== მობილურის ადაპტაცია (ავტომატურად ჩამოიშლება ქვემოთ, თუ ეკრანი პატარაა) ========== */
+@media (max-width: 868px) {
+  .profile-layout-grid {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .profile-sidebar-column {
+    flex: 1;
+  }
+}

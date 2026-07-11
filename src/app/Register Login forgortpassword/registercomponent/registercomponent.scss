@@ -1,0 +1,553 @@
+// ============= ცვლადები =============
+$primary-color: #2563eb;
+$primary-dark: #1e40af;
+$success-color: #10b981;
+$error-color: #ef4444;
+$warning-color: #f59e0b;
+$border-color: #e5e7eb;
+$text-primary: #1f2937;
+$text-secondary: #6b7280;
+$bg-light: #f9fafb;
+$bg-white: #ffffff;
+$radius-sm: 8px;
+$radius-md: 12px;
+$radius-lg: 16px;
+$shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+$shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+$transition: all 0.3s ease;
+
+// ============= მთავარი რეპერ =============
+.auth-wrapper {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 20px;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 500px;
+  background: $bg-white;
+  border-radius: $radius-lg;
+  box-shadow: $shadow-md;
+  overflow: hidden;
+  animation: slideUp 0.4s ease;
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}
+
+// ============= Header =============
+.auth-header {
+  padding: 30px 20px 20px;
+  text-align: center;
+  border-bottom: 1px solid $border-color;
+
+  .brand-logo {
+    font-size: 24px;
+    font-weight: 700;
+    color: $text-primary;
+    margin-bottom: 15px;
+    letter-spacing: -0.5px;
+
+    .logo-accent {
+      color: $primary-color;
+    }
+  }
+
+  .auth-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: $text-primary;
+    margin: 0 0 8px;
+  }
+
+  .auth-subtitle {
+    font-size: 14px;
+    color: $text-secondary;
+    margin: 0;
+    line-height: 1.5;
+  }
+}
+
+// ============= Role Selector =============
+.role-selector {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  padding: 20px;
+  border-bottom: 1px solid $border-color;
+
+  .role-tab {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    border: 2px solid $border-color;
+    border-radius: $radius-md;
+    background: $bg-white;
+    cursor: pointer;
+    transition: $transition;
+    text-align: left;
+
+    &:hover {
+      border-color: $primary-color;
+      background: #f0f7ff;
+    }
+
+    &.active {
+      border-color: $primary-color;
+      background: #f0f7ff;
+    }
+
+    .role-icon {
+      font-size: 24px;
+      display: block;
+    }
+
+    .role-info {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+
+      .role-name {
+        font-size: 13px;
+        font-weight: 600;
+        color: $text-primary;
+      }
+
+      .role-desc {
+        font-size: 11px;
+        color: $text-secondary;
+        margin-top: 2px;
+      }
+    }
+  }
+}
+
+// ============= Forms =============
+.register-form {
+  padding: 25px;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+.form-row {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 18px;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.field-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: $text-primary;
+  margin-bottom: 6px;
+}
+
+.input-field {
+  padding: 10px 12px;
+  border: 1px solid $border-color;
+  border-radius: $radius-sm;
+  font-size: 14px;
+  font-family: inherit;
+  transition: $transition;
+  background: $bg-white;
+
+  &:focus {
+    outline: none;
+    border-color: $primary-color;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  }
+
+  &::placeholder {
+    color: #d1d5db;
+  }
+
+  &.has-error {
+    border-color: $error-color;
+    background: #fef2f2;
+
+    &:focus {
+      box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+    }
+  }
+
+  &:disabled {
+    background: $bg-light;
+    color: $text-secondary;
+    cursor: not-allowed;
+  }
+}
+
+textarea.input-field {
+  resize: vertical;
+  min-height: 80px;
+  font-family: inherit;
+}
+
+// ============= Phone Input =============
+.phone-input-wrapper {
+  display: flex;
+  align-items: center;
+  border: 1px solid $border-color;
+  border-radius: $radius-sm;
+  overflow: hidden;
+  transition: $transition;
+
+  &:focus-within {
+    border-color: $primary-color;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  }
+
+  .phone-prefix {
+    padding: 10px 12px;
+    font-weight: 600;
+    color: $text-secondary;
+    background: $bg-light;
+    border-right: 1px solid $border-color;
+    white-space: nowrap;
+  }
+
+  .phone-input {
+    flex: 1;
+    border: none;
+    padding: 10px 12px;
+    font-size: 14px;
+
+    &:focus {
+      box-shadow: none;
+      outline: none;
+    }
+
+    &.has-error {
+      background: #fef2f2;
+    }
+  }
+}
+
+// ============= Error Styles =============
+.error-text {
+  font-size: 12px;
+  color: $error-color;
+  margin-top: 4px;
+  font-weight: 500;
+}
+
+.error-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 15px;
+  margin-bottom: 15px;
+  border-radius: $radius-md;
+  background: #fef2f2;
+  border-left: 4px solid $error-color;
+
+  .error-circle-icon {
+    font-size: 18px;
+    color: $error-color;
+    font-weight: bold;
+  }
+
+  .error-message-text {
+    font-size: 13px;
+    color: #991b1b;
+    font-weight: 500;
+  }
+}
+
+.dev-hint-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 15px;
+  margin-bottom: 15px;
+  border-radius: $radius-md;
+  background: #fef3c7;
+  border-left: 4px solid $warning-color;
+  font-size: 12px;
+
+  .dev-hint-label {
+    font-weight: 600;
+    color: #92400e;
+  }
+
+  .dev-hint-code {
+    font-family: 'Courier New', monospace;
+    font-weight: bold;
+    color: #000;
+    background: rgba(255, 255, 255, 0.5);
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+}
+
+// ============= Section Divider =============
+.section-divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 20px 0 15px;
+  font-size: 13px;
+  font-weight: 600;
+  color: $text-secondary;
+
+  &::before,
+  &::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: $border-color;
+  }
+}
+
+// ============= Sender/Driver Fields =============
+.sender-extra-fields,
+.driver-extra-fields {
+  animation: fadeIn 0.3s ease;
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+}
+
+.plate-number {
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-family: 'Courier New', monospace;
+}
+
+// ============= Checkbox =============
+.terms-checkbox {
+  margin: 20px 0;
+}
+
+.checkbox-container {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  cursor: pointer;
+  user-select: none;
+
+  input[type='checkbox'] {
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border: 2px solid $border-color;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: $transition;
+    flex-shrink: 0;
+    margin-top: 2px;
+
+    &:checked {
+      background: $primary-color;
+      border-color: $primary-color;
+
+      &::after {
+        content: '✓';
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: bold;
+      }
+    }
+
+    &:hover {
+      border-color: $primary-color;
+    }
+  }
+
+  .checkmark {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    color: white;
+  }
+
+  .checkbox-text {
+    font-size: 12px;
+    color: $text-secondary;
+    line-height: 1.5;
+  }
+}
+
+.terms-link {
+  color: $primary-color;
+  text-decoration: none;
+  font-weight: 600;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+// ============= Buttons =============
+.submit-btn {
+  width: 100%;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, $primary-color 0%, $primary-dark 100%);
+  color: white;
+  border: none;
+  border-radius: $radius-md;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: $transition;
+  margin-top: 10px;
+
+  &:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(37, 99, 235, 0.3);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  .loader-wrap {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .loading-circle {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+}
+
+.button-link-sm {
+  background: none;
+  border: none;
+  color: $primary-color;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 12px;
+  transition: $transition;
+
+  &:hover:not(:disabled) {
+    color: $primary-dark;
+    text-decoration: underline;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.resend-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid $border-color;
+}
+
+// ============= OTP Input =============
+.otp-input {
+  font-size: 20px !important;
+  font-weight: bold;
+  letter-spacing: 8px;
+  text-align: center;
+  font-family: 'Courier New', monospace;
+  padding: 12px !important;
+
+  &::placeholder {
+    letter-spacing: 0;
+  }
+}
+
+// ============= Responsive =============
+@media (max-width: 640px) {
+  .auth-card {
+    border-radius: 0;
+  }
+
+  .auth-header {
+    padding: 25px 15px 15px;
+
+    .brand-logo {
+      font-size: 20px;
+    }
+
+    .auth-title {
+      font-size: 24px;
+    }
+
+    .auth-subtitle {
+      font-size: 13px;
+    }
+  }
+
+  .role-selector {
+    padding: 15px;
+    gap: 10px;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .register-form {
+    padding: 20px;
+  }
+
+  .resend-row {
+    flex-direction: column;
+    gap: 10px;
+    align-items: stretch;
+
+    .button-link-sm {
+      padding: 10px 12px;
+      text-align: center;
+    }
+  }
+}

@@ -1,0 +1,305 @@
+<!-- ========== პროფილი ჰედერი ========== -->
+<div class="profile-wrapper">
+  <div class="profile-container">
+    <div class="profile-header">
+      <h1 class="profile-title">ჩემი პროფილი</h1>
+      <div style="display: flex; gap: 12px;">
+        <button class="back-btn" (click)="goToDashboard()">← დაბრუნება</button>
+        <button class="menu-btn" (click)="toggleMenu()">⋮ მენიუ</button>
+      </div>
+    </div>
+
+    <!-- ========== ორსვეტიანი ძირითადი განლაგება ========== -->
+    <div class="profile-layout-grid">
+      
+      <!-- მარცხენა სვეტი (იუზერ კარტი) -->
+      <div class="profile-sidebar-column">
+        <div class="user-card" *ngIf="!isLoading">
+          <div class="avatar">{{ getUserInitials() }}</div>
+          
+          <div class="user-info-block">
+            <div class="user-name">{{ firstName }} {{ lastName }}</div>
+            <div class="user-profession">{{ email }}</div>
+            <span class="role-badge" [ngClass]="userRole === 'driver' ? 'role-driver' : 'role-sender'">
+              {{ getRoleLabel() }}
+            </span>
+          </div>
+
+          <div class="user-status-inline">
+            <div [ngClass]="phoneVerified ? 'verified' : 'unverified'">
+              {{ phoneVerified ? '✓ ტელ. დადასტურებული' : '✗ ტელ. დადასტურებული არ არის' }}
+            </div>
+            <div style="color: #64748b; font-weight: normal;">{{ formatPhone(phone) }}</div>
+          </div>
+
+          <!-- დამატებითი ინფო მძღოლებისთვის -->
+          <div class="info-card" *ngIf="userRole === 'driver'">
+            <div style="font-size: 12px; font-weight: 600; color: #64748b; text-transform: uppercase;">ავტომობილი</div>
+            <div class="info-grid">
+              <div class="info-item">
+                <div class="info-label">მოდელი</div>
+                <div class="info-value">{{ carModel || '—' }}</div>
+              </div>
+              <div class="info-item">
+                <div class="info-label">ნომერი</div>
+                <div class="info-value"><span class="plate-number">{{ carPlate || '—' }}</span></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="user-actions">
+            <button class="edit-btn" (click)="toggleEditMode()">✏️ რედაქტირება</button>
+            <button class="btn-secondary-outline" (click)="openNotificationSettings()">🔔</button>
+          </div>
+
+          <div class="stats-container" *ngIf="userRole === 'sender'">
+            <div class="stat-box">
+              <div class="stat-value">{{ userRequests.length }}</div>
+              <div class="stat-label">განცხადება</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-value">📊</div>
+              <div class="stat-label">სტატისტიკა</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ზღუარი ჩატვირთვისას -->
+        <div *ngIf="isLoading" style="height: 200px; background: #f1f5f9; border-radius: 24px; display: flex; align-items: center; justify-content: center; color: #64748b;">
+          ⏳ ჩატვირთვა...
+        </div>
+      </div>
+
+      <!-- მარჯვენა სვეტი (პარამეტრები + განცხადებები) -->
+      <div class="profile-main-column">
+        
+        <!-- რედაქტირების რეჟიმი -->
+        <div class="edit-section" *ngIf="isEditing">
+          <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 4px;">პროფილის რედაქტირება</h3>
+          <p style="font-size: 13px; color: #64748b; margin-bottom: 20px;">განაახლეთ თქვენი ინფორმაცია</p>
+
+          <form [formGroup]="profileForm" class="profile-form">
+            <!-- სახელი და გვარი -->
+            <div class="form-grid-2">
+              <div class="form-row">
+                <label class="field-label">სახელი</label>
+                <input 
+                  type="text" 
+                  class="input-field"
+                  formControlName="firstName"
+                  [style.border-color]="isFieldInvalid('firstName') ? '#ef4444' : '#cbd5e1'"
+                />
+                <span *ngIf="isFieldInvalid('firstName')" style="color: #ef4444; font-size: 12px;">სახელი აუცილებელია</span>
+              </div>
+              <div class="form-row">
+                <label class="field-label">გვარი</label>
+                <input 
+                  type="text" 
+                  class="input-field"
+                  formControlName="lastName"
+                  [style.border-color]="isFieldInvalid('lastName') ? '#ef4444' : '#cbd5e1'"
+                />
+                <span *ngIf="isFieldInvalid('lastName')" style="color: #ef4444; font-size: 12px;">გვარი აუცილებელია</span>
+              </div>
+            </div>
+
+            <!-- ელფოსტა -->
+            <div class="form-row">
+              <label class="field-label">ელფოსტა</label>
+              <input 
+                type="email" 
+                class="input-field"
+                formControlName="email"
+                [style.border-color]="isFieldInvalid('email') ? '#ef4444' : '#cbd5e1'"
+              />
+              <span *ngIf="isFieldInvalid('email')" style="color: #ef4444; font-size: 12px;">სწორი ელფოსტა აუცილებელია</span>
+            </div>
+
+            <!-- პირადი ნომერი (გამორთული) -->
+            <div class="form-row">
+              <label class="field-label">პირადი ნომერი</label>
+              <input 
+                type="text" 
+                class="input-field"
+                formControlName="personalNumber"
+                [disabled]="true"
+                style="background: #f1f5f9; cursor: not-allowed;"
+              />
+            </div>
+
+            <!-- მძღოლის ველები -->
+            <div *ngIf="userRole === 'driver'">
+              <div style="font-size: 13px; font-weight: 600; color: #64748b; text-transform: uppercase; margin: 16px 0 12px 0;">ავტომობილის დეტალები</div>
+              
+              <div class="form-grid-2">
+                <div class="form-row">
+                  <label class="field-label">მოდელი</label>
+                  <input 
+                    type="text" 
+                    class="input-field"
+                    formControlName="carModel"
+                    [style.border-color]="isFieldInvalid('carModel') ? '#ef4444' : '#cbd5e1'"
+                  />
+                  <span *ngIf="isFieldInvalid('carModel')" style="color: #ef4444; font-size: 12px;">მოდელი აუცილებელია</span>
+                </div>
+                <div class="form-row">
+                  <label class="field-label">ნომერი (AA-000-AA)</label>
+                  <input 
+                    type="text" 
+                    class="input-field"
+                    formControlName="carPlate"
+                    [style.border-color]="isFieldInvalid('carPlate') ? '#ef4444' : '#cbd5e1'"
+                  />
+                  <span *ngIf="isFieldInvalid('carPlate')" style="color: #ef4444; font-size: 12px;">სწორი ფორმატი: AA-000-AA</span>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <label class="field-label">ვალდებული ლიცენზია</label>
+                <input 
+                  type="text" 
+                  class="input-field"
+                  formControlName="driverLicenseNumber"
+                  [style.border-color]="isFieldInvalid('driverLicenseNumber') ? '#ef4444' : '#cbd5e1'"
+                />
+                <span *ngIf="isFieldInvalid('driverLicenseNumber')" style="color: #ef4444; font-size: 12px;">ლიცენზია აუცილებელია</span>
+              </div>
+            </div>
+
+            <!-- ღილაკები -->
+            <div class="form-actions" style="margin-top: 20px;">
+              <button type="button" class="btn-primary" (click)="saveProfile()" [disabled]="isSaving">
+                {{ isSaving ? '💾 შენახვა...' : '💾 შენახვა' }}
+              </button>
+              <button type="button" class="btn-secondary" (click)="cancelEdit()">გაუქმება</button>
+            </div>
+
+            <!-- შეცდომის შეტყობინება -->
+            <div *ngIf="errorMessage" style="background: #fee2e2; border: 1px solid #fecaca; color: #991b1b; padding: 12px 16px; border-radius: 12px; font-size: 13px;">
+              ⚠️ {{ errorMessage }}
+            </div>
+          </form>
+        </div>
+
+        <!-- ========== განცხადებების სექცია (მხოლოდ sender-ებისთვის) ========== -->
+        <div *ngIf="!isEditing && userRole === 'sender'">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h2 style="font-size: 18px; font-weight: 700; color: #0f172a;">
+              📦 ჩემი განცხადებები
+            </h2>
+            <button 
+              class="btn-primary" 
+              (click)="openSendItemFlow()"
+              style="padding: 10px 16px; font-size: 14px;">
+              + ახალი განცხადება
+            </button>
+          </div>
+
+          <!-- ზღუარი ჩატვირთვისას -->
+          <div *ngIf="isLoadingRequests" style="text-align: center; padding: 40px 20px; color: #64748b;">
+            ⏳ განცხადებების ჩატვირთვა...
+          </div>
+
+          <!-- თუ განცხადებები არ არის -->
+          <div *ngIf="!isLoadingRequests && userRequests.length === 0" style="text-align: center; padding: 40px 20px; background: #f8fafc; border-radius: 16px; color: #64748b;">
+            <div style="font-size: 32px; margin-bottom: 12px;">📭</div>
+            <div style="font-size: 15px; font-weight: 600;">განცხადება არ არის</div>
+            <div style="font-size: 13px; margin-top: 8px;">დაიწყეთ ნივთის გაგზავნა</div>
+          </div>
+
+          <!-- განცხადებების სია (ქარდები) -->
+          <div class="requests-grid" *ngIf="!isLoadingRequests && userRequests.length > 0">
+            <div class="request-card" *ngFor="let request of userRequests">
+              <!-- სტატუს ბეჯი -->
+              <div class="request-header">
+                <div class="request-route">
+                  <span class="route-from">{{ request.from }}</span>
+                  <span class="route-arrow">→</span>
+                  <span class="route-to">{{ request.to }}</span>
+                </div>
+                <div [ngClass]="'status-badge status-' + request.status">
+                  {{ getStatusLabel(request.status) }}
+                </div>
+              </div>
+
+              <!-- მთავარი ინფორმაცია -->
+              <div class="request-body">
+                <div class="request-info-row">
+                  <div class="info-box">
+                    <div class="info-box-label">წონა</div>
+                    <div class="info-box-value">{{ request.weight }} კგ</div>
+                  </div>
+                  <div class="info-box">
+                    <div class="info-box-label">ღირებულება</div>
+                    <div class="info-box-value">{{ request.value }} ₾</div>
+                  </div>
+                  <div class="info-box">
+                    <div class="info-box-label">თარიღი</div>
+                    <div class="info-box-value">{{ formatDate(request.createdAt) }}</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- ქვედა მხარე (ID + ღილაკი) -->
+              <div class="request-footer">
+                <div style="font-size: 12px; color: #94a3b8;">
+                  ID: <span style="font-family: monospace; font-weight: 600;">{{ request._id.slice(0, 8) }}...</span>
+                </div>
+                <button class="btn-view-details">დეტალები →</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ========== პარამეტრების მენიუ (მხოლოდ sender-ებისთვის) ========== -->
+        <div *ngIf="!isEditing && userRole === 'sender'" style="margin-top: 32px;">
+          <div class="menu-group-title">პარამეტრები</div>
+          <div class="menu-list">
+            <button class="menu-item-row" (click)="openNotificationSettings()">
+              <div class="menu-item-left">
+                <span class="menu-item-icon">🔔</span>
+                <div class="menu-item-text">
+                  <div class="menu-item-title">შეტყობინებები</div>
+                  <div class="menu-item-sub">პუშ, ემეილი, SMS</div>
+                </div>
+              </div>
+              <span class="menu-item-arrow">›</span>
+            </button>
+            <button class="menu-item-row" (click)="openPrivacySettings()">
+              <div class="menu-item-left">
+                <span class="menu-item-icon">👁️</span>
+                <div class="menu-item-text">
+                  <div class="menu-item-title">კონფიდენციალურობა</div>
+                  <div class="menu-item-sub">ხილვადობა და კონტროლი</div>
+                </div>
+              </div>
+              <span class="menu-item-arrow">›</span>
+            </button>
+            <button class="menu-item-row logout-row" (click)="logout()">
+              <div class="menu-item-left">
+                <span class="menu-item-icon">🚪</span>
+                <div class="menu-item-text">
+                  <div class="menu-item-title">გამოწერა</div>
+                  <div class="menu-item-sub">ანგარიშიდან გასვლა</div>
+                </div>
+              </div>
+              <span class="menu-item-arrow">›</span>
+            </button>
+            <button class="menu-item-row delete-row" (click)="openDeleteConfirm()">
+              <div class="menu-item-left">
+                <span class="menu-item-icon">🗑️</span>
+                <div class="menu-item-text">
+                  <div class="menu-item-title">ანგარიშის წაშლა</div>
+                  <div class="menu-item-sub">მუდმივი წაშლა</div>
+                </div>
+              </div>
+              <span class="menu-item-arrow">›</span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>

@@ -1,6 +1,5 @@
 <nav class="navbar">
   <div class="nav-container">
-    <!-- ლოგო -->
     <div class="logo" (click)="navigateHome()">
       <div class="logo-icon-box">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="arrow-icon">
@@ -10,10 +9,9 @@
           <line x1="3" y1="17" x2="15" y2="17"></line>
         </svg>
       </div>
-      <span class="logo-text">Gagzavna<span class="highlight">.ge</span></span>
+      <span class="logo-text">Ggagzavna<span class="highlight">.ge</span></span>
     </div>
 
-    <!-- ჰამბურგერ მენიუ (მობილური) -->
     <button 
       class="hamburger" 
       #hamburger
@@ -25,9 +23,7 @@
       <span></span>
     </button>
 
-    <!-- ნავიგაციის გრეიპ -->
     <div class="nav-wrapper" #navWrapper>
-      <!-- ნავიგაციის ლინკები -->
       <ul class="nav-links">
         <li>
           <a 
@@ -56,37 +52,41 @@
         </li>
       </ul>
 
-      <!-- მოქმედების ღილაკები -->
       <div class="nav-actions">
-        <!-- შესვლა ღილაკი -->
-        <button 
-          class="btn btn-signin" 
-          (click)="navigateToLogin()"
-          *ngIf="!isLoggedIn">
-          შესვლა
-        </button>
+        <ng-container *ngIf="!isLoggedIn">
+          <button 
+            class="btn btn-signin" 
+            (click)="navigateToLogin()">
+            შესვლა
+          </button>
 
-        <!-- რეგისტრაცია ღილაკი -->
-        <button 
-          class="btn btn-register" 
-          (click)="navigateToRegister()"
-          *ngIf="!isLoggedIn">
-          რეგისტრაცია
-        </button>
+          <button 
+            class="btn btn-register" 
+            (click)="navigateToRegister()">
+            რეგისტრაცია
+          </button>
+        </ng-container>
 
-        <!-- გაგზავნა ღილაკი -->
-        <button 
-          class="btn btn-primary" 
-          (click)="navigateToDashboard()">
-          გაგზავნა
-        </button>
+        <ng-container *ngIf="isLoggedIn">
+          <button 
+            class="btn btn-primary" 
+            (click)="navigateToDashboard()">
+            გაგზავნა
+          </button>
 
-        <!-- რეისის დამატება ღილაკი -->
-        <button 
-          class="btn btn-secondary" 
-          (click)="navigateToAddRide()">
-          რეისის დამატება
-        </button>
+          <button 
+            class="btn btn-secondary" 
+            (click)="navigateToAddRide()">
+            რეისის დამატება
+          </button>
+
+          <button 
+            class="profile-avatar-btn" 
+            (click)="navigateToProfile()"
+            [attr.aria-label]="'პროფილი'">
+            <span class="profile-avatar">{{ getUserInitials() }}</span>
+          </button>
+        </ng-container>
       </div>
     </div>
   </div>

@@ -1,0 +1,271 @@
+<section class="send-parcel-wrapper">
+  <div class="send-parcel-container">
+    
+    <!-- ===== HEADER ===== -->
+    <div class="send-header">
+      <button class="back-btn" (click)="goBack()">
+        <span>←</span>
+        <span>უკან</span>
+      </button>
+      <h1 class="send-title">📦 განცხადების დადება</h1>
+      <div></div>
+    </div>
+
+    <!-- ===== PROGRESS STEPS (2 steps only) ===== -->
+    <div class="steps-progress">
+      <div class="step-indicator" [class.active]="currentStep === 'details'" [class.completed]="currentStep !== 'details'">
+        <div class="step-circle">1</div>
+        <div class="step-label">დეტალები</div>
+      </div>
+      <div class="step-line" [class.completed]="currentStep !== 'details'"></div>
+
+      <div class="step-indicator" [class.active]="currentStep === 'confirmation'">
+        <div class="step-circle">2</div>
+        <div class="step-label">დადასტურება</div>
+      </div>
+    </div>
+
+    <!-- ===== ERROR/SUCCESS MESSAGES ===== -->
+    <div *ngIf="errorMessage" class="alert alert-error">
+      <span class="alert-icon">⚠️</span>
+      {{ errorMessage }}
+    </div>
+    <div *ngIf="successMessage" class="alert alert-success">
+      <span class="alert-icon">✓</span>
+      {{ successMessage }}
+    </div>
+
+    <!-- ===== STEP 1: PARCEL DETAILS ===== -->
+    <div *ngIf="currentStep === 'details'" class="step-content">
+      <div class="section-header">
+        <h2>რა გსურთ გაგზავნა?</h2>
+        <p>შეავსეთ ძირითადი ინფორმაცია</p>
+      </div>
+
+      <form [formGroup]="detailsForm" class="details-form">
+        <!-- From & To Cities -->
+        <div class="form-row-2">
+          <div class="form-group">
+            <label class="form-label">საიდან (ქალაქი)</label>
+            <select class="form-input" formControlName="from" [class.has-error]="isFieldInvalid('from')">
+              <option value="">აირჩიეთ ქალაქი</option>
+              <option *ngFor="let city of GEORGIAN_CITIES" [value]="city">{{ city }}</option>
+            </select>
+            <span class="error-text" *ngIf="isFieldInvalid('from')">ქალაქის არჩევა აუცილებელია</span>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">სად (დანიშნულება)</label>
+            <select class="form-input" formControlName="to" [class.has-error]="isFieldInvalid('to')">
+              <option value="">აირჩიეთ ქალაქი</option>
+              <option *ngFor="let city of GEORGIAN_CITIES" [value]="city">{{ city }}</option>
+            </select>
+            <span class="error-text" *ngIf="isFieldInvalid('to')">დანიშნულების არჩევა აუცილებელია</span>
+          </div>
+        </div>
+
+        <!-- Ship Date -->
+        <div class="form-group">
+          <label class="form-label">გაგზავნის თარიღი</label>
+          <input 
+            type="date" 
+            class="form-input" 
+            formControlName="shipDate"
+            [class.has-error]="isFieldInvalid('shipDate')"
+          />
+          <span class="error-text" *ngIf="isFieldInvalid('shipDate')">თარიღის არჩევა აუცილებელია</span>
+        </div>
+
+        <!-- Description (What to send) -->
+        <div class="form-group">
+          <label class="form-label">რა გზავნით? (აღწერა)</label>
+          <textarea 
+            class="form-input form-textarea" 
+            formControlName="description"
+            placeholder="მაგ. საბუთები, ტანსაცმელი, ტექნიკა, წიგნები..."
+            rows="3"
+            [class.has-error]="isFieldInvalid('description')"
+          ></textarea>
+          <span class="error-text" *ngIf="isFieldInvalid('description')">აღწერა აუცილებელია</span>
+        </div>
+
+        <!-- Weight & Value (info only, no price calculation) -->
+        <div class="form-row-2">
+          <div class="form-group">
+            <label class="form-label">მიახლოებითი წონა (კგ)</label>
+            <input 
+              type="number" 
+              class="form-input" 
+              formControlName="weight"
+              placeholder="0.5"
+              min="0.1"
+              step="0.1"
+              [class.has-error]="isFieldInvalid('weight')"
+            />
+            <span class="error-text" *ngIf="isFieldInvalid('weight')">წონა უნდა იყოს 0.1+ კგ</span>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">სავარაუდო ღირებულება (₾)</label>
+            <input 
+              type="number" 
+              class="form-input" 
+              formControlName="value"
+              placeholder="100"
+              min="1"
+              [class.has-error]="isFieldInvalid('value')"
+            />
+            <span class="error-text" *ngIf="isFieldInvalid('value')">ღირებულება აუცილებელია (უსაფრთხოებისთვის)</span>
+          </div>
+        </div>
+
+        <!-- Additional Notes -->
+        <div class="form-group">
+          <label class="form-label">დამატებითი პირობები (სურვილისამებრ)</label>
+          <textarea 
+            class="form-input form-textarea" 
+            formControlName="notes"
+            placeholder="მაგ. რთული, ფრაგილური, სტაფილოს ელემენტი..."
+            rows="2"
+          ></textarea>
+        </div>
+
+        <!-- Contact Info -->
+        <div class="form-row-2">
+          <div class="form-group">
+            <label class="form-label">თქვენი ტელეფონი</label>
+            <input 
+              type="tel" 
+              class="form-input" 
+              formControlName="senderPhone"
+              placeholder="+995 5XX XXX XXX"
+              [class.has-error]="isFieldInvalid('senderPhone')"
+            />
+            <span class="error-text" *ngIf="isFieldInvalid('senderPhone')">ტელეფონი აუცილებელია</span>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">მიმღების ტელეფონი</label>
+            <input 
+              type="tel" 
+              class="form-input" 
+              formControlName="recipientPhone"
+              placeholder="+995 5XX XXX XXX"
+              [class.has-error]="isFieldInvalid('recipientPhone')"
+            />
+            <span class="error-text" *ngIf="isFieldInvalid('recipientPhone')">მიმღების ტელეფონი აუცილებელია</span>
+          </div>
+        </div>
+
+        <!-- Submit -->
+        <div class="form-actions">
+          <button 
+            type="button" 
+            class="btn btn-primary"
+            (click)="submitDetails()"
+            [disabled]="isLoading"
+          >
+            {{ isLoading ? 'დამუშავ...' : '→ დემოკრატი' }}
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- ===== STEP 2: CONFIRMATION ===== -->
+    <div *ngIf="currentStep === 'confirmation'" class="step-content">
+      <div class="section-header">
+        <h2>დადასტურება</h2>
+        <p>მოამოწმეთ ინფორმაცია</p>
+      </div>
+
+      <!-- SUMMARY CARD -->
+      <div class="summary-card">
+        <h3 class="summary-title">📦 გაგზავნის დეტალები</h3>
+        <div class="summary-grid">
+          <div class="summary-row">
+            <span class="summary-label">საიდან:</span>
+            <span class="summary-value">{{ stepData.parcelDetails?.from }}</span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-label">სად:</span>
+            <span class="summary-value">{{ stepData.parcelDetails?.to }}</span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-label">თარიღი:</span>
+            <span class="summary-value">{{ stepData.parcelDetails?.shipDate ? formatDate(stepData.parcelDetails.shipDate) : '' }}</span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-label">აღწერა:</span>
+            <span class="summary-value">{{ stepData.parcelDetails?.description }}</span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-label">წონა:</span>
+            <span class="summary-value">{{ stepData.parcelDetails?.weight }} კგ</span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-label">სავარაუდო ღირებულება:</span>
+            <span class="summary-value">{{ stepData.parcelDetails?.value }} ₾</span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-label">თქვენი ტელეფონი:</span>
+            <span class="summary-value">{{ stepData.parcelDetails?.senderPhone }}</span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-label">მიმღების ტელეფონი:</span>
+            <span class="summary-value">{{ stepData.parcelDetails?.recipientPhone }}</span>
+          </div>
+        </div>
+
+        <div class="info-box">
+          <p>💡 მძღოლები თქვენთან დაუკავშირდებიან თანხის შესახებ და ხელმოწერილი ხელშეკრულების გამო.</p>
+        </div>
+      </div>
+
+      <!-- ACTIONS -->
+      <div class="form-actions">
+        <button 
+          type="button" 
+          class="btn btn-secondary"
+          (click)="goBack()"
+          [disabled]="isSaving"
+        >
+          ← უკან
+        </button>
+        <button 
+          type="button" 
+          class="btn btn-primary"
+          (click)="submitRequest()"
+          [disabled]="isSaving"
+        >
+          {{ isSaving ? 'დამუშავ...' : '✓ განცხადების დადება' }}
+        </button>
+      </div>
+    </div>
+
+    <!-- ===== STEP 3: SUCCESS ===== -->
+    <div *ngIf="currentStep === 'success'" class="step-content">
+      <div class="success-container">
+        <div class="success-icon">✓</div>
+        <h2>განცხადება წარმატებით დაიქვიათ!</h2>
+        <p>განცხადების ნომერი: <strong>{{ stepData.requestId }}</strong></p>
+        
+        <div class="success-info">
+          <p>📱 მძღოლები თქვენთან ნახელმისი დაუკავშირდებიან</p>
+          <p>💬 შეუძლიათ პირდაპირ წერთ ან ზარ დაგუძახოთ</p>
+          <p>💰 ფასი შეთანხმდება პირად კონტაქტში</p>
+        </div>
+
+        <div class="form-actions">
+          <button 
+            type="button" 
+            class="btn btn-primary"
+            (click)="finishAndReturn()"
+          >
+            ✓ პროფილზე დაბრუნება
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>

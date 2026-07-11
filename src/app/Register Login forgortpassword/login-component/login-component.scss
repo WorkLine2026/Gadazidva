@@ -1,0 +1,397 @@
+// ====================================
+// VARIABLES (Modern & Clean Palette)
+// ====================================
+
+$primary-blue: #2563eb;      // უფრო ნათელი, თანამედროვე ლურჯი
+$primary-blue-dark: #1d4ed8;
+$primary-blue-light: #eff6ff;
+$secondary-orange: #f97316;
+$secondary-orange-light: #ffedd5;
+
+$text-dark: #0f172a;       // Slate-900 (ძალიან პრემიუმ მუქი ფერი)
+$text-gray: #475569;       // Slate-600
+$text-light: #94a3b8;      // Slate-400
+
+$bg-white: #ffffff;
+$bg-light: #f8fafc;        // Slate-50
+$border-light: #e2e8f0;    // Slate-200
+
+$error-color: #ef4444;      // Red-500
+$error-bg: #fef2f2;
+
+// ქართული და ლათინური ფონტების საუკეთესო კომბინაცია
+$font-stack: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'BPG Nino Mtavruli', sans-serif;
+
+// ====================================
+// MIXINS
+// ====================================
+
+@mixin transition-smooth {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+// ====================================
+// GLOBAL STYLES
+// ====================================
+
+:host {
+  display: block;
+  font-family: $font-stack;
+  color: $text-dark;
+  background-color: $bg-light;
+  -webkit-font-smoothing: antialiased;
+}
+
+// ====================================
+// HERO SECTION
+// ====================================
+
+.hero {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 20px;
+}
+
+.hero-container {
+  width: 100%;
+  max-width: 520px; // ფორმა უფრო კომპაქტური და დახვეწილია
+  background: $bg-white;
+  border-radius: 24px; // მომრგვალებული კუთხეები თანამედროვე ტრენდით
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.02);
+  border: 1px solid $border-light;
+  overflow: hidden;
+}
+
+.hero-side {
+  padding: 50px 40px;
+  
+  @media (max-width: 480px) {
+    padding: 35px 24px;
+  }
+}
+
+.side-content {
+  width: 100%;
+}
+
+.side-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: $text-dark;
+  margin-bottom: 10px;
+  text-align: center;
+  letter-spacing: -0.5px;
+}
+
+.side-subtitle {
+  font-size: 0.95rem;
+  color: $text-gray;
+  text-align: center;
+  line-height: 1.5;
+  margin-bottom: 32px;
+}
+
+// ====================================
+// ILLUSTRATION
+// ====================================
+
+.illustration {
+  height: 120px;
+  margin-bottom: 32px;
+  @include flex-center;
+}
+
+.illustration-svg {
+  width: 100%;
+  height: 100%;
+  max-width: 160px;
+  animation: float 4s ease-in-out infinite;
+}
+
+// ====================================
+// ERROR MESSAGE
+// ====================================
+
+.error-message {
+  background: $error-bg;
+  border: 1px solid rgba($error-color, 0.2);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 24px;
+  font-size: 0.875rem;
+  color: $error-color;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  
+  .error-icon {
+    background: $error-color;
+    color: white;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    @include flex-center;
+    font-size: 10px;
+  }
+}
+
+// ====================================
+// FORM ELEMENTS
+// ====================================
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.field-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: $text-dark;
+}
+
+.label-wrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 14px 16px;
+  border: 1.5px solid $border-light;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  font-family: inherit;
+  color: $text-dark;
+  background: $bg-white;
+  @include transition-smooth;
+
+  &::placeholder {
+    color: $text-light;
+  }
+
+  &:focus {
+    outline: none;
+    border-color: $primary-blue;
+    box-shadow: 0 0 0 4px rgba($primary-blue, 0.1);
+  }
+
+  &.input-error {
+    border-color: $error-color;
+    &:focus {
+      box-shadow: 0 0 0 4px rgba($error-color, 0.1);
+    }
+  }
+}
+
+.error-text {
+  font-size: 0.8rem;
+  color: $error-color;
+  font-weight: 500;
+  margin-top: 2px;
+}
+
+// ====================================
+// BUTTONS
+// ====================================
+
+.button {
+  padding: 14px 24px;
+  border: none;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  @include transition-smooth;
+  @include flex-center;
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  &-primary {
+    background: $primary-blue;
+    color: $bg-white;
+
+    &:hover:not(:disabled) {
+      background: $primary-blue-dark;
+    }
+  }
+
+  &-link-inline {
+    background: transparent;
+    color: $primary-blue;
+    border: none;
+    padding: 0;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: inherit;
+    margin-left: 4px;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
+.button-link-sm {
+  background: transparent;
+  border: none;
+  color: $primary-blue;
+  font-size: 0.825rem;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+// Loading Spinner
+.loading-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.loading-spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: white;
+  animation: spin 0.8s linear infinite;
+}
+
+// ====================================
+// DIVIDER & SOCIALS
+// ====================================
+
+.divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 24px 0;
+  color: $text-light;
+  font-size: 0.85rem;
+
+  &::before, &::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid $border-light;
+  }
+
+  span {
+    padding: 0 12px;
+  }
+}
+
+.social-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.social-button {
+  padding: 12px 16px;
+  border: 1.5px solid $border-light;
+  border-radius: 12px;
+  background: $bg-white;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  color: $text-dark;
+  @include transition-smooth;
+  @include flex-center;
+
+  &:hover {
+    background: $bg-light;
+    border-color: $text-light;
+  }
+  
+  &.fb-btn:hover {
+    color: #1877f2;
+    border-color: rgba(#1877f2, 0.3);
+    background: rgba(#1877f2, 0.03);
+  }
+  
+  &.google-btn:hover {
+    color: #ea4335;
+    border-color: rgba(#ea4335, 0.3);
+    background: rgba(#ea4335, 0.03);
+  }
+}
+
+// ====================================
+// AUTH SWITCH
+// ====================================
+
+.auth-switch {
+  text-align: center;
+  margin-top: 32px;
+  font-size: 0.9rem;
+  color: $text-gray;
+}
+
+// ====================================
+// ANIMATIONS
+// ====================================
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+// Dark Mode Support
+@media (prefers-color-scheme: dark) {
+  :host {
+    background-color: #0f172a;
+  }
+  .hero-container {
+    background: #1e293b;
+    border-color: #334155;
+  }
+  .side-title { color: #f8fafc; }
+  .side-subtitle { color: #94a3b8; }
+  .field-label { color: #f8fafc; }
+  .input {
+    background: #0f172a;
+    border-color: #334155;
+    color: #f8fafc;
+    &:focus { border-color: $primary-blue; }
+  }
+  .social-button {
+    background: #1e293b;
+    border-color: #334155;
+    color: #f8fafc;
+    &:hover { background: #334155; }
+  }
+  .divider { color: #64748b; }
+  .auth-switch { color: #94a3b8; }
+}
