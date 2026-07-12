@@ -18,7 +18,7 @@ interface StepData {
   styleUrls: ['./send-parcel-component.scss'],
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
-  providers: [ParcelService] // ✅ დაამატე providers
+  providers: [ParcelService]
 })
 export class SendParcelComponent implements OnInit {
   currentStep: SendStep = 'details';
@@ -31,28 +31,15 @@ export class SendParcelComponent implements OnInit {
   errorMessage: string | null = null;
   successMessage: string | null = null;
 
-  readonly GEORGIAN_CITIES = [
-    'თბილისი',
-    'ბათუმი',
-    'ქუთაისი',
-    'გორი',
-    'დუშეთი',
-    'ზუგდიდი',
-    'სოხუმი',
-    'თელავი',
-    'გორიცხე',
-    'ხელვაჩაური',
-    'სარპი',
-    'პოტი',
-    'მცხეთა',
-    'სიღნაგი',
-    'ხაშური'
-  ];
+  // ✅ getter-ის მეშვეობით (constructor-მდე initialize არ საჭიროა)
+  get GEORGIAN_CITIES() {
+    return this.parcelService.GEORGIAN_CITIES;
+  }
 
   constructor(
     private fb: FormBuilder,
     private router: Router,
-    private parcelService: ParcelService,  // ✅ დაამატე ტიპი
+    private parcelService: ParcelService,
     private smsService: SmsVerificationService,
     private cdr: ChangeDetectorRef
   ) {}
@@ -92,38 +79,51 @@ export class SendParcelComponent implements OnInit {
     this.errorMessage = null;
     this.successMessage = null;
 
-    const parcelDetails: ParcelRequest = this.detailsForm.getRawValue();
-    
+    const formValue = this.detailsForm.getRawValue();
+
     // ✅ ვალიდაციის შემოწმება
-    if (!this.parcelService.isValidRoute(parcelDetails.from, parcelDetails.to)) {
+    if (!this.parcelService.isValidRoute(formValue.from, formValue.to)) {
       this.errorMessage = 'მარშრუტი ვალიდი არ არის';
       return;
     }
 
-    if (!this.parcelService.isValidWeight(parcelDetails.weight)) {
+    if (!this.parcelService.isValidWeight(formValue.weight)) {
       this.errorMessage = 'წონა უნდა იყოს 0.1 - 300 კგ';
       return;
     }
 
-    if (!this.parcelService.isValidValue(parcelDetails.value)) {
+    if (!this.parcelService.isValidValue(formValue.value)) {
       this.errorMessage = 'ღირებულება უნდა იყოს 1 - 1,000,000 ₾';
       return;
     }
 
-    if (!this.parcelService.isValidPhone(parcelDetails.senderPhone)) {
+    if (!this.parcelService.isValidPhone(formValue.senderPhone)) {
       this.errorMessage = 'თქვენი ტელეფონი ვალიდი არ არის';
       return;
     }
 
-    if (!this.parcelService.isValidPhone(parcelDetails.recipientPhone)) {
+    if (!this.parcelService.isValidPhone(formValue.recipientPhone)) {
       this.errorMessage = 'მიმღების ტელეფონი ვალიდი არ არის';
       return;
     }
 
-    if (!this.parcelService.isValidShipDate(parcelDetails.shipDate)) {
+    if (!this.parcelService.isValidShipDate(formValue.shipDate)) {
       this.errorMessage = 'თარიღი უნდა იყოს დღეს ან მის შემდეგ';
       return;
     }
+
+    // ✅ დადეთ როგორც ParcelRequest
+    const parcelDetails: ParcelRequest = {
+      from: formValue.from,
+      to: formValue.to,
+      shipDate: formValue.shipDate,
+      description: formValue.description,
+      weight: formValue.weight,
+      value: formValue.value,
+      senderPhone: formValue.senderPhone,
+      recipientPhone: formValue.recipientPhone,
+      notes: formValue.notes || undefined
+    };
 
     this.stepData.parcelDetails = parcelDetails;
 
@@ -161,7 +161,8 @@ export class SendParcelComponent implements OnInit {
         this.isSaving = false;
 
         if (res.success) {
-          this.stepData.requestId = res.requestId;
+          // ✅ requestId-ის მიღება სწორი გზით
+          this.stepData.requestId = res.requestId || res.data?._id || 'უცნობი';
           this.successMessage = 'განცხადება წარმატებით დაიქვიათ!';
           this.currentStep = 'success';
         } else {
@@ -191,8 +192,31 @@ export class SendParcelComponent implements OnInit {
     this.cdr.detectChanges();
   }
 
+  // ✅ განახლებული: finishAndReturn() - state-ით ProfileComponent-ზე
   finishAndReturn(): void {
-    this.router.navigate(['/profile']);
+    // გამგზავნის განცხადების მონაცემების გადაწერა ProfileComponent-ზე state-ით
+    if (this.stepData.parcelDetails && this.stepData.requestId) {
+      this.router.navigate(['/profile'], {
+        state: {
+          newRequest: {
+            from: this.stepData.parcelDetails.from,
+            to: this.stepData.parcelDetails.to,
+            description: this.stepData.parcelDetails.description,
+            weight: this.stepData.parcelDetails.weight,
+            value: this.stepData.parcelDetails.value,
+            shipDate: this.stepData.parcelDetails.shipDate,
+            senderPhone: this.stepData.parcelDetails.senderPhone,
+            recipientPhone: this.stepData.parcelDetails.recipientPhone,
+            notes: this.stepData.parcelDetails.notes
+          },
+          requestId: this.stepData.requestId,
+          isNewRequest: true
+        }
+      });
+    } else {
+      // თუ რაიმე მიზეზით requestId არ არის, უბრალოდ დაბრუნდი
+      this.router.navigate(['/profile']);
+    }
   }
 
   formatDate(dateString: string): string {

@@ -1,37 +1,55 @@
 // ====================================
-// COLOR PALETTE
+// FONTS — Noto Sans Georgian renders the
+// Georgian script cleanly at every weight
+// we use; Latin/numerals fall back to the
+// same family so labels and prices match.
 // ====================================
 
-$primary-blue: #2563eb;
-$primary-blue-dark: #1d4ed8;
-$primary-blue-light: #3b82f6;
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@400;500;600;700;800;900&display=swap');
 
-$secondary-orange: #f97316;
-$secondary-orange-dark: #ea580c;
-$secondary-orange-light: #fb923c;
+// ====================================
+// COLOR PALETTE
+// "Cargo ticket" system — ink navy for
+// structure, cargo-orange for movement,
+// route-teal for confirmed/success states,
+// on a warm paper ground.
+// ====================================
 
-$text-dark: #1f2937;
-$text-gray: #6b7280;
-$text-light: #9ca3af;
-$text-white: #ffffff;
+$ink: #101B33;
+$ink-soft: #24314F;
+$paper: #FBF7F0;
+$paper-card: #FFFFFF;
 
-$bg-white: #ffffff;
-$bg-light: #f3f4f6;
-$bg-lighter: #f9fafb;
-$bg-dark: #111827;
+$cargo: #FF5A1F;
+$cargo-dark: #DB4712;
+$cargo-light: #FF8A57;
 
-$border-color: #e5e7eb;
-$border-light: #f3f4f6;
+$route: #0F8A7A;
+$route-dark: #0B6B5F;
+$route-light: #4FBBA9;
 
-$success: #10b981;
-$warning: #f59e0b;
-$danger: #ef4444;
+$text-dark: $ink;
+$text-gray: #63697A;
+$text-light: #9498A5;
+$text-white: #FFFFFF;
+
+$bg-white: $paper-card;
+$bg-light: #F3EEE3;
+$bg-lighter: $paper;
+$bg-dark: #0B1224;
+
+$border-color: #E7E0D0;
+$border-light: #F0EBDD;
+
+$success: $route;
+$warning: #E8A73B;
+$danger: #E0432A;
 
 // ====================================
 // TYPOGRAPHY
 // ====================================
 
-$font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+$font-family: 'Noto Sans Georgian', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 $font-mono: 'Menlo', 'Monaco', 'Courier New', monospace;
 
 $font-weight-light: 300;
@@ -61,28 +79,29 @@ $spacing-5xl: 80px;
 // ====================================
 
 $radius-sm: 6px;
-$radius-md: 8px;
-$radius-lg: 12px;
-$radius-xl: 16px;
+$radius-md: 10px;
+$radius-lg: 14px;
+$radius-xl: 20px;
 $radius-full: 9999px;
 
 // ====================================
 // SHADOWS
 // ====================================
 
-$shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-$shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-$shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-$shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-$shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+$shadow-sm: 0 1px 2px 0 rgba(16, 27, 51, 0.06);
+$shadow-md: 0 4px 10px -2px rgba(16, 27, 51, 0.10), 0 2px 4px -2px rgba(16, 27, 51, 0.06);
+$shadow-lg: 0 14px 28px -8px rgba(16, 27, 51, 0.16), 0 4px 8px -4px rgba(16, 27, 51, 0.08);
+$shadow-xl: 0 24px 48px -12px rgba(16, 27, 51, 0.22);
+$shadow-cargo: 0 10px 24px -6px rgba(255, 90, 31, 0.35);
+$shadow-route: 0 10px 24px -6px rgba(15, 138, 122, 0.3);
 
 // ====================================
 // TRANSITIONS
 // ====================================
 
 $transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
-$transition-base: 300ms cubic-bezier(0.4, 0, 0.2, 1);
-$transition-slow: 500ms cubic-bezier(0.4, 0, 0.2, 1);
+$transition-base: 280ms cubic-bezier(0.4, 0, 0.2, 1);
+$transition-slow: 480ms cubic-bezier(0.16, 1, 0.3, 1);
 
 // ====================================
 // MIXINS
@@ -108,15 +127,19 @@ $transition-slow: 500ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 @mixin gradient-primary {
-  background: linear-gradient(135deg, $primary-blue 0%, $primary-blue-dark 100%);
+  background: linear-gradient(135deg, $ink 0%, $ink-soft 100%);
 }
 
 @mixin gradient-secondary {
-  background: linear-gradient(135deg, $secondary-orange 0%, $secondary-orange-dark 100%);
+  background: linear-gradient(135deg, $cargo 0%, $cargo-dark 100%);
 }
 
 @mixin gradient-premium {
-  background: linear-gradient(135deg, $primary-blue 0%, $secondary-orange 100%);
+  background: linear-gradient(120deg, $ink 0%, $route-dark 55%, $cargo 100%);
+}
+
+@mixin gradient-route {
+  background: linear-gradient(135deg, $route 0%, $route-dark 100%);
 }
 
 @mixin text-truncate {
@@ -138,7 +161,22 @@ $transition-slow: 500ms cubic-bezier(0.4, 0, 0.2, 1);
 
 @mixin focus-ring {
   outline: none;
-  box-shadow: 0 0 0 3px rgba($primary-blue, 0.1), 0 0 0 5px $primary-blue;
+  box-shadow: 0 0 0 3px rgba($cargo, 0.15), 0 0 0 5px $ink;
+}
+
+// dashed "ticket" perforation edge, used on route cards
+@mixin ticket-perforation($side: bottom, $bg: $paper) {
+  position: relative;
+
+  &::after {
+    content: '';
+    position: absolute;
+    #{$side}: -1px;
+    left: $spacing-lg;
+    right: $spacing-lg;
+    height: 0;
+    border-top: 2px dashed $border-color;
+  }
 }
 
 // ====================================
@@ -164,35 +202,43 @@ $transition-slow: 500ms cubic-bezier(0.4, 0, 0.2, 1);
 
 .hero-slogans {
   width: 100%;
-  padding: $spacing-5xl $spacing-lg;
+  padding: $spacing-5xl $spacing-lg $spacing-4xl;
   display: flex;
   justify-content: center;
-  background: linear-gradient(180deg, $bg-white 0%, $bg-light 100%);
+  background:
+    radial-gradient(circle at 12% 18%, rgba($cargo, 0.10) 0%, transparent 45%),
+    radial-gradient(circle at 88% 8%, rgba($route, 0.12) 0%, transparent 50%),
+    linear-gradient(180deg, $bg-lighter 0%, $bg-light 100%);
   overflow: hidden;
   position: relative;
 
-  // Background decorative elements
+  // faint dotted "route line" arcing across the hero — the signature motif
   &::before {
     content: '';
     position: absolute;
-    top: -50%;
-    right: -10%;
-    width: 500px;
-    height: 500px;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba($primary-blue, 0.08) 0%, transparent 70%);
+    top: 8%;
+    left: -5%;
+    right: -5%;
+    height: 240px;
+    background-image: radial-gradient(circle, rgba($ink, 0.14) 2px, transparent 2.4px);
+    background-size: 26px 26px;
+    -webkit-mask-image: linear-gradient(180deg, black, transparent 85%);
+    mask-image: linear-gradient(180deg, black, transparent 85%);
     pointer-events: none;
+    transform: rotate(-3deg);
   }
 
   &::after {
     content: '';
     position: absolute;
-    bottom: -30%;
-    left: -5%;
-    width: 400px;
-    height: 400px;
+    bottom: -10%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 900px;
+    max-width: 140%;
+    height: 260px;
     border-radius: 50%;
-    background: radial-gradient(circle, rgba($secondary-orange, 0.08) 0%, transparent 70%);
+    background: radial-gradient(ellipse at center, rgba($cargo, 0.06) 0%, transparent 70%);
     pointer-events: none;
   }
 
@@ -214,69 +260,70 @@ $transition-slow: 500ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .hero-badge {
-  display: inline-block;
-  padding: $spacing-md $spacing-xl;
-  background: linear-gradient(135deg, rgba($primary-blue, 0.1) 0%, rgba($secondary-orange, 0.05) 100%);
-  color: $primary-blue;
-  border: 1.5px solid rgba($primary-blue, 0.2);
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-sm;
+  padding: 10px $spacing-lg;
+  background: $ink;
+  color: $text-white;
+  border: none;
   border-radius: $radius-full;
   font-weight: $font-weight-bold;
-  font-size: 14px;
-  letter-spacing: 0.5px;
+  font-size: 13px;
+  letter-spacing: 0.4px;
   margin-bottom: $spacing-2xl;
+  box-shadow: $shadow-md;
   @include smooth-transition;
-  animation: slideDown 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+  animation: slideDown 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
 
   &:hover {
-    background: rgba($primary-blue, 0.15);
-    border-color: rgba($primary-blue, 0.4);
+    background: $ink-soft;
     transform: translateY(-2px);
+    box-shadow: $shadow-lg;
   }
 }
 
 .hero-title {
-  font-size: 56px;
+  font-size: 58px;
   font-weight: $font-weight-black;
-  line-height: 1.15;
+  line-height: 1.12;
   color: $text-dark;
   margin: 0;
-  animation: slideUp 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) 0.1s backwards;
-  letter-spacing: -1px;
+  animation: slideUp 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) 0.08s backwards;
+  letter-spacing: -1.2px;
 
   span {
     display: block;
-    margin-top: $spacing-lg;
-    background: linear-gradient(135deg, $primary-blue 0%, $secondary-orange 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    margin-top: $spacing-md;
+    color: $cargo;
+    position: relative;
   }
 
   @media (max-width: 1024px) {
-    font-size: 48px;
+    font-size: 46px;
   }
 
   @media (max-width: 768px) {
-    font-size: 36px;
+    font-size: 34px;
     letter-spacing: -0.5px;
 
     span {
-      margin-top: $spacing-md;
+      margin-top: $spacing-sm;
     }
   }
 
   @media (max-width: 480px) {
-    font-size: 28px;
+    font-size: 27px;
   }
 }
 
 .hero-description {
-  max-width: 700px;
+  max-width: 640px;
   margin: $spacing-2xl auto;
   font-size: 18px;
   color: $text-gray;
-  line-height: 1.75;
-  animation: slideUp 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s backwards;
+  line-height: 1.7;
+  animation: slideUp 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) 0.16s backwards;
 
   @media (max-width: 768px) {
     font-size: 16px;
@@ -294,12 +341,12 @@ $transition-slow: 500ms cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: $spacing-lg;
-  margin: $spacing-3xl 0;
-  animation: slideUp 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) 0.3s backwards;
+  gap: $spacing-md;
+  margin: $spacing-3xl 0 0;
+  animation: slideUp 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) 0.24s backwards;
 
   span {
-    padding: $spacing-md $spacing-lg;
+    padding: 10px $spacing-lg;
     background: $bg-white;
     border: 1.5px solid $border-color;
     border-radius: $radius-full;
@@ -308,39 +355,18 @@ $transition-slow: 500ms cubic-bezier(0.4, 0, 0.2, 1);
     color: $text-gray;
     @include smooth-transition;
     cursor: pointer;
-    position: relative;
-    overflow: hidden;
-
-    &::before {
-      content: '';
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      width: 0;
-      height: 0;
-      border-radius: 50%;
-      background: rgba($primary-blue, 0.1);
-      transform: translate(-50%, -50%);
-      @include smooth-transition(width, height);
-      pointer-events: none;
-    }
 
     &:hover {
-      transform: translateY(-4px);
-      border-color: $primary-blue;
-      color: $primary-blue;
-      box-shadow: $shadow-lg;
-
-      &::before {
-        width: 300px;
-        height: 300px;
-      }
+      transform: translateY(-3px);
+      border-color: $cargo;
+      color: $cargo-dark;
+      box-shadow: $shadow-md;
     }
   }
 
   @media (max-width: 768px) {
-    gap: $spacing-md;
-    margin: $spacing-2xl 0;
+    gap: $spacing-sm;
+    margin-top: $spacing-2xl;
 
     span {
       padding: $spacing-sm $spacing-md;
@@ -349,14 +375,245 @@ $transition-slow: 500ms cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   @media (max-width: 480px) {
-    gap: $spacing-sm;
-    margin: $spacing-xl 0;
-
     span {
       padding: 8px $spacing-md;
       font-size: 11px;
     }
   }
+}
+
+// ====================================
+// ANNOUNCEMENT SECTIONS
+// (sender requests / driver trips)
+// ====================================
+
+.announcements-section {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: $spacing-3xl $spacing-lg 0;
+  position: relative;
+  z-index: 1;
+
+  @media (max-width: 480px) {
+    padding: $spacing-2xl $spacing-md 0;
+  }
+}
+
+.section-title {
+  font-size: 24px;
+  font-weight: $font-weight-extrabold;
+  color: $text-dark;
+  margin: 0 0 $spacing-xl;
+  letter-spacing: -0.3px;
+
+  @media (max-width: 480px) {
+    font-size: 19px;
+    margin-bottom: $spacing-lg;
+  }
+}
+
+.requests-grid,
+.trips-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: $spacing-xl;
+
+  @media (max-width: 480px) {
+    grid-template-columns: 1fr;
+    gap: $spacing-lg;
+  }
+}
+
+// Shared "cargo ticket" card treatment
+.request-card-home,
+.trip-card-home {
+  background: $bg-white;
+  border: 1.5px solid $border-color;
+  border-radius: $radius-lg;
+  padding: $spacing-xl;
+  position: relative;
+  overflow: hidden;
+  @include smooth-transition;
+
+  // top accent strip, colored per card type below
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+  }
+
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: $shadow-lg;
+    border-color: transparent;
+  }
+}
+
+.request-card-home {
+  &::before {
+    background: linear-gradient(90deg, $cargo, $cargo-light);
+  }
+}
+
+.trip-card-home {
+  &::before {
+    background: linear-gradient(90deg, $route, $route-light);
+  }
+}
+
+.card-header {
+  @include flex-between;
+  margin-bottom: $spacing-lg;
+  gap: $spacing-sm;
+}
+
+.sender-info,
+.driver-info {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  min-width: 0;
+}
+
+.sender-name,
+.driver-name {
+  font-weight: $font-weight-bold;
+  font-size: 15px;
+  color: $text-dark;
+  @include text-truncate;
+}
+
+.status-badge,
+.trip-status-badge {
+  flex-shrink: 0;
+  padding: 5px $spacing-md;
+  border-radius: $radius-full;
+  font-size: 11px;
+  font-weight: $font-weight-bold;
+  letter-spacing: 0.3px;
+  background: $bg-light;
+  color: $text-gray;
+
+  &.status-pending {
+    background: rgba($warning, 0.15);
+    color: darken($warning, 15%);
+  }
+
+  &.status-accepted,
+  &.status-active {
+    background: rgba($route, 0.12);
+    color: $route-dark;
+  }
+
+  &.status-completed {
+    background: rgba($ink, 0.08);
+    color: $ink;
+  }
+
+  &.status-cancelled {
+    background: rgba($danger, 0.12);
+    color: $danger;
+  }
+}
+
+// Route display — the ticket-stub signature: two city
+// stops joined by a dashed route line with a direction arrow
+.route-display {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+  padding: $spacing-md 0;
+  margin-bottom: $spacing-lg;
+  position: relative;
+}
+
+.route-city {
+  font-weight: $font-weight-extrabold;
+  font-size: 17px;
+  color: $ink;
+  @include text-truncate;
+
+  &:last-of-type {
+    color: $cargo-dark;
+  }
+}
+
+.route-arrow {
+  flex-shrink: 0;
+  width: 28px;
+  height: 2px;
+  position: relative;
+  background: repeating-linear-gradient(
+    90deg,
+    $border-color 0,
+    $border-color 4px,
+    transparent 4px,
+    transparent 8px
+  );
+
+  &::after {
+    content: '';
+    position: absolute;
+    right: -2px;
+    top: 50%;
+    width: 6px;
+    height: 6px;
+    border-top: 2px solid $cargo;
+    border-right: 2px solid $cargo;
+    transform: translateY(-50%) rotate(45deg);
+  }
+}
+
+.card-details {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: $spacing-md;
+  padding-top: $spacing-lg;
+  border-top: 1.5px dashed $border-color;
+}
+
+.detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.detail-label {
+  font-size: 11px;
+  font-weight: $font-weight-semibold;
+  color: $text-light;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.detail-value {
+  font-size: 14px;
+  font-weight: $font-weight-bold;
+  color: $text-dark;
+  @include text-truncate;
+}
+
+.shippings-info {
+  @include flex-between;
+  margin-top: $spacing-lg;
+  padding-top: $spacing-lg;
+  border-top: 1.5px dashed $border-color;
+}
+
+.shipping-count {
+  font-size: 13px;
+  font-weight: $font-weight-bold;
+  color: $route-dark;
+}
+
+.shipping-earnings {
+  font-size: 14px;
+  font-weight: $font-weight-extrabold;
+  color: $ink;
 }
 
 // ====================================
@@ -394,7 +651,7 @@ $transition-slow: 500ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .preview-title {
-  font-size: 36px;
+  font-size: 34px;
   font-weight: $font-weight-black;
   text-align: center;
   margin: 0 0 $spacing-4xl;
@@ -403,12 +660,12 @@ $transition-slow: 500ms cubic-bezier(0.4, 0, 0.2, 1);
   animation: fadeInUp 0.6s ease-out;
 
   @media (max-width: 768px) {
-    font-size: 28px;
+    font-size: 26px;
     margin-bottom: $spacing-3xl;
   }
 
   @media (max-width: 480px) {
-    font-size: 22px;
+    font-size: 21px;
     margin-bottom: $spacing-2xl;
   }
 }
@@ -417,17 +674,21 @@ $transition-slow: 500ms cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: $spacing-2xl;
+  gap: $spacing-xl;
   flex-wrap: wrap;
   animation: fadeInUp 0.6s ease-out 0.1s backwards;
 
   @media (max-width: 1024px) {
-    gap: $spacing-xl;
+    gap: $spacing-lg;
   }
 
   @media (max-width: 768px) {
     gap: $spacing-lg;
     flex-direction: column;
+
+    .preview-arrow {
+      display: none;
+    }
   }
 
   @media (max-width: 480px) {
@@ -440,45 +701,28 @@ $transition-slow: 500ms cubic-bezier(0.4, 0, 0.2, 1);
   padding: $spacing-2xl $spacing-xl;
   border-radius: $radius-lg;
   text-align: center;
-  min-width: 160px;
+  min-width: 170px;
   border: 1.5px solid $border-color;
   position: relative;
   overflow: hidden;
   @include smooth-transition;
   @include hover-lift;
 
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 3px;
-    background: linear-gradient(90deg, $primary-blue, $secondary-orange);
-    transform: scaleX(0);
-    transform-origin: left;
-    @include smooth-transition;
-  }
-
   &:hover {
-    border-color: $primary-blue;
-    box-shadow: 0 20px 40px rgba($primary-blue, 0.15);
-
-    &::before {
-      transform: scaleX(1);
-    }
+    border-color: $cargo;
+    box-shadow: 0 20px 40px rgba($cargo, 0.14);
 
     .preview-number {
-      transform: scale(1.1) rotate(5deg);
+      transform: scale(1.08) rotate(-4deg);
     }
 
     .preview-card-title {
-      color: $primary-blue;
+      color: $cargo-dark;
     }
   }
 
   @media (max-width: 1024px) {
-    min-width: 140px;
+    min-width: 150px;
     padding: $spacing-xl $spacing-lg;
   }
 
@@ -493,22 +737,22 @@ $transition-slow: 500ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .preview-number {
-  width: 50px;
-  height: 50px;
+  width: 46px;
+  height: 46px;
   border-radius: 50%;
   @include flex-center;
-  @include gradient-primary;
+  background: $ink;
   color: $text-white;
   font-weight: $font-weight-black;
-  font-size: 20px;
+  font-size: 18px;
   margin: 0 auto $spacing-lg;
-  box-shadow: 0 8px 20px rgba($primary-blue, 0.3);
+  box-shadow: $shadow-md;
   @include smooth-transition;
 
   @media (max-width: 480px) {
-    width: 45px;
-    height: 45px;
-    font-size: 18px;
+    width: 42px;
+    height: 42px;
+    font-size: 16px;
     margin-bottom: $spacing-md;
   }
 }
@@ -537,22 +781,13 @@ $transition-slow: 500ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .preview-arrow {
-  font-size: 28px;
-  color: $primary-blue;
+  font-size: 26px;
+  color: $cargo;
   font-weight: $font-weight-light;
-  animation: bounce 2s ease-in-out infinite;
+  animation: bounce 2.2s ease-in-out infinite;
 
   @media (max-width: 1024px) {
-    font-size: 24px;
-  }
-
-  @media (max-width: 768px) {
-    display: none;
-  }
-
-  @media (max-width: 480px) {
-    font-size: 20px;
-    display: none;
+    font-size: 22px;
   }
 }
 
@@ -561,10 +796,9 @@ $transition-slow: 500ms cubic-bezier(0.4, 0, 0.2, 1);
 // ====================================
 
 .badges {
-  background: $bg-white;
+  background: $ink;
   padding: $spacing-4xl $spacing-lg;
-  border-top: 1px solid $border-color;
-  border-bottom: 1px solid $border-color;
+  position: relative;
   animation: fadeInUp 0.6s ease-out;
 
   @media (max-width: 768px) {
@@ -598,78 +832,56 @@ $transition-slow: 500ms cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: $spacing-lg;
+  gap: $spacing-md;
   text-align: center;
-  padding: $spacing-xl;
+  padding: $spacing-xl $spacing-lg;
   border-radius: $radius-lg;
-  background: $bg-lighter;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   @include smooth-transition;
   position: relative;
-  overflow: hidden;
-
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(135deg, rgba($primary-blue, 0.05), rgba($secondary-orange, 0.05));
-    opacity: 0;
-    @include smooth-transition;
-    pointer-events: none;
-  }
 
   &:hover {
     transform: translateY(-6px);
-    box-shadow: $shadow-lg;
-
-    &::before {
-      opacity: 1;
-    }
+    background: rgba(255, 255, 255, 0.07);
+    border-color: rgba($cargo, 0.4);
 
     .badge-icon {
-      transform: scale(1.2) rotate(10deg);
+      transform: scale(1.15) rotate(-6deg);
+      background: $cargo;
     }
   }
 
   @media (max-width: 768px) {
     padding: $spacing-lg;
-    gap: $spacing-md;
-  }
-
-  @media (max-width: 480px) {
-    padding: $spacing-lg;
+    gap: $spacing-sm;
   }
 }
 
 .badge-icon {
-  width: 50px;
-  height: 50px;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
   @include flex-center;
-  @include gradient-primary;
+  background: $route;
   color: $text-white;
-  font-size: 24px;
+  font-size: 22px;
   font-weight: $font-weight-bold;
   flex-shrink: 0;
   @include smooth-transition;
-  box-shadow: 0 6px 20px rgba($primary-blue, 0.25);
 
   @media (max-width: 480px) {
-    width: 45px;
-    height: 45px;
-    font-size: 20px;
+    width: 44px;
+    height: 44px;
+    font-size: 19px;
   }
 }
 
 .badge-text {
   font-size: 14px;
-  color: $text-gray;
+  color: rgba(255, 255, 255, 0.85);
   font-weight: $font-weight-semibold;
   line-height: 1.5;
-  position: relative;
-  z-index: 1;
 
   @media (max-width: 480px) {
     font-size: 13px;
@@ -681,48 +893,30 @@ $transition-slow: 500ms cubic-bezier(0.4, 0, 0.2, 1);
 // ====================================
 
 .button {
-  padding: 12px 24px;
+  padding: 13px 26px;
   border: none;
-  border-radius: $radius-lg;
+  border-radius: $radius-md;
   font-size: 14px;
-  font-weight: $font-weight-semibold;
+  font-weight: $font-weight-bold;
   cursor: pointer;
   font-family: inherit;
   @include smooth-transition;
   position: relative;
   overflow: hidden;
-  letter-spacing: 0.3px;
+  letter-spacing: 0.2px;
   display: inline-flex;
   align-items: center;
   gap: $spacing-sm;
 
-  &::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 0;
-    height: 0;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.3);
-    transform: translate(-50%, -50%);
-    pointer-events: none;
-    @include smooth-transition(width, height);
-  }
-
-  &:hover::before {
-    width: 300px;
-    height: 300px;
-  }
-
   &-primary {
-    @include gradient-primary;
+    background: $ink;
     color: $text-white;
-    box-shadow: 0 8px 20px rgba($primary-blue, 0.3);
+    box-shadow: $shadow-md;
 
     &:hover {
+      background: $ink-soft;
       transform: translateY(-2px);
-      box-shadow: 0 12px 30px rgba($primary-blue, 0.4);
+      box-shadow: $shadow-lg;
     }
 
     &:active {
@@ -733,11 +927,11 @@ $transition-slow: 500ms cubic-bezier(0.4, 0, 0.2, 1);
   &-secondary {
     @include gradient-secondary;
     color: $text-white;
-    box-shadow: 0 8px 20px rgba($secondary-orange, 0.3);
+    box-shadow: $shadow-cargo;
 
     &:hover {
       transform: translateY(-2px);
-      box-shadow: 0 12px 30px rgba($secondary-orange, 0.4);
+      box-shadow: 0 14px 32px rgba($cargo, 0.42);
     }
 
     &:active {
@@ -746,21 +940,21 @@ $transition-slow: 500ms cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   &-outline {
-    border: 2px solid $primary-blue;
-    color: $primary-blue;
+    border: 2px solid $ink;
+    color: $ink;
     background: transparent;
 
     &:hover {
-      background: rgba($primary-blue, 0.05);
+      background: rgba($ink, 0.05);
       transform: translateY(-2px);
     }
   }
 
   &-link {
     background: transparent;
-    color: $primary-blue;
+    color: $cargo-dark;
     padding: $spacing-md 0;
-    font-weight: $font-weight-medium;
+    font-weight: $font-weight-semibold;
     position: relative;
 
     &::after {
@@ -770,7 +964,7 @@ $transition-slow: 500ms cubic-bezier(0.4, 0, 0.2, 1);
       left: 0;
       width: 100%;
       height: 2px;
-      background: $primary-blue;
+      background: $cargo;
       transform: scaleX(0);
       transform-origin: right;
       @include smooth-transition;
@@ -789,7 +983,7 @@ $transition-slow: 500ms cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   @media (max-width: 480px) {
-    padding: 10px 16px;
+    padding: 11px 18px;
     font-size: 13px;
   }
 }
@@ -836,7 +1030,7 @@ $transition-slow: 500ms cubic-bezier(0.4, 0, 0.2, 1);
 
   &:focus {
     @include focus-ring;
-    border-color: $primary-blue;
+    border-color: $cargo;
   }
 
   @media (max-width: 480px) {
@@ -857,7 +1051,7 @@ $transition-slow: 500ms cubic-bezier(0.4, 0, 0.2, 1);
 @keyframes slideUp {
   from {
     opacity: 0;
-    transform: translateY(30px);
+    transform: translateY(28px);
   }
   to {
     opacity: 1;
@@ -868,7 +1062,7 @@ $transition-slow: 500ms cubic-bezier(0.4, 0, 0.2, 1);
 @keyframes slideDown {
   from {
     opacity: 0;
-    transform: translateY(-20px);
+    transform: translateY(-18px);
   }
   to {
     opacity: 1;
@@ -879,7 +1073,7 @@ $transition-slow: 500ms cubic-bezier(0.4, 0, 0.2, 1);
 @keyframes fadeInUp {
   from {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(18px);
   }
   to {
     opacity: 1;
@@ -892,7 +1086,7 @@ $transition-slow: 500ms cubic-bezier(0.4, 0, 0.2, 1);
     transform: translateY(0);
   }
   50% {
-    transform: translateY(-8px);
+    transform: translateY(-7px);
   }
 }
 
@@ -907,10 +1101,10 @@ $transition-slow: 500ms cubic-bezier(0.4, 0, 0.2, 1);
 
 @keyframes glow {
   0%, 100% {
-    box-shadow: 0 0 20px rgba($primary-blue, 0.3);
+    box-shadow: 0 0 20px rgba($cargo, 0.3);
   }
   50% {
-    box-shadow: 0 0 30px rgba($primary-blue, 0.5);
+    box-shadow: 0 0 30px rgba($cargo, 0.5);
   }
 }
 
@@ -932,6 +1126,12 @@ $transition-slow: 500ms cubic-bezier(0.4, 0, 0.2, 1);
   }
 }
 
+@keyframes dashMove {
+  to {
+    background-position: 16px 0;
+  }
+}
+
 // ====================================
 // DARK MODE
 // ====================================
@@ -939,56 +1139,75 @@ $transition-slow: 500ms cubic-bezier(0.4, 0, 0.2, 1);
 @media (prefers-color-scheme: dark) {
   :host {
     background: $bg-dark;
-    color: #f3f4f6;
+    color: #EDEFF5;
   }
 
   .hero-slogans {
-    background: linear-gradient(180deg, #1f2937 0%, #111827 100%);
+    background:
+      radial-gradient(circle at 12% 18%, rgba($cargo, 0.14) 0%, transparent 45%),
+      radial-gradient(circle at 88% 8%, rgba($route, 0.16) 0%, transparent 50%),
+      linear-gradient(180deg, #131C33 0%, $bg-dark 100%);
 
     &::before {
-      background: radial-gradient(circle, rgba($primary-blue, 0.12) 0%, transparent 70%);
-    }
-
-    &::after {
-      background: radial-gradient(circle, rgba($secondary-orange, 0.12) 0%, transparent 70%);
+      background-image: radial-gradient(circle, rgba(255, 255, 255, 0.10) 2px, transparent 2.4px);
     }
   }
 
   .hero-badge {
-    background: rgba($primary-blue, 0.15);
-    color: #60a5fa;
-    border-color: rgba($primary-blue, 0.3);
-
-    &:hover {
-      background: rgba($primary-blue, 0.2);
-      border-color: rgba($primary-blue, 0.5);
-    }
+    background: $cargo;
   }
 
   .hero-title {
-    color: #f3f4f6;
+    color: #F5F6FA;
   }
 
   .hero-description {
-    color: #d1d5db;
+    color: #B7BBCB;
   }
 
-  .hero-tags {
-    span {
-      background: #1f2937;
-      border-color: #374151;
-      color: #d1d5db;
+  .hero-tags span {
+    background: #16203A;
+    border-color: #29314A;
+    color: #C7CADA;
 
-      &:hover {
-        background: #2d3748;
-        border-color: $primary-blue;
-        color: #60a5fa;
-      }
+    &:hover {
+      border-color: $cargo;
+      color: $cargo-light;
     }
   }
 
+  .section-title {
+    color: #F5F6FA;
+  }
+
+  .request-card-home,
+  .trip-card-home {
+    background: #16203A;
+    border-color: #29314A;
+
+    &:hover {
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+    }
+  }
+
+  .sender-name,
+  .driver-name,
+  .route-city,
+  .detail-value {
+    color: #F5F6FA;
+  }
+
+  .route-city:last-of-type {
+    color: $cargo-light;
+  }
+
+  .card-details,
+  .shippings-info {
+    border-color: #29314A;
+  }
+
   .preview {
-    background: #111827;
+    background: $bg-dark;
 
     &::before {
       background: linear-gradient(90deg, transparent, rgba(107, 114, 128, 0.3), transparent);
@@ -996,68 +1215,39 @@ $transition-slow: 500ms cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .preview-title {
-    color: #f3f4f6;
+    color: #F5F6FA;
   }
 
   .preview-card {
-    background: #1f2937;
-    border-color: #374151;
+    background: #16203A;
+    border-color: #29314A;
 
     &:hover {
-      background: #2d3748;
-      border-color: $primary-blue;
-      box-shadow: 0 20px 40px rgba($primary-blue, 0.2);
+      background: #1B2745;
+      box-shadow: 0 20px 40px rgba($cargo, 0.18);
     }
   }
 
   .preview-card-title {
-    color: #f3f4f6;
+    color: #F5F6FA;
   }
 
   .preview-card-description {
-    color: #9ca3af;
-  }
-
-  .badges {
-    background: #1f2937;
-    border-color: #374151;
-  }
-
-  .badges-container {
-    // inherits dark styles
-  }
-
-  .badge {
-    background: #111827;
-    border-color: #374151;
-
-    &::before {
-      background: linear-gradient(135deg, rgba($primary-blue, 0.1), rgba($secondary-orange, 0.1));
-    }
-
-    &:hover {
-      background: #2d3748;
-      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
-    }
-  }
-
-  .badge-text {
-    color: #d1d5db;
+    color: #9FA4B8;
   }
 
   .input,
   .textarea {
-    background: #1f2937;
-    color: #f3f4f6;
-    border-color: #374151;
+    background: #16203A;
+    color: #F5F6FA;
+    border-color: #29314A;
 
     &::placeholder {
-      color: #9ca3af;
+      color: #7C81A0;
     }
 
     &:focus {
-      border-color: $primary-blue;
-      box-shadow: 0 0 0 3px rgba($primary-blue, 0.2), 0 0 0 5px $primary-blue;
+      border-color: $cargo;
     }
   }
 }
@@ -1070,26 +1260,6 @@ $transition-slow: 500ms cubic-bezier(0.4, 0, 0.2, 1);
   * {
     animation: none !important;
     transition: none !important;
-  }
-}
-
-// ====================================
-// ACCESSIBILITY
-// ====================================
-
-@media (max-width: 1024px) {
-  .preview-grid {
-    gap: $spacing-xl;
-  }
-}
-
-@media (max-width: 768px) {
-  .preview-grid {
-    flex-direction: column;
-
-    .preview-arrow {
-      display: none;
-    }
   }
 }
 

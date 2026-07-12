@@ -1,37 +1,28 @@
 <section class="pickup-parcel-wrapper">
   <div class="pickup-parcel-container">
-    
-    <!-- ===== HEADER ===== -->
+
     <div class="pickup-header">
       <button class="back-btn" (click)="goBack()">
         <span>←</span>
         <span>უკან</span>
       </button>
-      <h1 class="pickup-title">🚚 გაგზავნის მიღება</h1>
+      <h1 class="pickup-title">🚚 განცხადების დამატება</h1>
       <div></div>
     </div>
 
-    <!-- ===== PROGRESS STEPS ===== -->
     <div class="steps-progress">
-      <div class="step-indicator" [class.active]="currentStep === 'trip-plan'" [class.completed]="currentStep !== 'trip-plan'">
-        <div class="step-circle">1</div>
+      <div class="step-indicator" [class.active]="currentStep === 'trip-plan'" [class.completed]="currentStep === 'success'">
+        <div class="step-circle">I</div>
         <div class="step-label">გეგმა</div>
-      </div>
-      <div class="step-line" [class.completed]="currentStep !== 'trip-plan'"></div>
-
-      <div class="step-indicator" [class.active]="currentStep === 'available-shippings'" [class.completed]="currentStep === 'success'">
-        <div class="step-circle">2</div>
-        <div class="step-label">გაგზ.</div>
       </div>
       <div class="step-line" [class.completed]="currentStep === 'success'"></div>
 
       <div class="step-indicator" [class.active]="currentStep === 'success'">
-        <div class="step-circle">3</div>
-        <div class="step-label">დასრულ.</div>
+        <div class="step-circle">II</div>
+        <div class="step-label">დასრულდა</div>
       </div>
     </div>
 
-    <!-- ===== ERROR/SUCCESS MESSAGES ===== -->
     <div *ngIf="errorMessage" class="alert alert-error">
       <span class="alert-icon">⚠️</span>
       {{ errorMessage }}
@@ -41,15 +32,13 @@
       {{ successMessage }}
     </div>
 
-    <!-- ===== STEP 1: TRIP PLAN ===== -->
     <div *ngIf="currentStep === 'trip-plan'" class="step-content">
       <div class="section-header">
-        <h2>განათავსეთ თქვენი მგზავრობის გეგმა</h2>
-        <p>დაწერეთ სად და როდის მიდიხართ. გამგზავნები თავად გამოთხოვენ!</p>
+        <h2>განათავსეთ თქვენი მგზავრობის განცხადება</h2>
+        <p>მიუთითეთ დეტალები და გამგზავნები თავად გამოგიკავშირდებიან!</p>
       </div>
 
       <form [formGroup]="tripForm" class="trip-form">
-        <!-- From & To Cities -->
         <div class="form-row-2">
           <div class="form-group">
             <label class="form-label">საიდან (ქალაქი)</label>
@@ -70,13 +59,12 @@
           </div>
         </div>
 
-        <!-- Date & Time -->
         <div class="form-row-2">
           <div class="form-group">
             <label class="form-label">გამგზავრების თარიღი</label>
-            <input 
-              type="date" 
-              class="form-input" 
+            <input
+              type="date"
+              class="form-input"
               formControlName="departureDate"
               [class.has-error]="isFieldInvalid('departureDate')"
             />
@@ -85,9 +73,9 @@
 
           <div class="form-group">
             <label class="form-label">გამგზავრების დრო</label>
-            <input 
-              type="time" 
-              class="form-input" 
+            <input
+              type="time"
+              class="form-input"
               formControlName="departureTime"
               [class.has-error]="isFieldInvalid('departureTime')"
             />
@@ -95,13 +83,12 @@
           </div>
         </div>
 
-        <!-- Space & Price -->
         <div class="form-row-2">
           <div class="form-group">
             <label class="form-label">თავისუფალი ადგილი (კგ)</label>
-            <input 
-              type="number" 
-              class="form-input" 
+            <input
+              type="number"
+              class="form-input"
               formControlName="availableSpace"
               placeholder="50"
               min="1"
@@ -112,9 +99,9 @@
 
           <div class="form-group">
             <label class="form-label">ფასი კილოგრამზე (₾)</label>
-            <input 
-              type="number" 
-              class="form-input" 
+            <input
+              type="number"
+              class="form-input"
               formControlName="pricePerKg"
               placeholder="0.50"
               min="0.1"
@@ -125,13 +112,41 @@
           </div>
         </div>
 
-        <!-- Car Details (Optional) -->
+        <div class="form-row-2">
+          <div class="form-group">
+            <label class="form-label">პირადი ნომერი</label>
+            <input
+              type="text"
+              class="form-input"
+              formControlName="personalNumber"
+              placeholder="0100XXXXXXX"
+              maxlength="11"
+              inputmode="numeric"
+              [class.has-error]="isFieldInvalid('personalNumber')"
+            />
+            <span class="error-text" *ngIf="isFieldInvalid('personalNumber')">პირადი ნომერი აუცილებელია</span>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">ტელეფონის ნომერი</label>
+            <input
+              type="tel"
+              class="form-input"
+              formControlName="senderPhone"
+              placeholder="+995 5XX XX XX XX"
+              inputmode="tel"
+              [class.has-error]="isFieldInvalid('senderPhone')"
+            />
+            <span class="error-text" *ngIf="isFieldInvalid('senderPhone')">ტელეფონის ნომერი აუცილებელია</span>
+          </div>
+        </div>
+
         <div class="form-row-2">
           <div class="form-group">
             <label class="form-label">მანქანის მოდელი (სურვილისამებრ)</label>
-            <input 
-              type="text" 
-              class="form-input" 
+            <input
+              type="text"
+              class="form-input"
               formControlName="carModel"
               placeholder="მაგ. Toyota Corolla"
             />
@@ -139,182 +154,72 @@
 
           <div class="form-group">
             <label class="form-label">სახელმწიფო ნომერი (სურვილისამებრ)</label>
-            <input 
-              type="text" 
-              class="form-input" 
+            <input
+              type="text"
+              class="form-input"
               formControlName="carPlate"
               placeholder="მაგ. AB-123-CD"
             />
           </div>
         </div>
 
-        <!-- Comments -->
         <div class="form-group">
           <label class="form-label">დამატებითი კომენტარი (სურვილისამებრ)</label>
-          <textarea 
-            class="form-input form-textarea" 
+          <textarea
+            class="form-input form-textarea"
             formControlName="comments"
-            placeholder="მაგ. კომფორტული სედანი, კონდიცია აქვს..."
+            placeholder="მაგ. კომფორტული სედანი, კონდიციონერი აქვს..."
             rows="2"
           ></textarea>
         </div>
 
-        <!-- Submit -->
         <div class="form-actions">
-          <button 
-            type="button" 
+          <button
+            type="button"
             class="btn btn-primary"
             (click)="submitTrip()"
             [disabled]="isLoading"
           >
-            {{ isLoading ? 'განათავს...' : '→ დემოკრატი' }}
+            {{ isLoading ? 'თავსდება...' : '✓ განცხადების დამატება' }}
           </button>
         </div>
       </form>
-
-      <!-- INFO CARD -->
-      <div class="info-card">
-        <h3>💡 რა დრო სჯობს განათავსებას?</h3>
-        <p>გამგზავნებმა რომელი სტაბილური მარშრუტი იხილონ, თქვენ უზე მეტი მოთხოვნა მიიღებთ! უმჯობესია გამგზავრებამდე რამდენიმე საათით ადრე განათავსოთ.</p>
-      </div>
     </div>
 
-    <!-- ===== STEP 2: AVAILABLE SHIPPINGS ===== -->
-    <div *ngIf="currentStep === 'available-shippings'" class="step-content">
-      <div class="section-header">
-        <h2>📦 ხელმისაწვდომი გაგზავნები</h2>
-        <p>აირჩიეთ რომელი ამანათი უნდა წაიღოთ</p>
-      </div>
-
-      <!-- TRIP SUMMARY -->
-      <div class="trip-summary">
-        <h3>🚗 თქვენი მგზავრობა</h3>
-        <div class="summary-grid">
-          <div class="summary-row">
-            <span class="label">მარშრუტი:</span>
-            <span class="value">{{ getTripFromTo() }}</span>
-          </div>
-          <div class="summary-row">
-            <span class="label">დრო:</span>
-            <span class="value">{{ getTripDepartureDate() }}</span>
-          </div>
-          <div class="summary-row">
-            <span class="label">თავისუფალი ადგილი:</span>
-            <span class="value">{{ getTripAvailableSpace() }}</span>
-          </div>
-          <div class="summary-row">
-            <span class="label">ფასი:</span>
-            <span class="value">{{ getTripPrice() }}</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- AVAILABLE SHIPPINGS LIST -->
-      <div class="shippings-section">
-        <h3>ხელმისაწვდომი გაგზავნები</h3>
-
-        <div *ngIf="!pickupData.availableShippings || pickupData.availableShippings.length === 0" class="no-shippings">
-          <p>⚠️ ამჯამად ამ მარშრუტზე გაგზავნა არ არის. დაელოდეთ!</p>
-        </div>
-
-        <div class="shippings-grid">
-          <div 
-            *ngFor="let shipping of pickupData.availableShippings"
-            class="shipping-card"
-          >
-            <div class="shipping-header">
-              <h4 class="shipping-from-to">{{ shipping.parcelDetails.from }} → {{ shipping.parcelDetails.to }}</h4>
-              <span class="shipping-date">📅 {{ formatDate(shipping.createdAt) }}</span>
-            </div>
-
-            <div class="shipping-details">
-              <div class="detail-row">
-                <span class="label">📦 აღწერა:</span>
-                <span class="value">{{ shipping.parcelDetails.description }}</span>
-              </div>
-              <div class="detail-row">
-                <span class="label">⚖️ წონა:</span>
-                <span class="value">{{ shipping.parcelDetails.weight }} კგ</span>
-              </div>
-              <div class="detail-row">
-                <span class="label">💰 ღირებულება:</span>
-                <span class="value">{{ shipping.parcelDetails.value }} ₾</span>
-              </div>
-              <div class="detail-row">
-                <span class="label">👤 გამგზავნი:</span>
-                <span class="value">{{ shipping.senderName }} ({{ shipping.senderPhone }})</span>
-              </div>
-              <div class="detail-row highlight">
-                <span class="label">💵 თქვენი შემოსავალი:</span>
-                <span class="value">{{ getShippingEarnings(shipping) }}</span>
-              </div>
-            </div>
-
-            <button 
-              class="btn btn-primary btn-small"
-              (click)="acceptShipping(shipping)"
-              [disabled]="isSaving"
-            >
-              {{ isSaving ? 'დამატ...' : '✓ დამატება' }}
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- ACCEPTED SHIPPINGS -->
-      <div *ngIf="pickupData.acceptedShippings && pickupData.acceptedShippings.length > 0" class="accepted-section">
-        <h3>✓ დამატებული გაგზავნები ({{ pickupData.acceptedShippings.length }})</h3>
-        <div class="accepted-list">
-          <div *ngFor="let shipping of pickupData.acceptedShippings" class="accepted-item">
-            <span>📦 {{ shipping.parcelDetails.from }} → {{ shipping.parcelDetails.to }} ({{ shipping.parcelDetails.weight }} კგ)</span>
-            <span class="price">{{ getShippingEarnings(shipping) }}</span>
-          </div>
-        </div>
-
-        <div class="form-actions">
-          <button class="btn btn-secondary" (click)="goBack()">← უკან</button>
-          <button class="btn btn-primary" (click)="finishTrip()">✓ დასრულება</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- ===== STEP 3: SUCCESS ===== -->
     <div *ngIf="currentStep === 'success'" class="step-content">
       <div class="success-container">
         <div class="success-icon">✓</div>
-        <h2>მგზავრობა წარმატებით განათავსდა!</h2>
-        
-        <div class="trip-info-card">
-          <h3>📋 თქვენი მგზავრობა</h3>
+        <h2>განცხადება წარმატებით დაემატა!</h2>
+
+        <div class="trip-info-card" *ngIf="createdTrip">
+          <h3>📋 განთავსებული ქარდი</h3>
           <div class="info-grid">
             <div class="info-row">
               <span class="label">მარშრუტი:</span>
-              <span class="value">{{ getTripFromTo() }}</span>
+              <span class="value">{{ createdTrip.from }} → {{ createdTrip.to }}</span>
             </div>
             <div class="info-row">
-              <span class="label">დრო:</span>
-              <span class="value">{{ getTripDepartureDate() }}</span>
+              <span class="label">გამგზავრება:</span>
+              <span class="value">{{ formatDateTime(createdTrip.departureDate) }}</span>
             </div>
             <div class="info-row">
-              <span class="label">დამატებული გაგზავნები:</span>
-              <span class="value">{{ pickupData.acceptedShippings?.length || 0 }} / {{ getTripAvailableSpace() }}</span>
+              <span class="label">თავისუფალი ადგილი:</span>
+              <span class="value">{{ createdTrip.availableSpace }} კგ</span>
             </div>
-            <div class="info-row highlight">
-              <span class="label">სავარაუდო შემოსავალი:</span>
-              <span class="value">{{ getTotalEarnings() }}</span>
+            <div class="info-row">
+              <span class="label">ფასი:</span>
+              <span class="value">{{ createdTrip.pricePerKg }} ₾/კგ</span>
+            </div>
+            <div class="info-row" *ngIf="createdTrip.carModel">
+              <span class="label">მანქანა:</span>
+              <span class="value">{{ createdTrip.carModel }} ({{ createdTrip.carPlate || 'ნომრის გარეშე' }})</span>
             </div>
           </div>
         </div>
 
-        <div class="success-info">
-          <p>📱 გამგზავნები მეორე საათში დაუკავშირდებიან ხელმოწერილი დეტალებისთვის</p>
-          <p>💬 პირდაპირ ზარი ან SMS-ით შეგიძლიათ დაკავშირება</p>
-          <p>🗺️ თქვენი მარშრუტი განთავსდა - გამგზავნები თავად წაიღებენ!</p>
-        </div>
-
         <div class="form-actions">
-          <button 
-            type="button" 
+          <button
+            type="button"
             class="btn btn-primary"
             (click)="returnToProfile()"
           >

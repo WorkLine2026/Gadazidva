@@ -70,7 +70,7 @@
         </div>
       </div>
 
-      <!-- მარჯვენა სვეტი (პარამეტრები + განცხადებები) -->
+      <!-- მარჯვენა სვეტი (პარამეტრები + განცხადებები/მგზავრობები) -->
       <div class="profile-main-column">
         
         <!-- რედაქტირების რეჟიმი -->
@@ -181,7 +181,93 @@
           </form>
         </div>
 
-        <!-- ========== განცხადებების სექცია (მხოლოდ sender-ებისთვის) ========== -->
+        <!-- ========== DRIVER STATS AND TRIPS SECTION ========== -->
+        <div *ngIf="!isEditing && userRole === 'driver'">
+          <!-- სტატისტიკა -->
+
+          <!-- ტრიპის ისტორია -->
+          <div style="margin-top: 24px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+              <h2 style="font-size: 18px; font-weight: 700; color: #0f172a;">
+                🚗 ჩემი მგზავრობები
+              </h2>
+              <button 
+                class="btn-primary" 
+                (click)="openPickupFlow()"
+                style="padding: 10px 16px; font-size: 14px;">
+                + ახალი მგზავრობა
+              </button>
+            </div>
+
+            <!-- ზღუარი ჩატვირთვისას -->
+            <div *ngIf="isLoadingTrips" style="text-align: center; padding: 40px 20px; color: #64748b;">
+              ⏳ მგზავრობების ჩატვირთვა...
+            </div>
+
+            <!-- თუ მგზავრობები არ არის -->
+            <div *ngIf="!isLoadingTrips && driverTrips.length === 0" style="text-align: center; padding: 40px 20px; background: #f8fafc; border-radius: 16px; color: #64748b;">
+              <div style="font-size: 32px; margin-bottom: 12px;">🛣️</div>
+              <div style="font-size: 15px; font-weight: 600;">მგზავრობა არ არის</div>
+              <div style="font-size: 13px; margin-top: 8px;">დაიწყეთ ახალი მგზავრობის დაგეგმვა</div>
+            </div>
+
+            <!-- მგზავრობების სია (ქარდები) -->
+            <div class="trips-grid" *ngIf="!isLoadingTrips && driverTrips.length > 0">
+              <div class="trip-card" *ngFor="let trip of driverTrips">
+                <!-- მარშრუტი და სტატუსი -->
+                <div class="trip-header">
+                  <div class="trip-route">
+                    <span class="route-from">{{ trip.from }}</span>
+                    <span class="route-arrow">→</span>
+                    <span class="route-to">{{ trip.to }}</span>
+                  </div>
+                  <div [ngClass]="'trip-status-badge status-' + (trip.status || 'pending')">
+                    {{ getTripStatusLabel(trip.status) }}
+                  </div>
+                </div>
+
+                <!-- მთავარი ინფორმაცია -->
+                <div class="trip-body">
+                  <div class="trip-info-row">
+                    <div class="info-box">
+                      <div class="info-box-label">განათავსება</div>
+                      <div class="info-box-value">{{ formatDateTime(trip.departureDate) }}</div>F
+                    </div>
+                    <div class="info-box">
+                      <div class="info-box-label">თავისუფალი ადგილი</div>
+                      <div class="info-box-value">{{ trip.availableSpace }} კგ</div>
+                    </div>
+                    <div class="info-box">
+                      <div class="info-box-label">ფასი</div>
+                      <div class="info-box-value">{{ trip.pricePerKg }} ₾/კგ</div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- მიღებული შეკვეთები -->
+                <div *ngIf="trip.acceptedShippings && trip.acceptedShippings.length > 0" 
+                     style="padding: 12px; background: #f0fdf4; border-radius: 8px; margin: 12px 0; border-left: 3px solid #22c55e;">
+                  <div style="font-size: 12px; font-weight: 600; color: #166534; margin-bottom: 6px;">
+                    ✓ მიღებული {{ trip.acceptedShippings.length }} შეკვეთა
+                  </div>
+                  <div style="font-size: 14px; font-weight: 700; color: #16a34a;">
+                    შემოსავალი: {{ getTripEarnings(trip) }}
+                  </div>
+                </div>
+
+                <!-- ქვედა მხარე (ID + ღილაკი) -->
+                <div class="trip-footer">
+                  <div style="font-size: 12px; color: #94a3b8;">
+                    ID: <span style="font-family: monospace; font-weight: 600;">{{ trip._id.slice(0, 8) }}...</span>
+                  </div>
+                  <button class="btn-view-details" (click)="viewTripDetails(trip._id)">დეტალები →</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ========== SENDER REQUESTS SECTION ========== -->
         <div *ngIf="!isEditing && userRole === 'sender'">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
             <h2 style="font-size: 18px; font-weight: 700; color: #0f172a;">
@@ -251,8 +337,8 @@
           </div>
         </div>
 
-        <!-- ========== პარამეტრების მენიუ (მხოლოდ sender-ებისთვის) ========== -->
-        <div *ngIf="!isEditing && userRole === 'sender'" style="margin-top: 32px;">
+        <!-- ========== SETTINGS MENU (BOTH ROLES) ========== -->
+        <div *ngIf="!isEditing" style="margin-top: 32px;">
           <div class="menu-group-title">პარამეტრები</div>
           <div class="menu-list">
             <button class="menu-item-row" (click)="openNotificationSettings()">

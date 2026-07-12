@@ -1,9 +1,11 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { SmsVerificationService, UserProfile } from '../../app/services/smsverifikation.service';
-import { ParcelService } from '../services/Parcel.service';
+import { ParcelService, DriverTrip } from '../services/Parcel.service';
 
 type UserRole = 'sender' | 'driver';
 
@@ -17,6 +19,21 @@ interface ParcelRequest {
   createdAt: string;
 }
 
+interface DriverStats {
+  completedTrips: number;
+  averageRating: number;
+  reviewCount: number;
+  currentEarnings: number;
+  earningsTrend: string;
+  hasActiveTrip: boolean;
+  activeTrip?: {
+    from: string;
+    to: string;
+    distance: number;
+    estimatedTime: number;
+  };
+}
+
 @Component({
   selector: 'app-profile',
   templateUrl: './profile-component.html',
@@ -24,7 +41,8 @@ interface ParcelRequest {
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule]
 })
-export class ProfileComponent implements OnInit {
+export class ProfileComponent implements OnInit, OnDestroy {
+  // ============ მომხმარებლის ძირითადი ინფორმაცია ============
   firstName: string = '';
   lastName: string = '';
   email: string = '';
@@ -33,10 +51,12 @@ export class ProfileComponent implements OnInit {
   userRole: UserRole = 'sender';
   phoneVerified: boolean = false;
 
+  // ============ მძღოლის ინფორმაცია ============
   carModel: string = '';
   carPlate: string = '';
   driverLicenseNumber: string = '';
 
+  // ============ ფორმის მენეჯმენტი ============
   profileForm!: FormGroup;
   isEditing: boolean = false;
   isSaving: boolean = false;
@@ -44,9 +64,19 @@ export class ProfileComponent implements OnInit {
   errorMessage: string | null = null;
   showMenu: boolean = false;
 
-  // ✅ განცხადებები
+  // ============ გამგზავნის განცხადებები ============
   userRequests: ParcelRequest[] = [];
   isLoadingRequests: boolean = false;
+
+  // ============ მძღოლის მგზავრობები ============
+  driverTrips: DriverTrip[] = [];
+  isLoadingTrips: boolean = false;
+
+  // ============ მძღოლის სტატისტიკა ============
+  driverStats: DriverStats | null = null;
+
+  // ============ Cleanup (OnDestroy) ============
+  private destroy$ = new Subject<void>();
 
   constructor(
     private fb: FormBuilder,
@@ -62,8 +92,28 @@ export class ProfileComponent implements OnInit {
       return;
     }
     this.loadUserData();
+
+    // ✅ ტრიპის შექმნის აცნობების მოსმენა
+    this.parcelService.tripCreated()
+      .pipe(
+        takeUntil(this.destroy$)  // cleanup
+      )
+      .subscribe((newTrip: DriverTrip) => {
+        console.log('🔄 ახალი trip დაემატა, რელოდ ტრიპები...', newTrip);
+        
+        // თუ მძღოლი ხართ, რელოდ გააკეთეთ
+        if (this.userRole === 'driver') {
+          this.loadDriverTrips();
+        }
+      });
   }
 
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  // ============ მომხმარებლის მონაცემების ჩაკრება ============
   private loadUserData(): void {
     this.isLoading = true;
     this.errorMessage = null;
@@ -77,9 +127,15 @@ export class ProfileComponent implements OnInit {
           this.applyUserData(res.user);
           this.initProfileForm();
           
-          // ✅ განცხადებების ჩაკრება მხოლოდ sender-ებისთვის (userRole უკვე დაყენებულია)
+          // ✅ განცხადებების ჩაკრება მხოლოდ sender-ებისთვის
           if (this.userRole === 'sender') {
             this.loadUserRequests();
+          }
+          
+          // ✅ მძღოლის მგზავრობა და სტატისტიკა
+          if (this.userRole === 'driver') {
+            this.loadDriverStats();
+            this.loadDriverTrips();
           }
         } else {
           this.errorMessage = res.message ?? 'მომხმარებლის ინფორმაცია ვერ ჩაიკითხა';
@@ -102,7 +158,7 @@ export class ProfileComponent implements OnInit {
     });
   }
 
-  // ✅ განცხადებების ჩაკრება
+  // ============ გამგზავნის განცხადებების ჩაკრება ============
   private loadUserRequests(): void {
     this.isLoadingRequests = true;
     this.cdr.detectChanges();
@@ -128,6 +184,70 @@ export class ProfileComponent implements OnInit {
     });
   }
 
+  // ============ მძღოლის მგზავრობების ჩაკრება ============
+  private loadDriverTrips(): void {
+    this.isLoadingTrips = true;
+    this.cdr.detectChanges();
+
+    this.parcelService.getDriverTrips().subscribe({
+      next: (res: any) => {
+        this.isLoadingTrips = false;
+
+        if (res.success && res.trips) {
+          this.driverTrips = res.trips;
+        } else {
+          this.driverTrips = [];
+        }
+
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.isLoadingTrips = false;
+        this.driverTrips = [];
+        console.error('Error loading driver trips:', err);
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  // ============ მძღოლის სტატისტიკის ჩაკრება ============
+  private loadDriverStats(): void {
+    this.parcelService.getDriverStats().subscribe({
+      next: (res: any) => {
+        if (res.success && res.stats) {
+          this.driverStats = res.stats;
+        } else {
+          // fallback: mock data
+          this.driverStats = {
+            completedTrips: 24,
+            averageRating: 4.8,
+            reviewCount: 120,
+            currentEarnings: 1240,
+            earningsTrend: '📈 12%',
+            hasActiveTrip: false,
+            activeTrip: undefined
+          };
+        }
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Error loading driver stats:', err);
+        // fallback: mock data
+        this.driverStats = {
+          completedTrips: 24,
+          averageRating: 4.8,
+          reviewCount: 120,
+          currentEarnings: 1240,
+          earningsTrend: '📈 12%',
+          hasActiveTrip: false,
+          activeTrip: undefined
+        };
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  // ============ მომხმარებლის მონაცემის გამოყენება ============
   private applyUserData(user: UserProfile): void {
     this.firstName = user.firstName;
     this.lastName = user.lastName;
@@ -141,6 +261,7 @@ export class ProfileComponent implements OnInit {
     this.driverLicenseNumber = user.driverLicenseNumber ?? '';
   }
 
+  // ============ ფორმის ინიციალიზაცია ============
   private initProfileForm(): void {
     this.profileForm = this.fb.group({
       firstName: [this.firstName, [Validators.required, Validators.minLength(2)]],
@@ -154,6 +275,7 @@ export class ProfileComponent implements OnInit {
     });
   }
 
+  // ============ UI დამხმარე ფუნქციები ============
   getUserInitials(): string {
     return `${this.firstName.charAt(0)}${this.lastName.charAt(0)}`.toUpperCase();
   }
@@ -180,7 +302,20 @@ export class ProfileComponent implements OnInit {
     });
   }
 
-  // ✅ სტატუსის ეტიკეტი
+  formatDateTime(dateString: string | undefined): string {
+    if (!dateString) return '—';
+    const date = new Date(dateString);
+    return (
+      date.toLocaleDateString('ka-GE', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      }) +
+      ' ' +
+      date.toLocaleTimeString('ka-GE', { hour: '2-digit', minute: '2-digit' })
+    );
+  }
+
   getStatusLabel(status: string): string {
     const labels: { [key: string]: string } = {
       'pending': '⏳ მოლოდინი',
@@ -191,11 +326,36 @@ export class ProfileComponent implements OnInit {
     return labels[status] || status;
   }
 
+  getTripStatusLabel(status: string | undefined): string {
+    const labels: { [key: string]: string } = {
+      'pending': '⏳ დაგეგმილი',
+      'active': '🚗 აქტიური',
+      'completed': '✅ დასრულებული',
+      'cancelled': '❌ გაუქმებული'
+    };
+    return labels[status || 'pending'] || status || '⏳ დაგეგმილი';
+  }
+
+  getTripEarnings(trip: DriverTrip): string {
+    if (!trip.acceptedShippings || trip.acceptedShippings.length === 0) {
+      return '0 ₾';
+    }
+
+    const total = trip.acceptedShippings.reduce((sum, shipping) => {
+      const weight = shipping.parcelDetails?.weight || 0;
+      const price = trip.pricePerKg || 0;
+      return sum + weight * price;
+    }, 0);
+
+    return `${total.toFixed(2)} ₾`;
+  }
+
   isFieldInvalid(fieldName: string): boolean {
     const field = this.profileForm.get(fieldName);
     return !!(field && field.invalid && (field.dirty || field.touched));
   }
 
+  // ============ რედაქტირების მოდუსი ============
   toggleEditMode(): void {
     this.isEditing = !this.isEditing;
     this.errorMessage = null;
@@ -210,6 +370,7 @@ export class ProfileComponent implements OnInit {
     this.initProfileForm();
   }
 
+  // ============ პროფილის შენახვა ============
   saveProfile(): void {
     if (this.profileForm.invalid) {
       this.markFormAsTouched();
@@ -243,20 +404,34 @@ export class ProfileComponent implements OnInit {
     });
   }
 
+  // ============ მენიუ და ნავიგაცია ============
   toggleMenu(): void {
     this.showMenu = !this.showMenu;
   }
 
+  goToDashboard(): void {
+    this.router.navigate(['/dashboard']);
+  }
+
+  // ============ გამგზავნის აქცია ============
   openSendItemFlow(): void {
     console.log('📦 გამგზავნი: ნივთის გაგზავნა');
     this.router.navigate(['/send']);
   }
 
+  // ============ მძღოლის აქციები ============
   openPickupFlow(): void {
-    console.log('🚚 მძღოლი: წაივიღებ ნივთს');
+    console.log('🚚 მძღოლი: აქტივაციის ძებნა');
     this.router.navigate(['/pickup']);
   }
 
+  viewTripDetails(tripId: string): void {
+    console.log('🚗 მძღოლი: ტრიპის დეტალები', tripId);
+    // რეალურ აპლიკაციაში ამ მხეთ სპეციალურ დეტალების ფურცელზე გადავა
+    // this.router.navigate(['/driver/trip', tripId]);
+  }
+
+  // ============ პარამეტრები ============
   openNotificationSettings(): void {
     alert('შეტყობინებების პარამეტრები მოშენებაშია 🔔');
   }
@@ -265,6 +440,7 @@ export class ProfileComponent implements OnInit {
     alert('კონფიდენციალურობის პარამეტრები მოშენებაშია 👁️');
   }
 
+  // ============ გამოწერა ============
   logout(): void {
     if (confirm('დარწმუნებული ხართ რომ გამოწერთ?')) {
       this.smsService.clearAuthToken();
@@ -273,6 +449,7 @@ export class ProfileComponent implements OnInit {
     }
   }
 
+  // ============ ანგარიშის წაშლა ============
   openDeleteConfirm(): void {
     const confirmed = confirm(
       '⚠️ ყურადღება!\n\nამ ოპერაციით თქვენი ანგარიშის ყველა მონაცემი წაიშლება.\nუკან დაბრუნება შეუძლებელი იქნება!\n\nგსურთ გაგრძელება?'
@@ -307,10 +484,7 @@ export class ProfileComponent implements OnInit {
     });
   }
 
-  goToDashboard(): void {
-    this.router.navigate(['/dashboard']);
-  }
-
+  // ============ ფორმის დამხმარე მეთოდი ============
   private markFormAsTouched(): void {
     Object.values(this.profileForm.controls).forEach(control => {
       control.markAsTouched();

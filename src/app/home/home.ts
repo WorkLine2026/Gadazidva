@@ -1,13 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-
-interface ParcelForm {
-  from: string;
-  to: string;
-  date: string;
-}
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
+import { ParcelService, ParcelRequest, DriverTrip } from '../services/Parcel.service';
 
 interface Step {
   id: number;
@@ -27,19 +24,8 @@ interface Badge {
   templateUrl: './home.html',
   styleUrls: ['./home.scss'],
 })
-export class HomeComponent implements OnInit {
-  senderForm: ParcelForm = {
-    from: '',
-    to: '',
-    date: '',
-  };
-
-  driverForm: ParcelForm = {
-    from: '',
-    to: '',
-    date: '',
-  };
-
+export class HomeComponent implements OnInit, OnDestroy {
+  // ============ Steps და Badges ============
   steps: Step[] = [
     {
       id: 1,
@@ -56,7 +42,6 @@ export class HomeComponent implements OnInit {
       title: 'დაიწყე მგზავრობა',
       description: 'იპოვე სასურველი მძღოლი ან გაგზავნე ამანათი',
     },
-    
   ];
 
   steps1: Step[] = [
@@ -75,9 +60,7 @@ export class HomeComponent implements OnInit {
       title: 'და გააგზავნე ამანათი',
       description: 'იპოვე სასურველი მძღოლი ან გაგზავნე ამანათი',
     },
-    
   ];
-
 
   badges: Badge[] = [
     {
@@ -98,91 +81,155 @@ export class HomeComponent implements OnInit {
     },
   ];
 
-  constructor(private router: Router) {}
+  // ============ განცხადებები და მგზავრობები ============
+  recentRequests: ParcelRequest[] = [];
+  recentTrips: DriverTrip[] = [];
+  isLoadingRequests = false;
+  isLoadingTrips = false;
+
+  private destroy$ = new Subject<void>();
+
+  constructor(
+    private router: Router,
+    private parcelService: ParcelService,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   ngOnInit(): void {
-    // Component initialization if needed
+    this.loadRecentRequests();
+    this.loadRecentTrips();
+
+    // ✅ ახალი განცხადებების რეალ-ტაიმ მოსმენა
+    this.parcelService.tripCreated()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        console.log('🔄 ახალი განცხადება დაემატა, რელოდ...');
+        this.loadRecentRequests();
+        this.loadRecentTrips();
+      });
   }
 
-  /**
-   * Send parcel from quick form
-   */
-  sendParcel(): void {
-    if (this.validateSenderForm()) {
-      // Store form data in sessionStorage
-      sessionStorage.setItem(
-        'parcelData',
-        JSON.stringify(this.senderForm)
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  // ============ გამგზავნის განცხადებების ჩაკრება (PUBLIC) ============
+  private loadRecentRequests(): void {
+    this.isLoadingRequests = true;
+    this.cdr.detectChanges();
+
+    // ✅ PUBLIC endpoint - auth არ სჭირდება
+    this.parcelService.getRecentRequests().subscribe({
+      next: (res: any) => {
+        this.isLoadingRequests = false;
+
+        if (res.success && res.requests) {
+          // მხოლოდ 6 ბოლო განცხადება
+          this.recentRequests = res.requests.slice(0, 6);
+        } else {
+          this.recentRequests = [];
+        }
+
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.isLoadingRequests = false;
+        this.recentRequests = [];
+        console.error('განცხადებების ჩაკრება ვერ ხერხდა:', err);
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  // ============ მძღოლის მგზავრობების ჩაკრება (PUBLIC) ============
+  private loadRecentTrips(): void {
+    this.isLoadingTrips = true;
+    this.cdr.detectChanges();
+
+    // ✅ PUBLIC endpoint - auth არ სჭირდება
+    this.parcelService.getRecentTrips().subscribe({
+      next: (res: any) => {
+        this.isLoadingTrips = false;
+
+        if (res.success && res.trips) {
+          // მხოლოდ 6 ბოლო მგზავრობა
+          this.recentTrips = res.trips.slice(0, 6);
+        } else {
+          this.recentTrips = [];
+        }
+
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.isLoadingTrips = false;
+        this.recentTrips = [];
+        console.error('მგზავრობების ჩაკრება ვერ ხერხდა:', err);
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  // ============ დამხმარე ფუნქციები ============
+  formatDate(dateString: string | undefined): string {
+    if (!dateString) return '—';
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('ka-GE', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      });
+    } catch {
+      return '—';
+    }
+  }
+
+  formatDateTime(dateString: string | undefined): string {
+    if (!dateString) return '—';
+    try {
+      const date = new Date(dateString);
+      return (
+        date.toLocaleDateString('ka-GE') +
+        ' ' +
+        date.toLocaleTimeString('ka-GE', { hour: '2-digit', minute: '2-digit' })
       );
-      // Navigate to send page
-      this.navigateToSend();
+    } catch {
+      return '—';
     }
   }
 
-  /**
-   * Become a driver from quick form
-   */
-  becomeDriver(): void {
-    if (this.validateDriverForm()) {
-      // Store form data in sessionStorage
-      sessionStorage.setItem(
-        'driverData',
-        JSON.stringify(this.driverForm)
-      );
-      // Navigate to driver page
-      this.navigateToDrive();
-    }
+  getStatusLabel(status: string): string {
+    const labels: { [key: string]: string } = {
+      'pending': '⏳ მოლოდინი',
+      'accepted': '✅ მიღებული',
+      'in-transit': '🚚 გზაში',
+      'delivered': '📍 დაბრუნებული'
+    };
+    return labels[status] || status;
   }
 
-  /**
-   * Navigate to full send form
-   */
-  navigateToSend(): void {
-    this.router.navigate(['/send']);
+  getTripStatusLabel(status: string | undefined): string {
+    const labels: { [key: string]: string } = {
+      'pending': '⏳ დაგეგმილი',
+      'active': '🚗 აქტიური',
+      'completed': '✅ დასრულებული',
+      'cancelled': '❌ გაუქმებული'
+    };
+    return labels[status || 'pending'] || status || '⏳ დაგეგმილი';
   }
 
-  /**
-   * Navigate to full driver form
-   */
-  navigateToDrive(): void {
-    this.router.navigate(['/drive']);
-  }
+  getTripEarnings(trip: DriverTrip): string {
+    if (!trip.acceptedShippings || trip.acceptedShippings.length === 0) {
+      return '0 ₾';
+    }
 
-  /**
-   * Validate sender form
-   */
-  private validateSenderForm(): boolean {
-    if (!this.senderForm.from.trim()) {
-      alert('გთხოვთ, მიუთითოთ გამგზავრების ქალაქი');
-      return false;
-    }
-    if (!this.senderForm.to.trim()) {
-      alert('გთხოვთ, მიუთითოთ დანიშნულების ქალაქი');
-      return false;
-    }
-    if (!this.senderForm.date) {
-      alert('გთხოვთ, აირჩიოთ თარიღი');
-      return false;
-    }
-    return true;
-  }
+    const total = trip.acceptedShippings.reduce((sum, shipping) => {
+      const weight = shipping.parcelDetails?.weight || 0;
+      const price = trip.pricePerKg || 0;
+      return sum + weight * price;
+    }, 0);
 
-  /**
-   * Validate driver form
-   */
-  private validateDriverForm(): boolean {
-    if (!this.driverForm.from.trim()) {
-      alert('გთხოვთ, მიუთითოთ გამგზავრების ქალაქი');
-      return false;
-    }
-    if (!this.driverForm.to.trim()) {
-      alert('გთხოვთ, მიუთითოთ დანიშნულების ქალაქი');
-      return false;
-    }
-    if (!this.driverForm.date) {
-      alert('გთხოვთ, აირჩიოთ თარიღი');
-      return false;
-    }
-    return true;
+    return `${total.toFixed(2)} ₾`;
   }
 }

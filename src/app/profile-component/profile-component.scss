@@ -1,25 +1,44 @@
 // ============================================
-// PROFILE COMPONENT - BEAUTIFUL SCSS STYLING
+// PROFILE COMPONENT — "CARGO TICKET" SYSTEM
+// Shares its token language with the homepage:
+// ink navy for structure, cargo-orange for
+// action/movement, route-teal for confirmed
+// states, warm paper for the canvas.
 // ============================================
 
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@400;500;600;700;800;900&display=swap');
+
 // ========== DESIGN TOKENS ==========
-$color-primary: #2563eb;
-$color-primary-dark: #1e40af;
-$color-primary-light: #eff6ff;
-$color-accent: #f97316;
-$color-accent-light: #ffedd5;
+$ink: #101B33;
+$ink-soft: #24314F;
+$paper: #FBF7F0;
+$paper-card: #FFFFFF;
 
-$color-success: #10b981;
-$color-error: #ef4444;
-$color-warning: #f59e0b;
+$cargo: #FF5A1F;
+$cargo-dark: #DB4712;
+$cargo-light: #FFE4D5;
 
-$color-bg: #f8fafc;
-$color-bg-light: #f1f5f9;
-$color-border: #e2e8f0;
-$color-border-light: #f1f5f9;
-$color-text-primary: #0f172a;
-$color-text-secondary: #475569;
-$color-text-tertiary: #64748b;
+$route: #0F8A7A;
+$route-dark: #0B6B5F;
+$route-light: #DCF3EF;
+
+$color-primary: $ink;
+$color-primary-dark: $ink-soft;
+$color-primary-light: #EDEFF6;
+$color-accent: $cargo;
+$color-accent-light: $cargo-light;
+
+$color-success: $route;
+$color-error: #E0432A;
+$color-warning: #E8A73B;
+
+$color-bg: $paper;
+$color-bg-light: #F3EEE3;
+$color-border: #E7E0D0;
+$color-border-light: #F0EBDD;
+$color-text-primary: $ink;
+$color-text-secondary: #4B5165;
+$color-text-tertiary: #7C8093;
 
 $spacing-xs: 4px;
 $spacing-sm: 8px;
@@ -31,13 +50,13 @@ $spacing-3xl: 32px;
 $spacing-4xl: 40px;
 
 $border-radius-sm: 8px;
-$border-radius-md: 12px;
-$border-radius-lg: 16px;
-$border-radius-xl: 20px;
-$border-radius-2xl: 24px;
-$border-radius-3xl: 28px;
+$border-radius-md: 10px;
+$border-radius-lg: 14px;
+$border-radius-xl: 18px;
+$border-radius-2xl: 22px;
+$border-radius-3xl: 26px;
 
-$font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+$font-family: 'Noto Sans Georgian', 'Segoe UI', system-ui, -apple-system, sans-serif;
 $font-size-xs: 12px;
 $font-size-sm: 13px;
 $font-size-base: 14px;
@@ -48,14 +67,15 @@ $font-size-2xl: 20px;
 $font-size-3xl: 22px;
 $font-size-4xl: 24px;
 
-$shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
-$shadow-md: 0 4px 16px rgba(0, 0, 0, 0.06);
-$shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.08);
-$shadow-xl: 0 20px 50px rgba(0, 0, 0, 0.1);
+$shadow-sm: 0 2px 8px rgba(16, 27, 51, 0.05);
+$shadow-md: 0 4px 16px rgba(16, 27, 51, 0.08);
+$shadow-lg: 0 14px 34px rgba(16, 27, 51, 0.12);
+$shadow-xl: 0 24px 54px rgba(16, 27, 51, 0.16);
+$shadow-cargo: 0 10px 26px rgba(255, 90, 31, 0.28);
 
-$transition-fast: 0.15s ease;
-$transition-base: 0.2s ease;
-$transition-slow: 0.3s ease;
+$transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+$transition-base: 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+$transition-slow: 0.36s cubic-bezier(0.16, 1, 0.3, 1);
 
 // ========== UTILITY MIXINS ==========
 
@@ -63,12 +83,12 @@ $transition-slow: 0.3s ease;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: $spacing-md;
+  gap: $spacing-sm;
   padding: $spacing-md $spacing-lg;
   border: none;
   border-radius: $border-radius-md;
   font-family: $font-family;
-  font-weight: 600;
+  font-weight: 700;
   font-size: $font-size-sm;
   cursor: pointer;
   transition: all $transition-fast;
@@ -84,19 +104,13 @@ $transition-slow: 0.3s ease;
   }
 }
 
-@mixin glass-effect {
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
 @mixin gradient-primary {
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  background: $ink;
   color: #ffffff;
 }
 
 @mixin gradient-accent {
-  background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+  background: linear-gradient(135deg, $cargo 0%, $cargo-dark 100%);
   color: #ffffff;
 }
 
@@ -112,11 +126,19 @@ $transition-slow: 0.3s ease;
   align-items: center;
 }
 
+// dashed ticket-style divider, used across cards
+@mixin dashed-divider($side: top) {
+  border-#{$side}: 1.5px dashed $color-border;
+}
+
 // ========== GLOBAL STYLES ==========
 
 .profile-wrapper {
   min-height: 100vh;
-  background: $color-bg;
+  background:
+    radial-gradient(circle at 8% 0%, rgba($route, 0.06) 0%, transparent 40%),
+    radial-gradient(circle at 100% 20%, rgba($cargo, 0.06) 0%, transparent 40%),
+    $color-bg;
   font-family: $font-family;
   color: $color-text-primary;
   padding: $spacing-4xl $spacing-lg;
@@ -131,8 +153,9 @@ $transition-slow: 0.3s ease;
 .profile-container {
   width: 100%;
   max-width: 1400px;
-  background: #ffffff;
+  background: $paper-card;
   border-radius: $border-radius-2xl;
+  border: 1.5px solid $color-border;
   box-shadow: $shadow-lg;
   padding: $spacing-4xl;
   display: flex;
@@ -149,7 +172,7 @@ $transition-slow: 0.3s ease;
 
 .profile-header {
   @include flex-between;
-  border-bottom: 2px solid $color-border-light;
+  @include dashed-divider(bottom);
   padding-bottom: $spacing-2xl;
   gap: $spacing-2xl;
 
@@ -161,9 +184,10 @@ $transition-slow: 0.3s ease;
 
 .profile-title {
   font-size: $font-size-4xl;
-  font-weight: 700;
+  font-weight: 800;
   letter-spacing: -0.5px;
   margin: 0;
+  color: $ink;
 
   @media (max-width: 640px) {
     font-size: $font-size-2xl;
@@ -173,14 +197,14 @@ $transition-slow: 0.3s ease;
 .back-btn,
 .menu-btn {
   @include button-base;
-  background: #ffffff;
+  background: $paper-card;
   color: $color-text-secondary;
-  border: 1px solid $color-border;
+  border: 1.5px solid $color-border;
 
   &:hover {
     background: $color-bg-light;
-    border-color: $color-text-secondary;
-    color: $color-text-primary;
+    border-color: $ink;
+    color: $ink;
   }
 
   &:active {
@@ -211,8 +235,11 @@ $transition-slow: 0.3s ease;
   display: flex;
   flex-direction: column;
   gap: $spacing-2xl;
+  position: sticky;
+  top: $spacing-2xl;
 
   @media (max-width: 768px) {
+    position: static;
     flex-direction: row;
     align-items: stretch;
     gap: $spacing-2xl;
@@ -231,13 +258,14 @@ $transition-slow: 0.3s ease;
   display: flex;
   flex-direction: column;
   gap: $spacing-2xl;
+  min-width: 0;
 }
 
 // ========== USER CARD ==========
 
 .user-card {
   position: relative;
-  background: linear-gradient(135deg, #f3e8ff 0%, #e0e7ff 50%, #dbeafe 100%);
+  background: $ink;
   border-radius: $border-radius-2xl;
   padding: $spacing-3xl;
   display: flex;
@@ -246,16 +274,26 @@ $transition-slow: 0.3s ease;
   align-items: center;
   text-align: center;
   overflow: hidden;
-  box-shadow: $shadow-md;
+  box-shadow: $shadow-xl;
 
+  // ambient route-dot texture, echoes the homepage signature
   &::before {
     content: '';
     position: absolute;
-    top: -50%;
-    right: -50%;
-    width: 200px;
-    height: 200px;
-    background: radial-gradient(circle, rgba(255, 255, 255, 0.3) 0%, transparent 70%);
+    inset: 0;
+    background-image: radial-gradient(circle, rgba(255, 255, 255, 0.06) 1.5px, transparent 2px);
+    background-size: 22px 22px;
+    pointer-events: none;
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: -40%;
+    right: -30%;
+    width: 260px;
+    height: 260px;
+    background: radial-gradient(circle, rgba($cargo, 0.25) 0%, transparent 70%);
     border-radius: 50%;
     pointer-events: none;
   }
@@ -268,22 +306,22 @@ $transition-slow: 0.3s ease;
 .avatar {
   position: relative;
   z-index: 1;
-  width: 110px;
-  height: 110px;
+  width: 106px;
+  height: 106px;
   border-radius: $border-radius-3xl;
-  background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%);
+  background: $paper-card;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: $font-size-4xl;
-  font-weight: 700;
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.1);
-  border: 4px solid #ffffff;
-  color: $color-primary;
+  font-weight: 800;
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.35);
+  border: 4px solid rgba(255, 255, 255, 0.12);
+  color: $cargo-dark;
 
   @media (max-width: 768px) {
-    width: 90px;
-    height: 90px;
+    width: 88px;
+    height: 88px;
     font-size: $font-size-2xl;
   }
 }
@@ -299,8 +337,8 @@ $transition-slow: 0.3s ease;
 
 .user-name {
   font-size: $font-size-4xl;
-  font-weight: 700;
-  color: $color-text-primary;
+  font-weight: 800;
+  color: #ffffff;
   letter-spacing: -0.3px;
 
   @media (max-width: 480px) {
@@ -310,7 +348,7 @@ $transition-slow: 0.3s ease;
 
 .user-profession {
   font-size: $font-size-md;
-  color: $color-text-tertiary;
+  color: rgba(255, 255, 255, 0.6);
 }
 
 .role-badge {
@@ -318,20 +356,20 @@ $transition-slow: 0.3s ease;
   font-size: $font-size-xs;
   padding: $spacing-sm $spacing-md;
   border-radius: $border-radius-md;
-  font-weight: 700;
+  font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin-top: $spacing-sm;
   align-self: center;
 
   &.role-driver {
-    background: linear-gradient(135deg, #e0f2fe, #bae6fd);
-    color: #0369a1;
+    background: rgba($route, 0.18);
+    color: $route-light;
   }
 
   &.role-sender {
-    background: linear-gradient(135deg, #fce7f3, #fbcfe8);
-    color: #be123c;
+    background: rgba($cargo, 0.2);
+    color: $cargo-light;
   }
 }
 
@@ -343,17 +381,19 @@ $transition-slow: 0.3s ease;
   gap: $spacing-sm;
   width: 100%;
   padding: $spacing-lg;
-  background: rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: $border-radius-lg;
   font-size: $font-size-sm;
+  color: rgba(255, 255, 255, 0.55);
 
   .verified {
-    color: $color-success;
+    color: #58D6BE;
     font-weight: 700;
   }
 
   .unverified {
-    color: $color-error;
+    color: #FF8A6E;
     font-weight: 700;
   }
 }
@@ -373,13 +413,13 @@ $transition-slow: 0.3s ease;
 
 .edit-btn {
   @include button-base;
-  @include gradient-primary;
+  @include gradient-accent;
   flex: 1;
-  box-shadow: $shadow-md;
+  box-shadow: $shadow-cargo;
 
   &:hover {
     transform: translateY(-2px);
-    box-shadow: $shadow-lg;
+    box-shadow: 0 16px 36px rgba($cargo, 0.38);
   }
 
   @media (max-width: 480px) {
@@ -389,14 +429,12 @@ $transition-slow: 0.3s ease;
 
 .btn-secondary-outline {
   @include button-base;
-  background: rgba(255, 255, 255, 0.8);
-  color: $color-text-primary;
-  border: 2px solid #ffffff;
-  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+  border: 1.5px solid rgba(255, 255, 255, 0.2);
 
   &:hover {
-    background: #ffffff;
-    box-shadow: $shadow-md;
+    background: rgba(255, 255, 255, 0.14);
   }
 }
 
@@ -409,7 +447,7 @@ $transition-slow: 0.3s ease;
   grid-template-columns: 1fr 1fr;
   gap: $spacing-xl;
   width: 100%;
-  border-top: 2px solid rgba(255, 255, 255, 0.6);
+  border-top: 1.5px dashed rgba(255, 255, 255, 0.16);
   padding-top: $spacing-xl;
 }
 
@@ -423,13 +461,13 @@ $transition-slow: 0.3s ease;
 
 .stat-value {
   font-size: $font-size-2xl;
-  font-weight: 700;
-  color: $color-text-primary;
+  font-weight: 800;
+  color: #ffffff;
 }
 
 .stat-label {
   font-size: $font-size-xs;
-  color: $color-text-tertiary;
+  color: rgba(255, 255, 255, 0.5);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -437,15 +475,14 @@ $transition-slow: 0.3s ease;
 // ========== INFO CARD (CAR DETAILS) ==========
 
 .info-card {
-  border: 1px solid $color-border;
+  border: 1.5px solid $color-border;
   border-radius: $border-radius-xl;
   padding: $spacing-xl;
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(10px);
+  background: $paper-card;
   transition: all $transition-base;
 
   &:hover {
-    border-color: $color-primary;
+    border-color: $cargo;
     box-shadow: $shadow-md;
   }
 }
@@ -458,7 +495,7 @@ $transition-slow: 0.3s ease;
 }
 
 .info-item {
-  background: linear-gradient(135deg, $color-bg-light, $color-bg);
+  background: $color-bg-light;
   padding: $spacing-md;
   border-radius: $border-radius-lg;
   display: flex;
@@ -467,7 +504,7 @@ $transition-slow: 0.3s ease;
   transition: all $transition-fast;
 
   &:hover {
-    background: $color-bg-light;
+    background: darken($color-bg-light, 2%);
     transform: translateY(-1px);
   }
 }
@@ -475,39 +512,39 @@ $transition-slow: 0.3s ease;
 .info-label {
   font-size: $font-size-xs;
   color: $color-text-tertiary;
-  font-weight: 600;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }
 
 .info-value {
   font-size: $font-size-md;
-  font-weight: 700;
+  font-weight: 800;
   color: $color-text-primary;
 }
 
 .plate-number {
   font-family: 'Courier New', monospace;
-  background: linear-gradient(135deg, $color-primary-light, $color-bg-light);
-  color: $color-primary;
+  background: $ink;
+  color: #ffffff;
   padding: $spacing-xs $spacing-md;
   border-radius: $border-radius-sm;
-  font-weight: 700;
-  letter-spacing: 0.5px;
+  font-weight: 800;
+  letter-spacing: 1px;
 }
 
 // ========== EDIT SECTION ==========
 
 .edit-section {
-  border: 1px solid $color-border;
+  border: 1.5px solid $color-border;
   border-radius: $border-radius-xl;
   padding: $spacing-3xl;
-  background: #ffffff;
+  background: $paper-card;
   box-shadow: $shadow-sm;
 
   h3 {
     font-size: $font-size-xl;
-    font-weight: 700;
+    font-weight: 800;
     margin-bottom: $spacing-sm;
     color: $color-text-primary;
   }
@@ -556,7 +593,7 @@ $transition-slow: 0.3s ease;
 
 .input-field {
   padding: $spacing-md $spacing-lg;
-  border: 2px solid $color-border;
+  border: 1.5px solid $color-border;
   border-radius: $border-radius-lg;
   background: $color-bg-light;
   font-family: $font-family;
@@ -566,9 +603,9 @@ $transition-slow: 0.3s ease;
   transition: all $transition-fast;
 
   &:focus {
-    border-color: $color-primary;
-    background: #ffffff;
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    border-color: $cargo;
+    background: $paper-card;
+    box-shadow: 0 0 0 3px rgba($cargo, 0.12);
   }
 
   &:disabled {
@@ -606,6 +643,7 @@ $transition-slow: 0.3s ease;
   box-shadow: $shadow-md;
 
   &:hover:not(:disabled) {
+    background: $ink-soft;
     transform: translateY(-2px);
     box-shadow: $shadow-lg;
   }
@@ -614,7 +652,7 @@ $transition-slow: 0.3s ease;
 .btn-secondary {
   background: $color-bg-light;
   color: $color-text-secondary;
-  border: 1px solid $color-border;
+  border: 1.5px solid $color-border;
 
   &:hover:not(:disabled) {
     background: $color-border;
@@ -622,9 +660,9 @@ $transition-slow: 0.3s ease;
   }
 }
 
-// ========== REQUESTS SECTION ==========
+// ========== TRIPS SECTION (DRIVER) ==========
 
-.requests-grid {
+.trips-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
   gap: $spacing-xl;
@@ -639,9 +677,9 @@ $transition-slow: 0.3s ease;
   }
 }
 
-.request-card {
-  background: #ffffff;
-  border: 1px solid $color-border;
+.trip-card {
+  background: $paper-card;
+  border: 1.5px solid $color-border;
   border-radius: $border-radius-xl;
   padding: $spacing-xl;
   display: flex;
@@ -659,24 +697,17 @@ $transition-slow: 0.3s ease;
     left: 0;
     right: 0;
     height: 4px;
-    background: linear-gradient(90deg, $color-primary, $color-accent);
-    transform: scaleX(0);
-    transform-origin: left;
-    transition: transform $transition-base;
+    background: linear-gradient(90deg, $route, lighten($route, 18%));
   }
 
   &:hover {
-    border-color: $color-primary;
+    border-color: $route;
     box-shadow: $shadow-lg;
     transform: translateY(-4px);
-
-    &::before {
-      transform: scaleX(1);
-    }
   }
 }
 
-.request-header {
+.trip-header {
   @include flex-between;
   gap: $spacing-lg;
 
@@ -686,17 +717,107 @@ $transition-slow: 0.3s ease;
   }
 }
 
-.request-route {
+.trip-route {
   display: flex;
   align-items: center;
   gap: $spacing-md;
-  font-weight: 700;
+  font-weight: 800;
+  color: $color-text-primary;
+}
+
+.trip-body {
+  @include dashed-divider(top);
+  @include dashed-divider(bottom);
+  padding: $spacing-lg 0;
+}
+
+.trip-info-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: $spacing-md;
+
+  @media (max-width: 480px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.trip-footer {
+  @include flex-between;
+  gap: $spacing-lg;
+
+  @media (max-width: 480px) {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+// ========== REQUESTS SECTION (SENDER) ==========
+
+.requests-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+  gap: $spacing-xl;
+  margin-top: $spacing-xl;
+
+  @media (max-width: 1024px) {
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  }
+
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.request-card {
+  background: $paper-card;
+  border: 1.5px solid $color-border;
+  border-radius: $border-radius-xl;
+  padding: $spacing-xl;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-lg;
+  transition: all $transition-base;
+  box-shadow: $shadow-sm;
+  overflow: hidden;
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, $cargo, $cargo-dark);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform $transition-base;
+  }
+
+  &:hover {
+    border-color: $cargo;
+    box-shadow: $shadow-lg;
+    transform: translateY(-4px);
+
+    &::before {
+      transform: scaleX(1);
+    }
+  }
+}
+
+// shared route pill used by both trip and request cards
+.request-route,
+.trip-route {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+  font-weight: 800;
   color: $color-text-primary;
 
   .route-from {
     padding: $spacing-sm $spacing-md;
-    background: $color-primary-light;
-    color: $color-primary;
+    background: $route-light;
+    color: $route-dark;
     border-radius: $border-radius-md;
     font-size: $font-size-md;
   }
@@ -708,53 +829,58 @@ $transition-slow: 0.3s ease;
 
   .route-to {
     padding: $spacing-sm $spacing-md;
-    background: $color-accent-light;
-    color: $color-accent;
+    background: $cargo-light;
+    color: $cargo-dark;
     border-radius: $border-radius-md;
     font-size: $font-size-md;
   }
 }
 
-.status-badge {
+.status-badge,
+.trip-status-badge {
   display: inline-block;
   font-size: $font-size-xs;
   padding: $spacing-sm $spacing-md;
   border-radius: $border-radius-md;
-  font-weight: 700;
+  font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.3px;
   white-space: nowrap;
+  background: $color-bg-light;
+  color: $color-text-tertiary;
 
   &.status-pending {
-    background: #fef3c7;
-    color: #92400e;
+    background: rgba($color-warning, 0.15);
+    color: darken($color-warning, 18%);
   }
 
-  &.status-accepted {
-    background: #dcfce7;
-    color: #166534;
+  &.status-accepted,
+  &.status-active {
+    background: rgba($route, 0.14);
+    color: $route-dark;
   }
 
   &.status-in-transit {
-    background: #dbeafe;
-    color: #0c4a6e;
+    background: rgba($ink, 0.08);
+    color: $ink;
   }
 
-  &.status-delivered {
-    background: #d1fae5;
-    color: #065f46;
+  &.status-delivered,
+  &.status-completed {
+    background: rgba($route, 0.18);
+    color: $route-dark;
   }
 
   &.status-cancelled {
-    background: #fee2e2;
-    color: #991b1b;
+    background: rgba($color-error, 0.12);
+    color: $color-error;
   }
 }
 
 .request-body {
   padding: $spacing-lg 0;
-  border-top: 1px solid $color-border-light;
-  border-bottom: 1px solid $color-border-light;
+  @include dashed-divider(top);
+  @include dashed-divider(bottom);
 }
 
 .request-info-row {
@@ -767,6 +893,7 @@ $transition-slow: 0.3s ease;
   }
 }
 
+// shared detail tile used by request-info-row and trip-info-row
 .info-box {
   display: flex;
   flex-direction: column;
@@ -780,14 +907,14 @@ $transition-slow: 0.3s ease;
 .info-box-label {
   font-size: $font-size-xs;
   color: $color-text-tertiary;
-  font-weight: 600;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }
 
 .info-box-value {
   font-size: $font-size-md;
-  font-weight: 700;
+  font-weight: 800;
   color: $color-text-primary;
 }
 
@@ -804,11 +931,11 @@ $transition-slow: 0.3s ease;
 .btn-view-details {
   @include button-base;
   background: $color-primary-light;
-  color: $color-primary;
-  font-weight: 700;
+  color: $ink;
+  font-weight: 800;
 
   &:hover {
-    background: $color-primary;
+    background: $ink;
     color: #ffffff;
   }
 }
@@ -825,8 +952,8 @@ $transition-slow: 0.3s ease;
 }
 
 .menu-list {
-  background: #ffffff;
-  border: 1px solid $color-border;
+  background: $paper-card;
+  border: 1.5px solid $color-border;
   border-radius: $border-radius-xl;
   overflow: hidden;
   box-shadow: $shadow-sm;
@@ -836,9 +963,9 @@ $transition-slow: 0.3s ease;
   width: 100%;
   @include flex-between;
   padding: $spacing-xl $spacing-2xl;
-  background: #ffffff;
+  background: $paper-card;
   border: none;
-  border-bottom: 1px solid $color-border-light;
+  @include dashed-divider(bottom);
   cursor: pointer;
   transition: all $transition-fast;
 
@@ -851,7 +978,7 @@ $transition-slow: 0.3s ease;
 
     .menu-item-arrow {
       transform: translateX(6px);
-      color: $color-text-primary;
+      color: $ink;
     }
   }
 
@@ -904,11 +1031,11 @@ $transition-slow: 0.3s ease;
 
 .logout-row {
   &:hover {
-    background: rgba(239, 68, 68, 0.05);
+    background: rgba($color-error, 0.05);
   }
 
   .menu-item-icon {
-    background: #fee2e2;
+    background: rgba($color-error, 0.12);
     color: $color-error;
   }
 
@@ -919,11 +1046,11 @@ $transition-slow: 0.3s ease;
 
 .delete-row {
   &:hover {
-    background: rgba(153, 27, 27, 0.05);
+    background: rgba($color-error, 0.06);
   }
 
   .menu-item-title {
-    color: #991b1b;
+    color: darken($color-error, 12%);
   }
 }
 
@@ -980,9 +1107,9 @@ $transition-slow: 0.3s ease;
 // ========== ERROR MESSAGE ==========
 
 .error-message {
-  background: #fee2e2;
-  border: 1px solid #fecaca;
-  color: #991b1b;
+  background: rgba($color-error, 0.08);
+  border: 1.5px solid rgba($color-error, 0.25);
+  color: darken($color-error, 12%);
   padding: $spacing-xl $spacing-lg;
   border-radius: $border-radius-lg;
   font-size: $font-size-sm;
@@ -1052,7 +1179,8 @@ $transition-slow: 0.3s ease;
     padding: $spacing-xl;
   }
 
-  .requests-grid {
+  .requests-grid,
+  .trips-grid {
     gap: $spacing-lg;
   }
 
