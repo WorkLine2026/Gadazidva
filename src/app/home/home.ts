@@ -170,6 +170,30 @@ export class HomeComponent implements OnInit, OnDestroy {
     });
   }
 
+  // ============ დეტალების ნახვა ============
+
+  /**
+   * გამგზავნის განცხადების დეტალებზე გადასვლა
+   */
+  viewRequest(requestId: string | undefined): void {
+    if (!requestId) {
+      console.error('❌ განცხადების ID არ გაითვალა');
+      return;
+    }
+    this.router.navigate(['/request', requestId]);
+  }
+
+  /**
+   * მძღოლის მგზავრობის დეტალებზე გადასვლა
+   */
+  viewTrip(tripId: string | undefined): void {
+    if (!tripId) {
+      console.error('❌ მგზავრობის ID არ გაითვალა');
+      return;
+    }
+    this.router.navigate(['/trip', tripId]);
+  }
+
   // ============ დამხმარე ფუნქციები ============
   formatDate(dateString: string | undefined): string {
     if (!dateString) return '—';
@@ -231,5 +255,19 @@ export class HomeComponent implements OnInit, OnDestroy {
     }, 0);
 
     return `${total.toFixed(2)} ₾`;
+  }
+
+  // ============ კარუსელის სქროლი ============
+  scrollCarousel(track: HTMLElement, direction: 1 | -1): void {
+    if (!track) return;
+
+    const firstCard = track.querySelector(
+      '.request-card-home, .trip-card-home'
+    ) as HTMLElement | null;
+
+    // fallback width თუ ბარათი ჯერ არ არის დარენდერებული
+    const cardWidth = firstCard ? firstCard.offsetWidth + 24 : 300; // 24px = $spacing-xl gap
+
+    track.scrollBy({ left: direction * cardWidth * 2, behavior: 'smooth' });
   }
 }

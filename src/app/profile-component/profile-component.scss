@@ -6,6 +6,7 @@
 // states, warm paper for the canvas.
 // ============================================
 
+@use "sass:color";
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@400;500;600;700;800;900&display=swap');
 
 // ========== DESIGN TOKENS ==========
@@ -504,7 +505,7 @@ $transition-slow: 0.36s cubic-bezier(0.16, 1, 0.3, 1);
   transition: all $transition-fast;
 
   &:hover {
-    background: darken($color-bg-light, 2%);
+    background: color.adjust($color-bg-light, $lightness: -2%);
     transform: translateY(-1px);
   }
 }
@@ -697,7 +698,7 @@ $transition-slow: 0.36s cubic-bezier(0.16, 1, 0.3, 1);
     left: 0;
     right: 0;
     height: 4px;
-    background: linear-gradient(90deg, $route, lighten($route, 18%));
+    background: linear-gradient(90deg, $route, color.adjust($route, $lightness: 18%));
   }
 
   &:hover {
@@ -851,7 +852,7 @@ $transition-slow: 0.36s cubic-bezier(0.16, 1, 0.3, 1);
 
   &.status-pending {
     background: rgba($color-warning, 0.15);
-    color: darken($color-warning, 18%);
+    color: color.adjust($color-warning, $lightness: -18%);
   }
 
   &.status-accepted,
@@ -1050,7 +1051,7 @@ $transition-slow: 0.36s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   .menu-item-title {
-    color: darken($color-error, 12%);
+    color: color.adjust($color-error, $lightness: -12%);
   }
 }
 
@@ -1109,7 +1110,7 @@ $transition-slow: 0.36s cubic-bezier(0.16, 1, 0.3, 1);
 .error-message {
   background: rgba($color-error, 0.08);
   border: 1.5px solid rgba($color-error, 0.25);
-  color: darken($color-error, 12%);
+  color: color.adjust($color-error, $lightness: -12%);
   padding: $spacing-xl $spacing-lg;
   border-radius: $border-radius-lg;
   font-size: $font-size-sm;

@@ -1,0 +1,673 @@
+// ============================================================
+// TRIP DETAIL PAGE - MAIN STYLES
+// georgiandev.ge - P2P Delivery Platform
+// ============================================================
+//
+// 🎨 COLOR PALETTE: Modern Purple & Cyan (matches request-detail.scss)
+//    Primary: #7c3aed (Vibrant Purple)
+//    Secondary: #06b6d4 (Cyan/Teal)
+//    Text: #2d1b4e (Deep Purple)
+//
+// 📱 RESPONSIVE: Mobile First (480px → 768px → 800px+)
+// ⚡ FEATURES: Gradients, Smooth Animations, Dark Mode
+// ============================================================
+
+// ============================================================
+// 1. COLOR VARIABLES & THEME
+// ============================================================
+
+$color-bg-primary: #f5f3ff;
+$color-bg-secondary: #ffffff;
+$color-bg-light: #faf9ff;
+
+$color-text-primary: #f2f0f7;
+$color-text-secondary: #d5cbe2;
+$color-text-muted: #421e80;
+
+$color-border: #e8dff5;
+$color-border-light: #ddd2ea;
+
+$color-primary: #7c3aed;
+$color-primary-dark: #6d28d9;
+$color-primary-light: #ede9fe;
+
+$color-success: #06b6d4;
+$color-success-light: #cffafe;
+$color-success-bg: #ecf9fc;
+
+$color-warning-bg: #fef3e2;
+$color-warning-border: #ffdab9;
+$color-warning-text: #d97706;
+$color-warning-dark-text: #b45309;
+
+$color-border-from: #7c3aed;
+$color-border-to: #06b6d4;
+
+// Spacing
+$space-xs: 4px;
+$space-sm: 8px;
+$space-md: 12px;
+$space-lg: 16px;
+$space-xl: 20px;
+$space-2xl: 24px;
+$space-3xl: 32px;
+
+// Border Radius
+$radius-sm: 8px;
+$radius-md: 12px;
+$radius-lg: 16px;
+
+// Font Sizes
+$font-xs: 12px;
+$font-sm: 13px;
+$font-base: 14px;
+$font-md: 15px;
+$font-lg: 18px;
+$font-xl: 22px;
+
+// Font Weights
+$weight-medium: 500;
+$weight-semibold: 600;
+$weight-bold: 700;
+
+// Transitions
+$transition-fast: 0.15s ease-in-out;
+$transition-base: 0.2s ease-in-out;
+$transition-slow: 0.3s ease-in-out;
+
+// ============================================================
+// 2. ANIMATIONS
+// ============================================================
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY($space-lg);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-$space-lg);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+// ============================================================
+// 3. MIXINS
+// ============================================================
+
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@mixin gradient-text($from: $color-primary, $to: #a78bfa) {
+  background: linear-gradient(135deg, $from 0%, $to 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+@mixin button-base {
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-weight: $weight-semibold;
+  transition: all $transition-base;
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  &:not(:disabled):active {
+    transform: scale(0.98);
+  }
+}
+
+// ============================================================
+// 4. GLOBAL RESET
+// ============================================================
+
+* {
+  box-sizing: border-box;
+}
+
+// ============================================================
+// 5. MAIN CONTAINER
+// ============================================================
+
+.trip-detail-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: $space-2xl $space-lg;
+  animation: fadeIn $transition-slow;
+
+  @media (max-width: 480px) {
+    padding: $space-lg $space-md;
+  }
+}
+
+// ============================================================
+// 6. HEADER
+// ============================================================
+
+.detail-header {
+  display: flex;
+  align-items: center;
+  gap: $space-lg;
+  margin-bottom: $space-2xl;
+  animation: slideInLeft $transition-slow;
+
+  @media (max-width: 480px) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: $space-md;
+  }
+
+  .back-button {
+    @include button-base;
+    background: linear-gradient(135deg, $color-bg-light 0%, $color-primary-light 100%);
+    border: 1px solid rgba($color-primary, 0.15);
+    border-radius: $radius-sm;
+    padding: $space-sm $space-lg;
+    font-size: $font-base;
+    color: $color-text-secondary;
+    flex-shrink: 0;
+
+    &:hover {
+      background: linear-gradient(135deg, $color-primary-light 0%, #f3e8ff 100%);
+      color: $color-primary-dark;
+      box-shadow: 0 4px 12px rgba($color-primary, 0.15);
+      transform: translateY(-1px);
+    }
+
+    @media (max-width: 480px) {
+      align-self: flex-start;
+    }
+  }
+
+  .header-content {
+    h1 {
+      font-size: $font-xl;
+      margin: 0;
+      font-weight: $weight-bold;
+      
+
+      @media (max-width: 480px) {
+        font-size: $font-lg;
+      }
+    }
+  }
+
+  .header-subtitle {
+
+    font-size: $font-sm;
+    margin: $space-xs 0 0;
+    line-height: 1.5;
+  }
+}
+
+// ============================================================
+// 7. LOADING STATE
+// ============================================================
+
+.loading-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: $color-text-secondary;
+  @include flex-center;
+  flex-direction: column;
+  gap: $space-md;
+
+  .spinner {
+    font-size: 40px;
+    margin-bottom: $space-md;
+    animation: spin 1s linear infinite;
+    filter: drop-shadow(0 0 8px rgba($color-primary, 0.2));
+  }
+
+  p {
+    font-weight: $weight-medium;
+    animation: pulse 2s ease-in-out infinite;
+    margin: 0;
+  }
+}
+
+// ============================================================
+// 8. ERROR STATE
+// ============================================================
+
+.error-state {
+  text-align: center;
+  padding: 48px 24px;
+  color: $color-text-secondary;
+  background: linear-gradient(135deg, #fff1f2 0%, #ffe4e6 100%);
+  border: 2px solid #fbcfe8;
+  border-radius: $radius-lg;
+  box-shadow: 0 8px 24px rgba(225, 29, 72, 0.08);
+  animation: fadeIn $transition-slow;
+
+  .error-icon {
+    font-size: 40px;
+    margin-bottom: $space-md;
+    filter: drop-shadow(0 4px 8px rgba(225, 29, 72, 0.15));
+  }
+
+  p {
+    color: #831843;
+    font-weight: $weight-semibold;
+    margin-bottom: $space-xl;
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, #e11d48 0%, #ec4899 100%);
+    box-shadow: 0 4px 15px rgba(225, 29, 72, 0.3);
+
+    &:hover:not(:disabled) {
+      background: linear-gradient(135deg, #be123c 0%, #e11d48 100%);
+      box-shadow: 0 6px 20px rgba(225, 29, 72, 0.4);
+      transform: translateY(-2px);
+    }
+  }
+}
+
+// ============================================================
+// 9. TRIP CONTENT
+// ============================================================
+
+.trip-content {
+  display: flex;
+  flex-direction: column;
+  gap: $space-xl;
+  animation: fadeIn $transition-slow;
+}
+
+// ============================================================
+// 10. INFO CARD
+// ============================================================
+
+.info-card {
+  background: linear-gradient(135deg, $color-bg-secondary 0%, $color-bg-light 100%);
+  border-radius: $radius-lg;
+  padding: $space-2xl;
+  box-shadow: 0 4px 6px rgba(124, 58, 237, 0.08);
+  border: 1px solid rgba($color-primary, 0.1);
+  margin-bottom: $space-xl;
+  transition: all $transition-base;
+
+  &:hover {
+    box-shadow: 0 8px 20px rgba(124, 58, 237, 0.12);
+  }
+
+  @media (max-width: 480px) {
+    padding: $space-lg;
+    border-radius: $radius-md;
+  }
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: $space-md;
+  margin-bottom: $space-xl;
+  flex-wrap: wrap;
+
+  h2 {
+    margin: 0 0 $space-xs;
+    font-size: $font-lg;
+    font-weight: $weight-bold;
+    color: $color-text-primary;
+  }
+
+  .driver-name {
+    color: $color-text-secondary;
+    font-size: $font-base;
+    margin: 0;
+
+    strong {
+      color: $color-primary-dark;
+      font-weight: $weight-bold;
+    }
+  }
+}
+
+.status-badge {
+  color: #fff;
+  padding: $space-sm $space-lg;
+  border-radius: 25px;
+  font-size: $font-sm;
+  font-weight: $weight-bold;
+  white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+// ============================================================
+// 11. INFO GRID & SECTIONS
+// ============================================================
+
+.info-grid {
+  display: grid;
+  gap: $space-xl;
+}
+
+.info-section {
+  h3 {
+    font-size: $font-base;
+    font-weight: $weight-bold;
+    margin: 0 0 $space-md;
+    color: $color-text-primary;
+    display: flex;
+    align-items: center;
+    gap: $space-sm;
+  }
+}
+
+// ============================================================
+// 12. ROUTE BOX
+// ============================================================
+
+.route-box {
+  display: flex;
+  align-items: center;
+  gap: $space-lg;
+  background: linear-gradient(135deg, rgba(124, 58, 237, 0.05) 0%, rgba(6, 182, 212, 0.05) 100%);
+  border: 1px solid rgba($color-primary, 0.1);
+  border-radius: $radius-md;
+  padding: $space-lg;
+
+  @media (max-width: 480px) {
+    flex-direction: column;
+    gap: $space-md;
+  }
+
+  .route-city {
+    flex: 1;
+    background: linear-gradient(135deg, #faf9ff 0%, #ffffff 100%);
+    border: 2px solid;
+    border-radius: $radius-sm;
+    padding: $space-md;
+    position: relative;
+    transition: all $transition-base;
+
+    &:hover {
+      box-shadow: 0 4px 12px rgba(124, 58, 237, 0.15);
+      transform: translateY(-2px);
+    }
+
+    strong {
+      display: block;
+      font-size: $font-xs;
+      color: $color-text-secondary;
+      margin-bottom: $space-xs;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-weight: $weight-bold;
+    }
+
+    p {
+      margin: 0;
+      font-weight: $weight-bold;
+      font-size: $font-md;
+      color: $color-text-primary;
+      word-break: break-word;
+    }
+
+    &.from {
+      border-color: $color-border-from;
+
+      &::before {
+        content: '📍';
+        position: absolute;
+        top: $space-md;
+        right: $space-md;
+        font-size: $font-lg;
+        opacity: 0.3;
+      }
+    }
+
+    &.to {
+      border-color: $color-border-to;
+
+      &::before {
+        content: '🎯';
+        position: absolute;
+        top: $space-md;
+        right: $space-md;
+        font-size: $font-lg;
+        opacity: 0.3;
+      }
+    }
+
+    @media (max-width: 480px) {
+      width: 100%;
+    }
+  }
+
+  .route-arrow {
+    font-size: $font-xl;
+    @include gradient-text($color-border-from, $color-border-to);
+    font-weight: $weight-bold;
+    flex-shrink: 0;
+
+    @media (max-width: 480px) {
+      transform: rotate(90deg);
+    }
+  }
+}
+
+// ============================================================
+// 13. DETAIL LIST & ITEMS
+// ============================================================
+
+.detail-list {
+  display: flex;
+  flex-direction: column;
+  gap: $space-sm;
+}
+
+.detail-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: $space-md;
+  border-radius: $radius-sm;
+  background: linear-gradient(135deg, rgba(124, 58, 237, 0.03) 0%, rgba(6, 182, 212, 0.03) 100%);
+  border: 1px solid rgba($color-primary, 0.08);
+  border-bottom: 1px solid rgba($color-primary, 0.08);
+  position: relative;
+  overflow: hidden;
+  gap: $space-md;
+  transition: all $transition-base;
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: linear-gradient(180deg, $color-primary 0%, $color-success 100%);
+    transform: scaleY(0);
+    transition: transform $transition-base;
+  }
+
+  &:hover {
+    background: linear-gradient(135deg, rgba(124, 58, 237, 0.08) 0%, rgba(6, 182, 212, 0.08) 100%);
+    border-color: $color-primary;
+    box-shadow: 0 2px 8px rgba($color-primary, 0.1);
+    transform: translateX(4px);
+
+    &::before {
+      transform: scaleY(1);
+    }
+  }
+
+  .label {
+    color: $color-text-secondary;
+    font-size: $font-sm;
+    font-weight: $weight-semibold;
+    flex-shrink: 0;
+  }
+
+  .value {
+    font-weight: $weight-bold;
+    font-size: $font-base;
+    text-align: right;
+    color: $color-text-primary;
+    word-break: break-word;
+  }
+
+  @media (max-width: 480px) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: $space-xs;
+
+    .value {
+      text-align: left;
+    }
+  }
+}
+
+// ============================================================
+// 14. ACTION CARD (LOGIN PROMPT)
+// ============================================================
+
+.action-card {
+  border-radius: $radius-md;
+  padding: $space-xl;
+  margin-top: $space-lg;
+  background: linear-gradient(135deg, $color-warning-bg 0%, #fff7ed 100%);
+  border: 2px solid $color-warning-border;
+  box-shadow: 0 4px 15px rgba($color-warning-text, 0.08);
+  animation: fadeIn $transition-slow;
+
+  h3 {
+    color: $color-warning-dark-text;
+    margin: 0 0 $space-sm;
+    font-size: $font-base;
+    font-weight: $weight-bold;
+    display: flex;
+    align-items: center;
+    gap: $space-sm;
+  }
+
+  p {
+    color: $color-warning-dark-text;
+    margin-bottom: $space-md;
+    line-height: 1.6;
+    font-weight: $weight-medium;
+  }
+
+  @media (max-width: 480px) {
+    padding: $space-lg;
+  }
+}
+
+// ============================================================
+// 15. BUTTONS
+// ============================================================
+
+.btn-primary {
+  @include button-base;
+  background: linear-gradient(135deg, $color-primary 0%, #a78bfa 100%);
+  color: #fff;
+  border-radius: $radius-sm;
+  padding: $space-md $space-xl;
+  font-size: $font-base;
+  box-shadow: 0 4px 15px rgba($color-primary, 0.3);
+
+  &:hover:not(:disabled) {
+    background: linear-gradient(135deg, $color-primary-dark 0%, $color-primary 100%);
+    box-shadow: 0 6px 20px rgba($color-primary, 0.4);
+    transform: translateY(-2px);
+  }
+
+  @media (max-width: 480px) {
+    width: 100%;
+  }
+}
+
+// ============================================================
+// 16. RESPONSIVE — TABLET
+// ============================================================
+
+@media (max-width: 768px) {
+  .trip-detail-container {
+    padding: $space-xl $space-md;
+  }
+
+  .info-grid {
+    gap: $space-lg;
+  }
+}
+
+// ============================================================
+// 17. ACCESSIBILITY
+// ============================================================
+
+a:focus,
+button:focus {
+  outline: 2px solid $color-primary;
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+// ============================================================
+// 18. DARK MODE
+// ============================================================
+
+@media (prefers-color-scheme: dark) {
+  .info-card {
+    background: linear-gradient(135deg, #1e293b 0%, #1f1f35 100%);
+    color: #e2e8f0;
+    border-color: rgba($color-primary, 0.2);
+  }
+
+  .route-city {
+    background: linear-gradient(135deg, #0f172a 0%, #1a1a2e 100%) !important;
+  }
+
+  .detail-item {
+    background: linear-gradient(135deg, rgba(124, 58, 237, 0.1) 0%, rgba(6, 182, 212, 0.1) 100%) !important;
+    border-color: rgba($color-primary, 0.2) !important;
+  }
+
+  .back-button {
+    background: linear-gradient(135deg, #1e293b 0%, #1f1f35 100%) !important;
+    color: #e2e8f0 !important;
+  }
+}

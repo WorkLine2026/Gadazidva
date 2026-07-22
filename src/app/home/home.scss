@@ -1,4 +1,3 @@
-// ====================================
 // FONTS — Noto Sans Georgian renders the
 // Georgian script cleanly at every weight
 // we use; Latin/numerals fall back to the
@@ -412,15 +411,78 @@ $transition-slow: 480ms cubic-bezier(0.16, 1, 0.3, 1);
   }
 }
 
-.requests-grid,
-.trips-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+// ====================================
+// CAROUSEL (replaces the old CSS grid)
+// ====================================
+
+.carousel-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+}
+
+.carousel-track {
+  display: flex;
   gap: $spacing-xl;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  padding: 4px 2px 12px;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  .request-card-home,
+  .trip-card-home {
+    flex: 0 0 280px;
+    scroll-snap-align: start;
+  }
 
   @media (max-width: 480px) {
-    grid-template-columns: 1fr;
     gap: $spacing-lg;
+
+    .request-card-home,
+    .trip-card-home {
+      flex-basis: 240px;
+    }
+  }
+}
+
+.carousel-arrow {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1.5px solid $border-color;
+  background: $bg-white;
+  color: $ink;
+  font-size: 22px;
+  font-weight: $font-weight-bold;
+  line-height: 1;
+  cursor: pointer;
+  @include flex-center;
+  @include smooth-transition;
+  box-shadow: $shadow-sm;
+
+  &:hover {
+    background: $ink;
+    color: $text-white;
+    border-color: $ink;
+    transform: scale(1.06);
+  }
+
+  &:active {
+    transform: scale(0.96);
+  }
+
+  @media (max-width: 480px) {
+    width: 34px;
+    height: 34px;
+    font-size: 18px;
   }
 }
 
@@ -1178,6 +1240,18 @@ $transition-slow: 480ms cubic-bezier(0.16, 1, 0.3, 1);
 
   .section-title {
     color: #F5F6FA;
+  }
+
+  .carousel-arrow {
+    background: #16203A;
+    border-color: #29314A;
+    color: #F5F6FA;
+
+    &:hover {
+      background: $cargo;
+      border-color: $cargo;
+      color: $text-white;
+    }
   }
 
   .request-card-home,

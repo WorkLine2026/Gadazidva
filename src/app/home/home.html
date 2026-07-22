@@ -33,42 +33,64 @@
       ⏳ განცხადებების ჩატვირთვა...
     </div>
 
-    <div *ngIf="!isLoadingRequests && recentRequests.length === 0" 
+    <div *ngIf="!isLoadingRequests && recentRequests.length === 0"
          style="text-align: center; padding: 40px 20px; background: #f8fafc; border-radius: 16px; color: #64748b;">
       <div style="font-size: 32px; margin-bottom: 12px;">📭</div>
       <div style="font-size: 15px; font-weight: 600;">განცხადებები ჯერ არ არის</div>
       <div style="font-size: 13px; margin-top: 8px;">მალე გამგზავნების განცხადებები აქ გამოჩნდება</div>
     </div>
 
-    <div class="requests-grid" *ngIf="!isLoadingRequests && recentRequests.length > 0">
-      <div class="request-card-home" *ngFor="let request of recentRequests">
-        <div class="card-header">
-          <div class="sender-info">
-            <span class="sender-name">{{ request.senderName || 'უცნობი გამგზავნი' }}</span>
-          </div>
+    <div class="carousel-wrapper" *ngIf="!isLoadingRequests && recentRequests.length > 0">
+      <button
+        class="carousel-arrow carousel-arrow-left"
+        type="button"
+        (click)="scrollCarousel(requestsTrack, -1)"
+        aria-label="წინა">
+        ‹
+      </button>
+
+      <div class="carousel-track requests-carousel" #requestsTrack>
+        <div class="request-card-home" *ngFor="let request of recentRequests">
+          <div class="card-header">
+            <div class="sender-info">
+              <span class="sender-name">{{ request.senderName || 'უცნობი გამგზავნი' }}</span>
+            </div>
           </div>
 
-        <div class="route-display">
-          <span class="route-city">{{ request.from }}</span>
-          <span class="route-arrow">→</span>
-          <span class="route-city">{{ request.to }}</span>
-        </div>
+          <div class="route-display">
+            <span class="route-city">{{ request.from }}</span>
+            <span class="route-arrow">→</span>
+            <span class="route-city">{{ request.to }}</span>
+          </div>
 
-        <div class="card-details">
-          <div class="detail-item">
-            <span class="detail-label">წონა</span>
-            <span class="detail-value">{{ request.weight }} კგ</span>
-          </div>
-          <div class="detail-item">
-            <span class="detail-label">ღირებულება</span>
-            <span class="detail-value">{{ request.value }} ₾</span>
-          </div>
-          <div class="detail-item">
-            <span class="detail-label">თარიღი</span>
-            <span class="detail-value">{{ formatDate(request.createdAt!) }}</span>
+          <div class="card-details">
+            <div class="detail-item">
+              <span class="detail-label">წონა</span>
+              <span class="detail-value">{{ request.weight }} კგ</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">ღირებულება</span>
+              <span class="detail-value">{{ request.value }} ₾</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">თარიღი</span>
+              <span class="detail-value">{{ formatDate(request.createdAt!) }}</span>
+            </div>
+            <!-- ✅ ᲒᲐᲜᲐᲮᲚᲔᲑᲣᲚᲘ ღილაკი - სწორი ID გამოყენებით -->
+            <button class="view-request-button" (click)="viewRequest(request._id)">
+              განცხადების ნახვა
+            </button>
           </div>
         </div>
       </div>
+
+      <button
+        class="carousel-arrow carousel-arrow-right"
+        type="button"
+        (click)="scrollCarousel(requestsTrack, 1)"
+        aria-label="შემდეგი">
+        ›
+      </button>
     </div>
   </div>
 
@@ -79,51 +101,74 @@
       ⏳ მგზავრობების ჩატვირთვა...
     </div>
 
-    <div *ngIf="!isLoadingTrips && recentTrips.length === 0" 
+    <div *ngIf="!isLoadingTrips && recentTrips.length === 0"
          style="text-align: center; padding: 40px 20px; background: #f8fafc; border-radius: 16px; color: #64748b;">
       <div style="font-size: 32px; margin-bottom: 12px;">🛣️</div>
       <div style="font-size: 15px; font-weight: 600;">მგზავრობები ჯერ არ არის</div>
       <div style="font-size: 13px; margin-top: 8px;">მალე მძღოლების მგზავრობები აქ გამოჩნდება</div>
     </div>
 
-    <div class="trips-grid" *ngIf="!isLoadingTrips && recentTrips.length > 0">
-      <div class="trip-card-home" *ngFor="let trip of recentTrips">
-        <div class="card-header">
-          <div class="driver-info">
-            <span class="driver-name">{{ trip.driverName || 'უცნობი მძღოლი' }}</span>
-          </div>
-          <div [ngClass]="'trip-status-badge status-' + (trip.status || 'pending')">
-            {{ getTripStatusLabel(trip.status) }}
-          </div>
-        </div>
+    <div class="carousel-wrapper" *ngIf="!isLoadingTrips && recentTrips.length > 0">
+      <button
+        class="carousel-arrow carousel-arrow-left"
+        type="button"
+        (click)="scrollCarousel(tripsTrack, -1)"
+        aria-label="წინა">
+        ‹
+      </button>
 
-        <div class="route-display">
-          <span class="route-city">{{ trip.from }}</span>
-          <span class="route-arrow">→</span>
-          <span class="route-city">{{ trip.to }}</span>
-        </div>
+      <div class="carousel-track trips-carousel" #tripsTrack>
+        <div class="trip-card-home" *ngFor="let trip of recentTrips">
+          <div class="card-header">
+            <div class="driver-info">
+              <span class="driver-name">{{ trip.driverName || 'უცნობი მძღოლი' }}</span>
+            </div>
+            <div [ngClass]="'trip-status-badge status-' + (trip.status || 'pending')">
+              {{ getTripStatusLabel(trip.status) }}
+            </div>
+          </div>
 
-        <div class="card-details">
-          <div class="detail-item">
-            <span class="detail-label">გასვლა</span>
-            <span class="detail-value">{{ formatDateTime(trip.departureDate!) }}</span>
+          <div class="route-display">
+            <span class="route-city">{{ trip.from }}</span>
+            <span class="route-arrow">→</span>
+            <span class="route-city">{{ trip.to }}</span>
           </div>
-          <div class="detail-item">
-            <span class="detail-label">თავისუფალი ადგილი</span>
-            <span class="detail-value">{{ trip.availableSpace }} კგ</span>
-          </div>
-          <div class="detail-item">
-            <span class="detail-label">ფასი</span>
-            <span class="detail-value">{{ trip.pricePerKg }} ₾/კგ</span>
-          </div>
-        </div>
 
-        <div *ngIf="trip.acceptedShippings && trip.acceptedShippings.length > 0" 
-             class="shippings-info">
-          <span class="shipping-count">✓ {{ trip.acceptedShippings.length }} შეკვეთა</span>
-          <span class="shipping-earnings">{{ getTripEarnings(trip) }}</span>
+          <div class="card-details">
+            <div class="detail-item">
+              <span class="detail-label">გასვლა</span>
+              <span class="detail-value">{{ formatDateTime(trip.departureDate!) }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">თავისუფალი ადგილი</span>
+              <span class="detail-value">{{ trip.availableSpace }} კგ</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">ფასი</span>
+              <span class="detail-value">{{ trip.pricePerKg }} ₾/კგ</span>
+            </div>
+          </div>
+
+          <div *ngIf="trip.acceptedShippings && trip.acceptedShippings.length > 0"
+               class="shippings-info">
+            <span class="shipping-count">✓ {{ trip.acceptedShippings.length }} შეკვეთა</span>
+            <span class="shipping-earnings">{{ getTripEarnings(trip) }}</span>
+          </div>
+
+          <!-- ✅ ᲒᲐᲜᲐᲮᲚᲔᲑᲣᲚᲘ ღილაკი - სწორი მეთოდი და ID -->
+          <button class="view-request-button" (click)="viewTrip(trip._id)">
+            მგზავრობის ნახვა
+          </button>
         </div>
       </div>
+
+      <button
+        class="carousel-arrow carousel-arrow-right"
+        type="button"
+        (click)="scrollCarousel(tripsTrack, 1)"
+        aria-label="შემდეგი">
+        ›
+      </button>
     </div>
   </div>
 </div>
@@ -131,7 +176,7 @@
 <section class="preview">
   <div class="preview-container">
     <h2 class="preview-title">დაიწყე 3 მარტივი ნაბიჯით</h2>
-    
+
     <div class="preview-grid">
       <ng-container *ngFor="let step of steps1; let isLast = last">
         <div class="preview-card">
@@ -139,7 +184,7 @@
           <h3 class="preview-card-title">{{ step.title }}</h3>
           <p class="preview-card-description">{{ step.description }}</p>
         </div>
-        
+
         <div class="preview-arrow" *ngIf="!isLast" aria-hidden="true">→</div>
       </ng-container>
     </div>
@@ -149,7 +194,7 @@
 <section class="preview">
   <div class="preview-container">
     <h2 class="preview-title">დაიწყე 3 მარტივი ნაბიჯით</h2>
-    
+
     <div class="preview-grid">
       <ng-container *ngFor="let step of steps; let isLast = last">
         <div class="preview-card">
@@ -157,7 +202,7 @@
           <h3 class="preview-card-title">{{ step.title }}</h3>
           <p class="preview-card-description">{{ step.description }}</p>
         </div>
-        
+
         <div class="preview-arrow" *ngIf="!isLast" aria-hidden="true">→</div>
       </ng-container>
     </div>

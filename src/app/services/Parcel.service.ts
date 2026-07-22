@@ -38,7 +38,6 @@ export interface ParcelRequest {
   notes?: string;
   status?: 'pending' | 'accepted' | 'in-transit' | 'delivered';
   createdAt?: string;
-  // ✅ დამატებული ველი home component-ისთვის
   senderName?: string;
 }
 
@@ -70,7 +69,6 @@ export interface DriverTrip {
   acceptedShippings?: AcceptedShipping[];
   createdAt?: string;
   updatedAt?: string;
-  // ✅ დამატებული ველი home component-ისთვის
   driverName?: string;
 }
 
@@ -124,7 +122,6 @@ export class ParcelService {
   private apiUrl = `${environment.apiUrl}/parcels`;
   private driverUrl = `${environment.apiUrl}/parcels/driver`;
 
-  // ✅ RxJS Subject - ტრიპის შექმნის ნოტიფიკაციებისთვის
   private tripCreated$ = new Subject<DriverTrip>();
 
   readonly GEORGIAN_CITIES = [
@@ -138,34 +135,42 @@ export class ParcelService {
     private smsService: SmsVerificationService
   ) {}
 
-  // ✅ SmsVerificationService-დან token მოიტანეთ
-  private getAuthToken(): string {
-    const token = localStorage.getItem('authToken');
-    console.log('🔍 ParcelService token-ის მოპოვება:', token ? '✅ აქვს' : '❌ არ აქვს');
-    return token || '';
-  }
-
+  /**
+   * ✅ SmsVerificationService-დან token მოიტანეთ
+   */
   private getAuthHeaders(): HttpHeaders {
-    const token = this.getAuthToken();
+    const token = this.smsService.getAuthToken();
+    console.log('🔍 ParcelService token-ის მოპოვება:', token ? '✅ აქვს' : '❌ არ აქვს');
+    
+    if (!token) {
+      throw new Error('ავტორიზაცია საჭიროა');
+    }
+
     return new HttpHeaders({
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`
     });
   }
 
-  // ✅ ტრიპის შექმნის ნოტიფიკაციის Observable
+  /**
+   * ✅ უსაფრთხოების შემოწმება თუ token არის
+   */
+  private ensureAuthenticated(): void {
+    if (!this.smsService.isAuthenticated()) {
+      throw new Error('ავტორიზაცია საჭიროა');
+    }
+  }
+
   tripCreated(): Observable<DriverTrip> {
     return this.tripCreated$.asObservable();
   }
 
-  // ✅ ტრიპის შექმნის აცნობება ყველა listener-ს
   notifyTripCreated(trip: DriverTrip): void {
     this.tripCreated$.next(trip);
   }
 
   // ============ PUBLIC REQUESTS (HOME PAGE) ============
 
-  // ✅ PUBLIC - auth არ სჭირდება
   getRecentRequests(): Observable<RequestsResponse> {
     return this.http.get<RequestsResponse>(`${this.apiUrl}/recent-requests`);
   }
@@ -173,141 +178,152 @@ export class ParcelService {
   // ============ PARCEL REQUESTS ============
 
   createParcelRequest(data: ParcelRequest): Observable<TripResponse> {
-    const token = this.getAuthToken();
-    if (!token) {
-      return throwError(() => new Error('ავტორიზაცია საჭიროა'));
+    try {
+      this.ensureAuthenticated();
+      return this.http.post<TripResponse>(`${this.apiUrl}/request`, data, {
+        headers: this.getAuthHeaders()
+      });
+    } catch (err) {
+      return throwError(() => err);
     }
-
-    return this.http.post<TripResponse>(`${this.apiUrl}/request`, data, {
-      headers: this.getAuthHeaders()
-    });
   }
 
   getUserRequests(): Observable<RequestsResponse> {
-    const token = this.getAuthToken();
-    if (!token) {
-      return throwError(() => new Error('ავტორიზაცია საჭიროა'));
+    try {
+      this.ensureAuthenticated();
+      return this.http.get<RequestsResponse>(`${this.apiUrl}/my-requests`, {
+        headers: this.getAuthHeaders()
+      });
+    } catch (err) {
+      return throwError(() => err);
     }
-
-    return this.http.get<RequestsResponse>(`${this.apiUrl}/my-requests`, {
-      headers: this.getAuthHeaders()
-    });
   }
 
+  /**
+   * ✅ PUBLIC - ავტორიზაციის გარეშე განცხადების დაძებნა
+   */
   getParcelRequest(requestId: string): Observable<ApiResponse<ParcelRequest>> {
-    const token = this.getAuthToken();
-    if (!token) {
-      return throwError(() => new Error('ავტორიზაცია საჭიროა'));
-    }
-
-    return this.http.get<ApiResponse<ParcelRequest>>(`${this.apiUrl}/request/${requestId}`, {
-      headers: this.getAuthHeaders()
-    });
+    return this.http.get<ApiResponse<ParcelRequest>>(
+      `${this.apiUrl}/request/${requestId}`
+    );
   }
 
+  /**
+   * ✅ PROTECTED - მხოლოდ sender შეუძლია status update-ი
+   */
   updateParcelStatus(requestId: string, status: string): Observable<ApiResponse<ParcelRequest>> {
-    const token = this.getAuthToken();
-    if (!token) {
-      return throwError(() => new Error('ავტორიზაცია საჭიროა'));
+    try {
+      this.ensureAuthenticated();
+      return this.http.put<ApiResponse<ParcelRequest>>(
+        `${this.apiUrl}/request/${requestId}/status`,
+        { status },
+        { headers: this.getAuthHeaders() }
+      );
+    } catch (err) {
+      return throwError(() => err);
     }
-
-    return this.http.put<ApiResponse<ParcelRequest>>(
-      `${this.apiUrl}/request/${requestId}/status`,
-      { status },
-      { headers: this.getAuthHeaders() }
-    );
   }
 
   republishRequest(requestId: string): Observable<ApiResponse<ParcelRequest>> {
-    const token = this.getAuthToken();
-    if (!token) {
-      return throwError(() => new Error('ავტორიზაცია საჭიროა'));
+    try {
+      this.ensureAuthenticated();
+      return this.http.post<ApiResponse<ParcelRequest>>(
+        `${this.apiUrl}/request/${requestId}/republish`,
+        {},
+        { headers: this.getAuthHeaders() }
+      );
+    } catch (err) {
+      return throwError(() => err);
     }
-
-    return this.http.post<ApiResponse<ParcelRequest>>(
-      `${this.apiUrl}/request/${requestId}/republish`,
-      {},
-      { headers: this.getAuthHeaders() }
-    );
   }
 
   // ============ PUBLIC TRIPS (HOME PAGE) ============
 
-  // ✅ PUBLIC - auth არ სჭირდება
   getRecentTrips(): Observable<TripsResponse> {
     return this.http.get<TripsResponse>(`${this.driverUrl}/recent-trips`);
+  }
+
+  /**
+   * ✅ PUBLIC - ავტორიზაციის გარეშე ტრიპის დეტალების ნახვა
+   * (ისევე როგორც getParcelRequest() არის public)
+   */
+  getTripDetails(tripId: string): Observable<ApiResponse<DriverTrip>> {
+    return this.http.get<ApiResponse<DriverTrip>>(`${this.driverUrl}/trip/${tripId}`);
   }
 
   // ============ DRIVER TRIPS ============
 
   createTrip(data: DriverTrip): Observable<TripResponse> {
-    const token = this.getAuthToken();
-    if (!token) {
-      return throwError(() => new Error('ავტორიზაცია საჭიროა'));
+    try {
+      this.ensureAuthenticated();
+      return this.http.post<TripResponse>(`${this.driverUrl}/create-trip`, data, {
+        headers: this.getAuthHeaders()
+      });
+    } catch (err) {
+      return throwError(() => err);
     }
-
-    return this.http.post<TripResponse>(`${this.driverUrl}/create-trip`, data, {
-      headers: this.getAuthHeaders()
-    });
   }
 
   getDriverTrips(): Observable<TripsResponse> {
-    const token = this.getAuthToken();
-    if (!token) {
-      return throwError(() => new Error('ავტორიზაცია საჭიროა'));
+    try {
+      this.ensureAuthenticated();
+      return this.http.get<TripsResponse>(`${this.driverUrl}/my-trips`, {
+        headers: this.getAuthHeaders()
+      });
+    } catch (err) {
+      return throwError(() => err);
     }
-
-    return this.http.get<TripsResponse>(`${this.driverUrl}/my-trips`, {
-      headers: this.getAuthHeaders()
-    });
   }
 
   getTrip(tripId: string): Observable<ApiResponse<DriverTrip>> {
-    const token = this.getAuthToken();
-    if (!token) {
-      return throwError(() => new Error('ავტორიზაცია საჭიროა'));
+    try {
+      this.ensureAuthenticated();
+      return this.http.get<ApiResponse<DriverTrip>>(
+        `${this.driverUrl}/${tripId}`,
+        { headers: this.getAuthHeaders() }
+      );
+    } catch (err) {
+      return throwError(() => err);
     }
-
-    return this.http.get<ApiResponse<DriverTrip>>(`${this.driverUrl}/${tripId}`, {
-      headers: this.getAuthHeaders()
-    });
   }
 
   updateTrip(tripId: string, data: Partial<DriverTrip>): Observable<ApiResponse<DriverTrip>> {
-    const token = this.getAuthToken();
-    if (!token) {
-      return throwError(() => new Error('ავტორიზაცია საჭიროა'));
+    try {
+      this.ensureAuthenticated();
+      return this.http.put<ApiResponse<DriverTrip>>(
+        `${this.driverUrl}/${tripId}`,
+        data,
+        { headers: this.getAuthHeaders() }
+      );
+    } catch (err) {
+      return throwError(() => err);
     }
-
-    return this.http.put<ApiResponse<DriverTrip>>(`${this.driverUrl}/${tripId}`, data, {
-      headers: this.getAuthHeaders()
-    });
   }
 
   cancelTrip(tripId: string): Observable<ApiResponse<DriverTrip>> {
-    const token = this.getAuthToken();
-    if (!token) {
-      return throwError(() => new Error('ავტორიზაცია საჭიროა'));
+    try {
+      this.ensureAuthenticated();
+      return this.http.put<ApiResponse<DriverTrip>>(
+        `${this.driverUrl}/${tripId}/cancel`,
+        {},
+        { headers: this.getAuthHeaders() }
+      );
+    } catch (err) {
+      return throwError(() => err);
     }
-
-    return this.http.put<ApiResponse<DriverTrip>>(
-      `${this.driverUrl}/${tripId}/cancel`,
-      {},
-      { headers: this.getAuthHeaders() }
-    );
   }
 
   completeTrip(tripId: string): Observable<ApiResponse<DriverTrip>> {
-    const token = this.getAuthToken();
-    if (!token) {
-      return throwError(() => new Error('ავტორიზაცია საჭიროა'));
+    try {
+      this.ensureAuthenticated();
+      return this.http.put<ApiResponse<DriverTrip>>(
+        `${this.driverUrl}/${tripId}/complete`,
+        {},
+        { headers: this.getAuthHeaders() }
+      );
+    } catch (err) {
+      return throwError(() => err);
     }
-
-    return this.http.put<ApiResponse<DriverTrip>>(
-      `${this.driverUrl}/${tripId}/complete`,
-      {},
-      { headers: this.getAuthHeaders() }
-    );
   }
 
   // ============ AVAILABLE SHIPPINGS ============
@@ -317,141 +333,141 @@ export class ParcelService {
     to: string,
     departureDate: string
   ): Observable<ShippingsResponse> {
-    const token = this.getAuthToken();
-    if (!token) {
-      return throwError(() => new Error('ავტორიზაცია საჭიროა'));
+    try {
+      this.ensureAuthenticated();
+      const params = new HttpParams()
+        .set('from', from)
+        .set('to', to)
+        .set('departureDate', departureDate);
+
+      return this.http.get<ShippingsResponse>(
+        `${this.apiUrl}/available-shippings`,
+        {
+          headers: this.getAuthHeaders(),
+          params
+        }
+      );
+    } catch (err) {
+      return throwError(() => err);
     }
-
-    const params = new HttpParams()
-      .set('from', from)
-      .set('to', to)
-      .set('departureDate', departureDate);
-
-    return this.http.get<ShippingsResponse>(
-      `${this.apiUrl}/available-shippings`,
-      {
-        headers: this.getAuthHeaders(),
-        params
-      }
-    );
   }
 
   acceptShipping(shippingId: string): Observable<ApiResponse<AcceptedShipping>> {
-    const token = this.getAuthToken();
-    if (!token) {
-      return throwError(() => new Error('ავტორიზაცია საჭიროა'));
+    try {
+      this.ensureAuthenticated();
+      return this.http.post<ApiResponse<AcceptedShipping>>(
+        `${this.apiUrl}/${shippingId}/accept`,
+        {},
+        { headers: this.getAuthHeaders() }
+      );
+    } catch (err) {
+      return throwError(() => err);
     }
-
-    return this.http.post<ApiResponse<AcceptedShipping>>(
-      `${this.apiUrl}/${shippingId}/accept`,
-      {},
-      { headers: this.getAuthHeaders() }
-    );
   }
 
   rejectShipping(shippingId: string, reason?: string): Observable<ApiResponse<null>> {
-    const token = this.getAuthToken();
-    if (!token) {
-      return throwError(() => new Error('ავტორიზაცია საჭიროა'));
+    try {
+      this.ensureAuthenticated();
+      return this.http.post<ApiResponse<null>>(
+        `${this.apiUrl}/${shippingId}/reject`,
+        { reason },
+        { headers: this.getAuthHeaders() }
+      );
+    } catch (err) {
+      return throwError(() => err);
     }
-
-    return this.http.post<ApiResponse<null>>(
-      `${this.apiUrl}/${shippingId}/reject`,
-      { reason },
-      { headers: this.getAuthHeaders() }
-    );
   }
 
   pickupShipping(shippingId: string): Observable<ApiResponse<AcceptedShipping>> {
-    const token = this.getAuthToken();
-    if (!token) {
-      return throwError(() => new Error('ავტორიზაცია საჭიროა'));
+    try {
+      this.ensureAuthenticated();
+      return this.http.post<ApiResponse<AcceptedShipping>>(
+        `${this.apiUrl}/${shippingId}/pickup`,
+        {},
+        { headers: this.getAuthHeaders() }
+      );
+    } catch (err) {
+      return throwError(() => err);
     }
-
-    return this.http.post<ApiResponse<AcceptedShipping>>(
-      `${this.apiUrl}/${shippingId}/pickup`,
-      {},
-      { headers: this.getAuthHeaders() }
-    );
   }
 
   deliverShipping(shippingId: string): Observable<ApiResponse<AcceptedShipping>> {
-    const token = this.getAuthToken();
-    if (!token) {
-      return throwError(() => new Error('ავტორიზაცია საჭიროა'));
+    try {
+      this.ensureAuthenticated();
+      return this.http.post<ApiResponse<AcceptedShipping>>(
+        `${this.apiUrl}/${shippingId}/deliver`,
+        {},
+        { headers: this.getAuthHeaders() }
+      );
+    } catch (err) {
+      return throwError(() => err);
     }
-
-    return this.http.post<ApiResponse<AcceptedShipping>>(
-      `${this.apiUrl}/${shippingId}/deliver`,
-      {},
-      { headers: this.getAuthHeaders() }
-    );
   }
 
   // ============ DRIVER STATS & ANALYTICS ============
 
   getDriverStats(): Observable<StatsResponse> {
-    const token = this.getAuthToken();
-    if (!token) {
-      return throwError(() => new Error('ავტორიზაცია საჭიროა'));
+    try {
+      this.ensureAuthenticated();
+      return this.http.get<StatsResponse>(`${this.driverUrl}/stats`, {
+        headers: this.getAuthHeaders()
+      });
+    } catch (err) {
+      return throwError(() => err);
     }
-
-    return this.http.get<StatsResponse>(`${this.driverUrl}/stats`, {
-      headers: this.getAuthHeaders()
-    });
   }
 
   getEarningsReport(period?: 'week' | 'month' | 'all'): Observable<ApiResponse<any>> {
-    const token = this.getAuthToken();
-    if (!token) {
-      return throwError(() => new Error('ავტორიზაცია საჭიროა'));
+    try {
+      this.ensureAuthenticated();
+      const params = period ? `?period=${period}` : '';
+
+      return this.http.get<ApiResponse<any>>(
+        `${this.driverUrl}/earnings${params}`,
+        { headers: this.getAuthHeaders() }
+      );
+    } catch (err) {
+      return throwError(() => err);
     }
-
-    const params = period ? `?period=${period}` : '';
-
-    return this.http.get<ApiResponse<any>>(
-      `${this.driverUrl}/earnings${params}`,
-      { headers: this.getAuthHeaders() }
-    );
   }
 
   getDriverReviews(): Observable<ApiResponse<any>> {
-    const token = this.getAuthToken();
-    if (!token) {
-      return throwError(() => new Error('ავტორიზაცია საჭიროა'));
+    try {
+      this.ensureAuthenticated();
+      return this.http.get<ApiResponse<any>>(`${this.driverUrl}/reviews`, {
+        headers: this.getAuthHeaders()
+      });
+    } catch (err) {
+      return throwError(() => err);
     }
-
-    return this.http.get<ApiResponse<any>>(`${this.driverUrl}/reviews`, {
-      headers: this.getAuthHeaders()
-    });
   }
 
   // ============ RATINGS ============
 
   rateDriver(driverId: string, rating: number, comment?: string): Observable<ApiResponse<null>> {
-    const token = this.getAuthToken();
-    if (!token) {
-      return throwError(() => new Error('ავტორიზაცია საჭიროა'));
+    try {
+      this.ensureAuthenticated();
+      return this.http.post<ApiResponse<null>>(
+        `${environment.apiUrl}/drivers/${driverId}/rate`,
+        { rating, comment },
+        { headers: this.getAuthHeaders() }
+      );
+    } catch (err) {
+      return throwError(() => err);
     }
-
-    return this.http.post<ApiResponse<null>>(
-      `${environment.apiUrl}/drivers/${driverId}/rate`,
-      { rating, comment },
-      { headers: this.getAuthHeaders() }
-    );
   }
 
   rateSender(senderId: string, rating: number, comment?: string): Observable<ApiResponse<null>> {
-    const token = this.getAuthToken();
-    if (!token) {
-      return throwError(() => new Error('ავტორიზაცია საჭიროა'));
+    try {
+      this.ensureAuthenticated();
+      return this.http.post<ApiResponse<null>>(
+        `${environment.apiUrl}/senders/${senderId}/rate`,
+        { rating, comment },
+        { headers: this.getAuthHeaders() }
+      );
+    } catch (err) {
+      return throwError(() => err);
     }
-
-    return this.http.post<ApiResponse<null>>(
-      `${environment.apiUrl}/senders/${senderId}/rate`,
-      { rating, comment },
-      { headers: this.getAuthHeaders() }
-    );
   }
 
   // ============ VALIDATION HELPERS ============

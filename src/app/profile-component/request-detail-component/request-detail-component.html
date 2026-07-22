@@ -1,0 +1,348 @@
+<div class="request-detail-container">
+  <!-- Header/უკან ღილაკი -->
+  <div class="detail-header">
+    <button class="back-button" (click)="goBack()" aria-label="უკან">
+      ← უკან
+    </button>
+    <div class="header-content">
+      <h1>განცხადების დეტალები</h1>
+      <p class="header-subtitle">სრული მიმოხილვა გამგზავნის და მძღოლის ხედვიდან</p>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-state">
+    <div class="spinner">⏳</div>
+    <p>ჩატვირთვა...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="!isLoading && errorMessage" class="error-state">
+    <div class="error-icon">⚠️</div>
+    <p>{{ errorMessage }}</p>
+    <button class="btn-primary" (click)="goBack()">
+      მთავარ გვერდზე დაბრუნება
+    </button>
+  </div>
+
+  <!-- Content -->
+  <div *ngIf="!isLoading && !errorMessage && originalRequest" class="request-content">
+    <!-- Tab Navigation -->
+    <div class="tab-navigation">
+      <button 
+        class="tab-button"
+        [class.active]="currentTab === 'original'"
+        (click)="currentTab = 'original'">
+        📦 ორიგინალური განცხადება
+      </button>
+      <button 
+        class="tab-button"
+        [class.active]="currentTab === 'accepted'"
+        *ngIf="isAccepted || isInTransit || isDelivered">
+        ✅ მიღებული შეკვეთა
+      </button>
+      <button 
+        class="tab-button"
+        [class.active]="currentTab === 'trip'"
+        *ngIf="driverTrip">
+        🚗 მძღოლის მგზავრობა
+      </button>
+    </div>
+
+    <!-- ============ ORIGinal REQUEST TAB ============ -->
+    <div class="tab-content" *ngIf="currentTab === 'original'">
+      <div class="info-card">
+        <div class="card-header">
+          <h2>📦 გამგზავნის განცხადება</h2>
+          <div class="status-badge" [style.background-color]="getStatusColor(originalRequest.status)">
+            {{ getStatusIcon(originalRequest.status) }} {{ getStatusLabel(originalRequest.status) }}
+          </div>
+        </div>
+
+        <div class="info-grid">
+          <!-- რუტა -->
+          <div class="info-section">
+            <h3>📍 მიწოდების ხაზი</h3>
+            <div class="route-box">
+              <div class="route-city from">
+                <strong>საიდან</strong>
+                <p>{{ originalRequest.from }}</p>
+              </div>
+              <div class="route-arrow">→</div>
+              <div class="route-city to">
+                <strong>სად</strong>
+                <p>{{ originalRequest.to }}</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- პარიტა დეტალები -->
+          <div class="info-section">
+            <h3>📊 პარიტა დეტალები</h3>
+            <div class="detail-list">
+              <div class="detail-item">
+                <span class="label">წონა:</span>
+                <span class="value">{{ originalRequest.weight }} კგ</span>
+              </div>
+              <div class="detail-item">
+                <span class="label">ღირებულება:</span>
+                <span class="value">{{ originalRequest.value }} ₾</span>
+              </div>
+              <div class="detail-item">
+                <span class="label">აღწერა:</span>
+                <span class="value">{{ originalRequest.description || '—' }}</span>
+              </div>
+              <div class="detail-item" *ngIf="originalRequest.notes">
+                <span class="label">მენიშვნელი:</span>
+                <span class="value">{{ originalRequest.notes }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- დრო -->
+          <div class="info-section">
+            <h3>📅 დროის მონაცემები</h3>
+            <div class="detail-list">
+              <div class="detail-item">
+                <span class="label">განცხადება შექმნა:</span>
+                <span class="value">{{ formatDateTime(originalRequest.createdAt) }}</span>
+              </div>
+              <div class="detail-item">
+                <span class="label">მიწოდების თარიღი:</span>
+                <span class="value">{{ formatDate(originalRequest.shipDate) }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- კონტაქტი -->
+          <div class="info-section">
+            <h3>☎️ კონტაქტი</h3>
+            <div class="detail-list">
+              <div class="detail-item">
+                <span class="label">გამგზავნის სახელი:</span>
+                <span class="value">{{ originalRequest.senderName || '—' }}</span>
+              </div>
+              <div class="detail-item">
+                <span class="label">გამგზავნის ტელ:</span>
+                <span class="value">{{ originalRequest.senderPhone || '—' }}</span>
+              </div>
+              <div class="detail-item">
+                <span class="label">მიმღების ტელ:</span>
+                <span class="value">{{ originalRequest.recipientPhone || '—' }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ✅ სტატუსის განახლება - მხოლოდ რეგისტრირებული users -->
+      <div class="action-card" *ngIf="isAuthenticated">
+        <h3>⚙️ სტატუსის განახლება</h3>
+        <p style="color: #64748b; margin-bottom: 16px;">
+          განცხადების მიმდინარე სტატუსი: <strong>{{ getStatusLabel(originalRequest.status) }}</strong>
+        </p>
+        <div class="status-buttons">
+          <button 
+            *ngFor="let status of ['pending', 'accepted', 'in-transit', 'delivered']"
+            class="btn-status"
+            [disabled]="isLoading"
+            (click)="updateStatus(status)">
+            {{ getStatusLabel(status) }}
+          </button>
+        </div>
+      </div>
+
+      <!-- ✅ ხელახალი გამოქვეყნება - მხოლოდ რეგისტრირებული users -->
+      <div class="action-card" *ngIf="isPending && isAuthenticated">
+        <h3>🔄 ხელახლა გამოქვეყნება</h3>
+        <p style="color: #64748b; margin-bottom: 12px;">
+          თუ მძღოლი არ აქვს პასუხი, შეგიძლია განცხადება ხელახლა გამოქვეყნო
+        </p>
+        <button 
+          class="btn-secondary"
+          [disabled]="isLoading"
+          (click)="republishRequest()">
+          ♻️ ხელახლა გამოქვეყნება
+        </button>
+      </div>
+
+      <!-- ⚠️ რჩევა არა-auth users-თი -->
+      <div class="action-card" *ngIf="!isAuthenticated" style="background-color: #fef3c7; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px;">
+        <h3 style="color: #b45309;">🔐 მხოლოდ რეგისტრირებული მომხმარებლებისთვის</h3>
+        <p style="color: #92400e; margin-bottom: 12px;">
+          განცხადების რედაქტირებისთვის გთხოვთ დალოგინდით
+        </p>
+        <button 
+          class="btn-primary"
+          (click)="router.navigate(['/login'])">
+          🔐 დალოგინება
+        </button>
+      </div>
+    </div>
+
+    <!-- ============ ACCEPTED SHIPPING TAB ============ -->
+    <div class="tab-content" *ngIf="currentTab === 'accepted' && (isAccepted || isInTransit || isDelivered)">
+      <div class="info-card">
+        <div class="card-header">
+          <h2>✅ მიღებული შეკვეთა</h2>
+          <div class="status-badge" [style.background-color]="getStatusColor(originalRequest.status)">
+            {{ getStatusIcon(originalRequest.status) }} {{ getStatusLabel(originalRequest.status) }}
+          </div>
+        </div>
+
+        <div style="text-align: center; padding: 40px 20px; color: #64748b;">
+          <p style="font-size: 16px; margin-bottom: 12px;">
+            🎉 ეს განცხადება მძღოლმა მიიღო!
+          </p>
+          <p style="font-size: 14px; margin-bottom: 20px;">
+            მძღოლის მგზავრობის დეტალები სხვა ტაბში
+          </p>
+
+          <div class="accepted-info" *ngIf="acceptedShipping">
+            <div class="info-section">
+              <h3>📦 შეკვეთის მონაცემი</h3>
+              <div class="detail-list">
+                <div class="detail-item">
+                  <span class="label">მიღების თარიღი:</span>
+                  <span class="value">{{ formatDateTime(acceptedShipping.createdAt) }}</span>
+                </div>
+                <div class="detail-item">
+                  <span class="label">გამგზავნი:</span>
+                  <span class="value">{{ acceptedShipping.senderName || '—' }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <button 
+            class="btn-primary"
+            *ngIf="driverTrip"
+            (click)="currentTab = 'trip'">
+            🚗 მძღოლის მგზავრობის ნახვა
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ DRIVER TRIP TAB ============ -->
+    <div class="tab-content" *ngIf="currentTab === 'trip' && driverTrip">
+      <div class="info-card">
+        <div class="card-header">
+          <div>
+            <h2>🚗 მძღოლის მგზავრობა</h2>
+            <p class="driver-name">მძღოლი: <strong>{{ driverTrip.driverName || 'უცნობი' }}</strong></p>
+          </div>
+          <div class="status-badge" [style.background-color]="getStatusColor(driverTrip.status)">
+            {{ driverTrip.status || '—' }}
+          </div>
+        </div>
+
+        <div class="info-grid">
+          <!-- რუტა -->
+          <div class="info-section">
+            <h3>📍 მგზავრობის ხაზი</h3>
+            <div class="route-box">
+              <div class="route-city from">
+                <strong>საიდან</strong>
+                <p>{{ driverTrip.from }}</p>
+              </div>
+              <div class="route-arrow">→</div>
+              <div class="route-city to">
+                <strong>სად</strong>
+                <p>{{ driverTrip.to }}</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- მგზავრობის დეტალები -->
+          <div class="info-section">
+            <h3>📊 მგზავრობის დეტალები</h3>
+            <div class="detail-list">
+              <div class="detail-item">
+                <span class="label">გასვლის დრო:</span>
+                <span class="value">{{ formatDateTime(driverTrip.departureDate) }}</span>
+              </div>
+              <div class="detail-item">
+                <span class="label">მანქანის მოდელი:</span>
+                <span class="value">{{ driverTrip.carModel || '—' }}</span>
+              </div>
+              <div class="detail-item">
+                <span class="label">ნომერი:</span>
+                <span class="value">{{ driverTrip.carPlate || '—' }}</span>
+              </div>
+              <div class="detail-item">
+                <span class="label">ფასი per კგ:</span>
+                <span class="value">{{ driverTrip.pricePerKg }} ₾/კგ</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- კონტაქტი -->
+          <div class="info-section">
+            <h3>☎️ კონტაქტი</h3>
+            <div class="detail-list">
+              <div class="detail-item">
+                <span class="label">მძღოლის ტელ:</span>
+                <span class="value">{{ driverTrip.senderPhone || driverTrip.personalNumber || '—' }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- მძღოლის დეტალებზე გადასვლა -->
+      <div class="action-card">
+        <h3>🔗 სხვადასხვა ხელმისაწვდომი</h3>
+        <p style="color: #64748b; margin-bottom: 12px;">
+          მძღოლის სრული პროფილი და მას მგზავრობების სია
+        </p>
+        <button 
+          class="btn-secondary"
+          (click)="viewDriverTrip()">
+          🚗 მძღოლის მგზავრობის დეტალი
+        </button>
+      </div>
+    </div>
+
+    <!-- Status Timeline -->
+    <div class="timeline-card">
+      <h3>📈 განცხადების პროცესი</h3>
+      <div class="timeline">
+        <div class="timeline-item" [class.active]="isPending || isAccepted || isInTransit || isDelivered">
+          <div class="timeline-dot"></div>
+          <div class="timeline-content">
+            <strong>⏳ მოლოდინი</strong>
+            <p>მძღოლი ეძებს განცხადებას</p>
+          </div>
+        </div>
+
+        <div class="timeline-item" [class.active]="isAccepted || isInTransit || isDelivered">
+          <div class="timeline-dot"></div>
+          <div class="timeline-content">
+            <strong>✅ მიღებული</strong>
+            <p>მძღოლმა მიიღო ამ განცხადება</p>
+          </div>
+        </div>
+
+        <div class="timeline-item" [class.active]="isInTransit || isDelivered">
+          <div class="timeline-dot"></div>
+          <div class="timeline-content">
+            <strong>🚚 გზაში</strong>
+            <p>მძღოლი ადის მიწოდებისკენ</p>
+          </div>
+        </div>
+
+        <div class="timeline-item" [class.active]="isDelivered">
+          <div class="timeline-dot"></div>
+          <div class="timeline-content">
+            <strong>📍 დაბრუნებული</strong>
+            <p>მიწოდება წარმატებით დასრულდა</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div *ngIf="!isLoading && errorMessage" class="error-state">
+  <div class="error-icon">⚠️</div>
+  <p>{{ errorMessage }}</p>

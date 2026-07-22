@@ -134,6 +134,9 @@ export class SmsVerificationService {
     this.isLoggedInSubject.next(true);
   }
 
+  /**
+   * ✅ Token getter - ParcelService გამოიყენებს ამას
+   */
   getAuthToken(): string {
     return this.authToken;
   }
@@ -165,6 +168,9 @@ export class SmsVerificationService {
     this.currentUserSubject.next(null);
   }
 
+  /**
+   * ✅ ავტორიზაციის შემოწმება - ParcelService გამოიყენებს ამას
+   */
   isAuthenticated(): boolean {
     return !!this.authToken;
   }

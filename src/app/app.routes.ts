@@ -11,6 +11,8 @@ import { ForgotPasswordComponent } from './Register Login forgortpassword/forgot
 import { ProfileComponent } from '../app/profile-component/profile-component';
 import { SendParcelComponent } from '../app/profile-component/send-parcel-component/send-parcel-component';
 import { PickupParcelComponent } from '../app/profile-component/pickup-parcel-component/pickup-parcel-component';
+import { RequestDetailComponent } from './profile-component/request-detail-component/request-detail-component';
+import { TripDetailComponent } from './profile-component/trip-detail-component/trip-detail-component';
 
 export const routes: Routes = [
     // ========== PUBLIC ROUTES ==========
@@ -53,12 +55,17 @@ export const routes: Routes = [
     },
      {
         path: 'pickup', component: PickupParcelComponent
-     }
-    ,
+     },
+
+    { path: 'request/:id',
+        component: RequestDetailComponent
+    },
+    { path: 'trip/:id',
+        component: TripDetailComponent
+    },
     
     // ========== WILDCARD (404) ==========
     {
         path: '**', redirectTo: 'home'
     }
 ];
-

@@ -1,0 +1,128 @@
+<div class="trip-detail-container">
+  <!-- Header -->
+  <div class="detail-header">
+    <button class="back-button" (click)="goBack()" aria-label="უკან">
+      ← უკან
+    </button>
+    <div class="header-content">
+      <h1>მგზავრობის დეტალები</h1>
+      <p class="header-subtitle">მძღოლის მარშრუტისა და შეთავაზების სრული ინფორმაცია</p>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="isLoading" class="loading-state">
+    <div class="spinner">⏳</div>
+    <p>ჩატვირთვა...</p>
+  </div>
+
+  <!-- Error -->
+  <div *ngIf="!isLoading && errorMessage" class="error-state">
+    <div class="error-icon">⚠️</div>
+    <p>{{ errorMessage }}</p>
+    <button class="btn-primary" (click)="goBack()">
+      მთავარ გვერდზე დაბრუნება
+    </button>
+  </div>
+
+  <!-- Content -->
+  <div *ngIf="!isLoading && !errorMessage && trip" class="trip-content">
+    <div class="info-card">
+      <div class="card-header">
+        <div>
+          <h2>🚗 მძღოლის მგზავრობა</h2>
+          <p class="driver-name">მძღოლი: <strong>{{ trip.driverName || 'უცნობი' }}</strong></p>
+        </div>
+        <div class="status-badge" [style.background-color]="getStatusColor(trip.status)">
+          {{ getTripStatusLabel(trip.status) }}
+        </div>
+      </div>
+
+      <div class="info-grid">
+        <!-- რუტა -->
+        <div class="info-section">
+          <h3>📍 მგზავრობის ხაზი</h3>
+          <div class="route-box">
+            <div class="route-city from">
+              <strong>საიდან</strong>
+              <p>{{ trip.from }}</p>
+            </div>
+            <div class="route-arrow">→</div>
+            <div class="route-city to">
+              <strong>სად</strong>
+              <p>{{ trip.to }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- დეტალები -->
+        <div class="info-section">
+          <h3>📊 მგზავრობის დეტალები</h3>
+          <div class="detail-list">
+            <div class="detail-item">
+              <span class="label">გასვლის დრო:</span>
+              <span class="value">{{ formatDateTime(trip.departureDate) }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="label">თავისუფალი ადგილი:</span>
+              <span class="value">{{ trip.availableSpace }} კგ</span>
+            </div>
+            <div class="detail-item">
+              <span class="label">ფასი per კგ:</span>
+              <span class="value">{{ trip.pricePerKg }} ₾/კგ</span>
+            </div>
+            <div class="detail-item">
+              <span class="label">მანქანის მოდელი:</span>
+              <span class="value">{{ trip.carModel || '—' }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="label">ნომერი:</span>
+              <span class="value">{{ trip.carPlate || '—' }}</span>
+            </div>
+            <div class="detail-item" *ngIf="trip.comments">
+              <span class="label">კომენტარი:</span>
+              <span class="value">{{ trip.comments }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- კონტაქტი -->
+        <div class="info-section">
+          <h3>☎️ კონტაქტი</h3>
+          <div class="detail-list">
+            <div class="detail-item">
+              <span class="label">მძღოლის ტელ:</span>
+              <span class="value">{{ trip.senderPhone || trip.personalNumber || '—' }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- მიღებული შეკვეთები -->
+        <div class="info-section" *ngIf="trip.acceptedShippings && trip.acceptedShippings.length > 0">
+          <h3>📦 მიღებული შეკვეთები</h3>
+          <div class="detail-list">
+            <div class="detail-item">
+              <span class="label">შეკვეთების რაოდენობა:</span>
+              <span class="value">{{ trip.acceptedShippings.length }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="label">სავარაუდო შემოსავალი:</span>
+              <span class="value">{{ getTripEarnings(trip) }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ავტორიზაციის მოწოდება -->
+    <div class="action-card" *ngIf="!isAuthenticated" style="background-color: #fef3c7; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px;">
+      <h3 style="color: #b45309;">🔐 გინდათ ამ მძღოლთან დაკავშირება?</h3>
+      <p style="color: #92400e; margin-bottom: 12px;">
+        შეთავაზების გასაგზავნად ან საკონტაქტოდ გთხოვთ დალოგინდით
+      </p>
+      <button class="btn-primary" (click)="router.navigate(['/login'])">
+        🔐 დალოგინება
+      </button>
+    </div>
+  </div>
+</div>

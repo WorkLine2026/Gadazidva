@@ -128,12 +128,12 @@ export class NavbarComponent implements OnInit, OnDestroy {
 
   navigateToDashboard(): void {
     this.closeMenu();
-    this.router.navigate(['/dashboard']);
+    this.router.navigate(['/send']);
   }
 
   navigateToAddRide(): void {
     this.closeMenu();
-    this.router.navigate(['/dashboard']);
+    this.router.navigate(['/pickup']);
   }
 
   navigateToProfile(): void {
