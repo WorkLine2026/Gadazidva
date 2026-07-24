@@ -56,3 +56,4 @@ export class AuthInterceptor implements HttpInterceptor {
     return localStorage.getItem('authToken') || '';
   }
 }
+
