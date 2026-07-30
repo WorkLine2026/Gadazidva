@@ -1,0 +1,65 @@
+<div class="chat-modal-backdrop" (click)="onOverlayClick()"></div>
+
+<div class="chat-modal" (click)="$event.stopPropagation()">
+  <div class="chat-header">
+    <div class="chat-user">
+      <div class="avatar">{{ getInitials(recipientName) }}</div>
+      <div class="chat-user-info">
+        <h3>{{ recipientName }}</h3>
+        <p class="status-text" [ngClass]="isOnline ? 'is-online' : 'is-offline'">
+          <span class="status-dot"></span>
+          {{ isOnline ? 'ონლაინ' : 'ოფლაინ' }}
+        </p>
+      </div>
+    </div>
+
+    <button class="close-btn" (click)="onOverlayClick()">✕</button>
+  </div>
+
+  <div class="messages-container" #messagesContainer>
+    <div *ngIf="messages.length === 0" class="empty-state">
+      <div class="empty-icon">💬</div>
+      <div class="empty-title">ჯერ შეტყობინებები არ არის</div>
+      <div class="empty-sub">დაწერეთ პირველი შეტყობინება</div>
+    </div>
+
+    <ng-container *ngFor="let msg of messages; let i = index; trackBy: trackByIndex">
+      <div
+        class="date-separator"
+        *ngIf="i === 0 || isDifferentDay(messages[i - 1].timestamp, msg.timestamp)">
+        <span>{{ getDateSeparator(msg.timestamp) }}</span>
+      </div>
+
+      <div class="message-row" [class.my-message]="msg.senderId === currentUserId">
+        <div class="message-bubble">
+          <div class="message-text">{{ msg.message }}</div>
+          <div class="message-time">
+            {{ formatTime(msg.timestamp) }}
+          </div>
+        </div>
+      </div>
+    </ng-container>
+  </div>
+
+  <div class="typing-indicator" *ngIf="isTyping">
+    <span class="typing-dots"><span></span><span></span><span></span></span>
+    წერას იწყებს...
+  </div>
+
+  <div class="chat-input">
+    <textarea
+      [(ngModel)]="newMessage"
+      (input)="onTyping()"
+      (blur)="onStopTyping()"
+      (keydown.enter)="sendMessage(); $event.preventDefault()"
+      placeholder="შეიყვანეთ შეტყობინება...">
+    </textarea>
+
+    <button
+      class="send-btn"
+      (click)="sendMessage()"
+      [disabled]="!newMessage.trim()">
+      <span class="send-icon">➤</span>
+    </button>
+  </div>
+</div>

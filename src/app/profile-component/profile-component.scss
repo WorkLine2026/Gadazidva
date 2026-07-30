@@ -213,6 +213,86 @@ $transition-slow: 0.36s cubic-bezier(0.16, 1, 0.3, 1);
   }
 }
 
+// ========== HEADER ACTIONS ==========
+
+.header-actions {
+  display: flex;
+  gap: $spacing-md;
+}
+
+// ========== CONVERSATIONS MODAL (CENTERED) ==========
+
+.conversations-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba($ink, 0.5);
+  backdrop-filter: blur(3px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: $spacing-2xl;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.conversations-modal {
+  position: relative;
+  width: 100%;
+  max-width: 440px;
+  height: 78vh;
+  max-height: 620px;
+  background: $paper-card;
+  border-radius: $border-radius-2xl;
+  border: 1.5px solid $color-border;
+  box-shadow: $shadow-xl;
+  overflow: hidden;
+  animation: modalIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+
+  @media (max-width: 480px) {
+    height: 82vh;
+  }
+}
+
+@keyframes modalIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.conversations-modal-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: $border-radius-sm;
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  font-size: $font-size-base;
+  cursor: pointer;
+  z-index: 2;
+  transition: all $transition-fast;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.22);
+  }
+
+  &:active {
+    transform: scale(0.94);
+  }
+}
+
 // ========== LAYOUT GRID ==========
 
 .profile-layout-grid {
@@ -437,6 +517,62 @@ $transition-slow: 0.36s cubic-bezier(0.16, 1, 0.3, 1);
   &:hover {
     background: rgba(255, 255, 255, 0.14);
   }
+}
+
+// ========== MESSAGES BUTTON (chat entry point) ==========
+
+.messages-btn {
+  @include button-base;
+  position: relative;
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+  border: 1.5px solid rgba(255, 255, 255, 0.2);
+  flex: 1;
+  gap: $spacing-sm;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.16);
+    border-color: rgba(255, 255, 255, 0.32);
+  }
+
+  &.has-unread {
+    border-color: $cargo;
+    box-shadow: 0 0 0 3px rgba($cargo, 0.2);
+  }
+
+  @media (max-width: 480px) {
+    flex: auto;
+  }
+}
+
+.messages-btn-icon {
+  font-size: $font-size-lg;
+  line-height: 1;
+}
+
+.messages-btn-label {
+  font-size: $font-size-sm;
+  font-weight: 700;
+  white-space: nowrap;
+
+  @media (max-width: 400px) {
+    display: none;
+  }
+}
+
+.unread-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 10px;
+  background: $cargo;
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 800;
+  box-shadow: $shadow-cargo;
 }
 
 // ========== STATS CONTAINER ==========

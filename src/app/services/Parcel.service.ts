@@ -27,6 +27,8 @@ export interface AvailableShipping {
 
 export interface ParcelRequest {
   _id?: string;
+  userId?: string;        // 👈 დამატებულია ჩატისთვის და იდენტიფიკაციისთვის
+  senderEmail?: string;   // 👈 დამატებულია ელ.ფოსტაზე მიწერისთვის
   from: string;
   to: string;
   shipDate: string;
@@ -127,7 +129,7 @@ export class ParcelService {
   readonly GEORGIAN_CITIES = [
     'თბილისი', 'ბათუმი', 'ქუთაისი', 'გორი', 'დუშეთი',
     'ზუგდიდი', 'სოხუმი', 'თელავი', 'გორიცხე', 'ხელვაჩაური',
-    'სარპი', 'პოტი', 'მცხეთა', 'სიღნაღი', 'ხაშური'
+    'სარპი', 'ფოთი', 'მცხეთა', 'სიღნაღი', 'ხაშური'
   ];
 
   constructor(

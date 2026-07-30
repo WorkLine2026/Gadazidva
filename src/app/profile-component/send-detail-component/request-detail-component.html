@@ -49,7 +49,7 @@
       </button>
     </div>
 
-    <!-- ============ ORIGinal REQUEST TAB ============ -->
+    <!-- ============ ORIGINAL REQUEST TAB ============ -->
     <div class="tab-content" *ngIf="currentTab === 'original'">
       <div class="info-card">
         <div class="card-header">
@@ -143,12 +143,20 @@
         </p>
         <div class="status-buttons">
           <button 
-            *ngFor="let status of ['pending', 'accepted', 'in-transit', 'delivered']"
             class="btn-status"
-            [disabled]="isLoading"
-            (click)="updateStatus(status)">
-            {{ getStatusLabel(status) }}
+            (click)="openChat()">
+            💬 შეტყობინების გაგზავნა 
           </button>
+          <a 
+            class="btn-status"
+            [href]="'mailto:' + (originalRequest.senderEmail || '')">
+            ✉️ იმეილზე მიწერა
+          </a>
+          <a 
+            class="btn-status"
+            [href]="'tel:' + (originalRequest.senderPhone || '')">
+            📞 ნომერზე დარეკვა
+          </a>
         </div>
       </div>
 
@@ -303,46 +311,14 @@
         </button>
       </div>
     </div>
-
-    <!-- Status Timeline -->
-    <div class="timeline-card">
-      <h3>📈 განცხადების პროცესი</h3>
-      <div class="timeline">
-        <div class="timeline-item" [class.active]="isPending || isAccepted || isInTransit || isDelivered">
-          <div class="timeline-dot"></div>
-          <div class="timeline-content">
-            <strong>⏳ მოლოდინი</strong>
-            <p>მძღოლი ეძებს განცხადებას</p>
-          </div>
-        </div>
-
-        <div class="timeline-item" [class.active]="isAccepted || isInTransit || isDelivered">
-          <div class="timeline-dot"></div>
-          <div class="timeline-content">
-            <strong>✅ მიღებული</strong>
-            <p>მძღოლმა მიიღო ამ განცხადება</p>
-          </div>
-        </div>
-
-        <div class="timeline-item" [class.active]="isInTransit || isDelivered">
-          <div class="timeline-dot"></div>
-          <div class="timeline-content">
-            <strong>🚚 გზაში</strong>
-            <p>მძღოლი ადის მიწოდებისკენ</p>
-          </div>
-        </div>
-
-        <div class="timeline-item" [class.active]="isDelivered">
-          <div class="timeline-dot"></div>
-          <div class="timeline-content">
-            <strong>📍 დაბრუნებული</strong>
-            <p>მიწოდება წარმატებით დასრულდა</p>
-          </div>
-        </div>
-      </div>
-    </div>
   </div>
 </div>
-<div *ngIf="!isLoading && errorMessage" class="error-state">
-  <div class="error-icon">⚠️</div>
-  <p>{{ errorMessage }}</p>
+
+<!-- 💬 Socket.IO Chat Modal -->
+<app-chat-modal
+  *ngIf="isChatOpen && originalRequest"
+  [requestId]="originalRequest._id || ''"
+  [recipientId]="originalRequest.userId || ''"
+  [recipientName]="originalRequest.senderName || 'გამგზავნი'"
+  (close)="closeChat()">
+</app-chat-modal>

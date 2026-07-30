@@ -6,6 +6,7 @@ import { Subject } from 'rxjs';
 import { takeUntil, finalize } from 'rxjs/operators';
 import { ParcelService, ParcelRequest, AcceptedShipping, DriverTrip } from '../../services/Parcel.service';
 import { SmsVerificationService } from '../../services/smsverifikation.service';
+import { ChatModalImprovedComponent } from '../../chat/chat-modal-component/chat-modal-component';
 
 type RequestStatus = 'pending' | 'accepted' | 'in-transit' | 'delivered';
 
@@ -22,7 +23,7 @@ interface UnifiedRequest {
 @Component({
   selector: 'app-request-detail',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ChatModalImprovedComponent],
   templateUrl: './request-detail-component.html',
   styleUrls: ['./request-detail-component.scss']
 })
@@ -32,6 +33,9 @@ export class RequestDetailComponent implements OnInit, OnDestroy {
   currentTab: 'original' | 'accepted' | 'trip' = 'original';
   isAuthenticated = false;
   statusOptions: RequestStatus[] = ['pending', 'accepted', 'in-transit', 'delivered'];
+
+  // 💬 ჩატის მდგომარეობა
+  isChatOpen = false;
 
   unifiedRequest: UnifiedRequest = {
     originalRequest: null,
@@ -51,7 +55,7 @@ export class RequestDetailComponent implements OnInit, OnDestroy {
     router: Router,
     private parcelService: ParcelService,
     private smsService: SmsVerificationService,
-    private cdr: ChangeDetectorRef // ✅ დაემატა
+    private cdr: ChangeDetectorRef
   ) {
     this.router = router;
   }
@@ -72,7 +76,7 @@ export class RequestDetailComponent implements OnInit, OnDestroy {
         } else {
           console.error('❌ requestId არ მოვიდა route-დან. params:', params);
           this.errorMessage = 'არასწორი ბმული — განცხადების ID ვერ მოიძებნა';
-          this.cdr.detectChanges(); // ✅
+          this.cdr.detectChanges();
         }
       });
   }
@@ -82,17 +86,32 @@ export class RequestDetailComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
+  // 💬 ჩატის გახსნა
+  openChat(): void {
+    if (!this.isAuthenticated) {
+      alert('⚠️ შეტყობინების გასაგზავნად გთხოვთ დალოგინდით');
+      this.router.navigate(['/login']);
+      return;
+    }
+    this.isChatOpen = true;
+  }
+
+  // 💬 ჩატის დახურვა
+  closeChat(): void {
+    this.isChatOpen = false;
+  }
+
   private loadUnifiedRequest(requestId: string): void {
     this.isLoading = true;
     this.errorMessage = '';
-    this.cdr.detectChanges(); // ✅ spinner-ის ჩვენება დაუყოვნებლივ
+    this.cdr.detectChanges();
 
     this.parcelService.getParcelRequest(requestId)
       .pipe(
         takeUntil(this.destroy$),
         finalize(() => {
           this.isLoading = false;
-          this.cdr.detectChanges(); // ✅ КРИТИЧНО: spinner-ის დამალვა
+          this.cdr.detectChanges();
         })
       )
       .subscribe({
@@ -114,7 +133,7 @@ export class RequestDetailComponent implements OnInit, OnDestroy {
             this.errorMessage = res.message || 'განცხადება ვერ მოიძებნა';
           }
 
-          this.cdr.detectChanges(); // ✅ template-ის განახლება
+          this.cdr.detectChanges();
         },
         error: (err) => {
           console.error('❌ განცხადების ჩატვირთვის შეცდომა:', err);
@@ -127,14 +146,13 @@ export class RequestDetailComponent implements OnInit, OnDestroy {
             this.errorMessage = 'განცხადების ჩატვირთვა ვერ ხერხდა (კოდი: ' + err.status + ')';
           }
 
-          this.cdr.detectChanges(); // ✅
+          this.cdr.detectChanges();
         }
       });
   }
 
   private loadAcceptedShippingAndTrip(requestId: string): void {
     console.log('🔄 მიღებული შეკვეთის მონაცემი...');
-    // TODO: აქ უნდა დაემატოს რეალური API call driverTrip-ის ჩასატვირთად
   }
 
   updateStatus(newStatus: string): void {
@@ -147,7 +165,7 @@ export class RequestDetailComponent implements OnInit, OnDestroy {
     if (!this.unifiedRequest.originalRequest?._id) return;
 
     this.isLoading = true;
-    this.cdr.detectChanges(); // ✅
+    this.cdr.detectChanges();
 
     this.parcelService.updateParcelStatus(
       this.unifiedRequest.originalRequest._id,
@@ -157,7 +175,7 @@ export class RequestDetailComponent implements OnInit, OnDestroy {
         takeUntil(this.destroy$),
         finalize(() => {
           this.isLoading = false;
-          this.cdr.detectChanges(); // ✅
+          this.cdr.detectChanges();
         })
       )
       .subscribe({
@@ -169,7 +187,7 @@ export class RequestDetailComponent implements OnInit, OnDestroy {
           } else {
             alert('❌ ' + (res.message || 'სტატუსის განახლება ვერ ხერხდა'));
           }
-          this.cdr.detectChanges(); // ✅
+          this.cdr.detectChanges();
         },
         error: (err) => {
           alert('❌ სტატუსის განახლება ვერ ხერხდა');
@@ -189,14 +207,14 @@ export class RequestDetailComponent implements OnInit, OnDestroy {
 
     if (confirm('დარწმუნებული ხართ რომ გამოქვეყნეთ მას თავიდან?')) {
       this.isLoading = true;
-      this.cdr.detectChanges(); // ✅
+      this.cdr.detectChanges();
 
       this.parcelService.republishRequest(this.unifiedRequest.originalRequest._id)
         .pipe(
           takeUntil(this.destroy$),
           finalize(() => {
             this.isLoading = false;
-            this.cdr.detectChanges(); // ✅
+            this.cdr.detectChanges();
           })
         )
         .subscribe({
@@ -207,7 +225,7 @@ export class RequestDetailComponent implements OnInit, OnDestroy {
             } else {
               alert('❌ ' + (res.message || 'განცხადების გამოქვეყნება ვერ ხერხდა'));
             }
-            this.cdr.detectChanges(); // ✅
+            this.cdr.detectChanges();
           },
           error: (err) => {
             alert('❌ განცხადების გამოქვეყნება ვერ ხერხდა');

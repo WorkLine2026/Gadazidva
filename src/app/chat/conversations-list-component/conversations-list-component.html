@@ -1,0 +1,67 @@
+<div class="conversations-container">
+  <!-- ჰედერი -->
+  <div class="conversations-header">
+    <h2>💬 ჩემი საუბრები</h2>
+    <span class="unread-badge" *ngIf="totalUnread > 0">{{ totalUnread }}</span>
+  </div>
+
+  <!-- ძებნის ველი -->
+  <div class="search-box">
+    <input
+      type="text"
+      placeholder="🔍 ძებნა..."
+      (input)="searchConversations($event)"
+      class="search-input"
+    />
+  </div>
+
+  <!-- ჩატვირთვა -->
+  <div *ngIf="isLoading" class="empty-state">
+    <div class="empty-icon">⏳</div>
+    <div class="empty-text">იტვირთება...</div>
+  </div>
+
+  <!-- განხილვების სია -->
+  <div class="conversations-list" *ngIf="!isLoading">
+    <!-- თუ განხილვები არ არის -->
+    <div *ngIf="filteredConversations.length === 0" class="empty-state">
+      <div class="empty-icon">💭</div>
+      <div class="empty-text">განხილვება არ არის</div>
+      <div class="empty-subtext">დაიწყეთ ახალი საუბარი</div>
+    </div>
+
+    <!-- განხილვების კარტები -->
+    <div
+      *ngFor="let conv of filteredConversations"
+      class="conversation-item"
+      [class.unread]="conv.unreadCount > 0"
+      (click)="openConversation(conv)">
+
+      <!-- ავატარი + სტატუსი -->
+      <div class="conversation-avatar">
+        <div class="avatar-circle">
+          {{ getInitials(conv.userName) }}
+        </div>
+        <div class="status-dot" [class.online]="conv.isOnline"></div>
+      </div>
+
+      <!-- მთავარი ინფორმაცია -->
+      <div class="conversation-content">
+        <div class="conversation-header-row">
+          <div class="conversation-name">{{ conv.userName }}</div>
+          <div class="conversation-time">
+            {{ formatTime(conv.lastMessageTime) }}
+          </div>
+        </div>
+        <div class="conversation-preview">
+          {{ conv.lastMessage || 'საუბარი დაწყებული...' }}
+        </div>
+      </div>
+
+      <!-- unread badge -->
+      <div class="unread-indicator" *ngIf="conv.unreadCount > 0">
+        {{ conv.unreadCount > 99 ? '99+' : conv.unreadCount }}
+      </div>
+    </div>
+  </div>
+</div>

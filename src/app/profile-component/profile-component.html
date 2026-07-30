@@ -3,7 +3,7 @@
   <div class="profile-container">
     <div class="profile-header">
       <h1 class="profile-title">ჩემი პროფილი</h1>
-      <div style="display: flex; gap: 12px;">
+      <div class="header-actions">
         <button class="back-btn" (click)="goToDashboard()">← დაბრუნება</button>
         <button class="menu-btn" (click)="toggleMenu()">⋮ მენიუ</button>
       </div>
@@ -11,12 +11,12 @@
 
     <!-- ========== ორსვეტიანი ძირითადი განლაგება ========== -->
     <div class="profile-layout-grid">
-      
+
       <!-- მარცხენა სვეტი (იუზერ კარტი) -->
       <div class="profile-sidebar-column">
         <div class="user-card" *ngIf="!isLoading">
           <div class="avatar">{{ getUserInitials() }}</div>
-          
+
           <div class="user-info-block">
             <div class="user-name">{{ firstName }} {{ lastName }}</div>
             <div class="user-profession">{{ email }}</div>
@@ -49,7 +49,14 @@
 
           <div class="user-actions">
             <button class="edit-btn" (click)="toggleEditMode()">✏️ რედაქტირება</button>
-            <button class="btn-secondary-outline" (click)="openNotificationSettings()">🔔</button>
+            <button
+              class="messages-btn"
+              (click)="toggleConversations()"
+              [class.has-unread]="unreadCount > 0">
+              <span class="messages-btn-icon">💬</span>
+              <span class="messages-btn-label">შეტყობინებები</span>
+              <span *ngIf="unreadCount > 0" class="unread-badge">{{ unreadCount }}</span>
+            </button>
           </div>
 
           <div class="stats-container" *ngIf="userRole === 'sender'">
@@ -72,7 +79,7 @@
 
       <!-- მარჯვენა სვეტი (პარამეტრები + განცხადებები/მგზავრობები) -->
       <div class="profile-main-column">
-        
+
         <!-- რედაქტირების რეჟიმი -->
         <div class="edit-section" *ngIf="isEditing">
           <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 4px;">პროფილის რედაქტირება</h3>
@@ -83,8 +90,8 @@
             <div class="form-grid-2">
               <div class="form-row">
                 <label class="field-label">სახელი</label>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   class="input-field"
                   formControlName="firstName"
                   [style.border-color]="isFieldInvalid('firstName') ? '#ef4444' : '#cbd5e1'"
@@ -93,8 +100,8 @@
               </div>
               <div class="form-row">
                 <label class="field-label">გვარი</label>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   class="input-field"
                   formControlName="lastName"
                   [style.border-color]="isFieldInvalid('lastName') ? '#ef4444' : '#cbd5e1'"
@@ -106,8 +113,8 @@
             <!-- ელფოსტა -->
             <div class="form-row">
               <label class="field-label">ელფოსტა</label>
-              <input 
-                type="email" 
+              <input
+                type="email"
                 class="input-field"
                 formControlName="email"
                 [style.border-color]="isFieldInvalid('email') ? '#ef4444' : '#cbd5e1'"
@@ -118,8 +125,8 @@
             <!-- პირადი ნომერი (გამორთული) -->
             <div class="form-row">
               <label class="field-label">პირადი ნომერი</label>
-              <input 
-                type="text" 
+              <input
+                type="text"
                 class="input-field"
                 formControlName="personalNumber"
                 [disabled]="true"
@@ -130,12 +137,12 @@
             <!-- მძღოლის ველები -->
             <div *ngIf="userRole === 'driver'">
               <div style="font-size: 13px; font-weight: 600; color: #64748b; text-transform: uppercase; margin: 16px 0 12px 0;">ავტომობილის დეტალები</div>
-              
+
               <div class="form-grid-2">
                 <div class="form-row">
                   <label class="field-label">მოდელი</label>
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     class="input-field"
                     formControlName="carModel"
                     [style.border-color]="isFieldInvalid('carModel') ? '#ef4444' : '#cbd5e1'"
@@ -144,8 +151,8 @@
                 </div>
                 <div class="form-row">
                   <label class="field-label">ნომერი (AA-000-AA)</label>
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     class="input-field"
                     formControlName="carPlate"
                     [style.border-color]="isFieldInvalid('carPlate') ? '#ef4444' : '#cbd5e1'"
@@ -156,8 +163,8 @@
 
               <div class="form-row">
                 <label class="field-label">ვალდებული ლიცენზია</label>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   class="input-field"
                   formControlName="driverLicenseNumber"
                   [style.border-color]="isFieldInvalid('driverLicenseNumber') ? '#ef4444' : '#cbd5e1'"
@@ -183,16 +190,14 @@
 
         <!-- ========== DRIVER STATS AND TRIPS SECTION ========== -->
         <div *ngIf="!isEditing && userRole === 'driver'">
-          <!-- სტატისტიკა -->
-
           <!-- ტრიპის ისტორია -->
           <div style="margin-top: 24px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
               <h2 style="font-size: 18px; font-weight: 700; color: #0f172a;">
                 🚗 ჩემი მგზავრობები
               </h2>
-              <button 
-                class="btn-primary" 
+              <button
+                class="btn-primary"
                 (click)="openPickupFlow()"
                 style="padding: 10px 16px; font-size: 14px;">
                 + ახალი მგზავრობა
@@ -231,7 +236,7 @@
                   <div class="trip-info-row">
                     <div class="info-box">
                       <div class="info-box-label">განათავსება</div>
-                      <div class="info-box-value">{{ formatDateTime(trip.departureDate) }}</div>F
+                      <div class="info-box-value">{{ formatDateTime(trip.departureDate) }}</div>
                     </div>
                     <div class="info-box">
                       <div class="info-box-label">თავისუფალი ადგილი</div>
@@ -245,7 +250,7 @@
                 </div>
 
                 <!-- მიღებული შეკვეთები -->
-                <div *ngIf="trip.acceptedShippings && trip.acceptedShippings.length > 0" 
+                <div *ngIf="trip.acceptedShippings && trip.acceptedShippings.length > 0"
                      style="padding: 12px; background: #f0fdf4; border-radius: 8px; margin: 12px 0; border-left: 3px solid #22c55e;">
                   <div style="font-size: 12px; font-weight: 600; color: #166534; margin-bottom: 6px;">
                     ✓ მიღებული {{ trip.acceptedShippings.length }} შეკვეთა
@@ -273,8 +278,8 @@
             <h2 style="font-size: 18px; font-weight: 700; color: #0f172a;">
               📦 ჩემი განცხადებები
             </h2>
-            <button 
-              class="btn-primary" 
+            <button
+              class="btn-primary"
               (click)="openSendItemFlow()"
               style="padding: 10px 16px; font-size: 14px;">
               + ახალი განცხადება
@@ -389,3 +394,24 @@
 
   </div>
 </div>
+
+<!-- 🗨️ საუბრების ცენტრირებული მოდალი -->
+<div class="conversations-modal-backdrop" *ngIf="showConversations" (click)="toggleConversations()">
+  <div class="conversations-modal" (click)="$event.stopPropagation()">
+    <button class="conversations-modal-close" (click)="toggleConversations()">✕</button>
+    <app-conversations-list
+      [currentUserId]="userId"
+      (conversationSelected)="onConversationSelected($event)">
+    </app-conversations-list>
+  </div>
+</div>
+
+<!-- 💬 ჩატის მოდალი პროფილიდან -->
+<app-chat-modal
+  *ngIf="showChatModal && selectedConversation"
+  [requestId]="selectedConversation.conversationId"
+  [recipientId]="selectedConversation.userId"
+  [recipientName]="selectedConversation.userName"
+  [currentUserId]="userId"
+  (close)="closeChatModal()">
+</app-chat-modal>
