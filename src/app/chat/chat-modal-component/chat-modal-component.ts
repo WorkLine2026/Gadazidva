@@ -54,8 +54,9 @@ export class ChatModalImprovedComponent implements OnInit, OnDestroy, AfterViewC
       this.currentUserId = this.socketService.getCurrentUserId();
     }
 
-    // ✅ ვნიშნავთ, რომ ეს საუბარი ახლა ღიაა - toast აღარ გამოჩნდება მასზე
-    this.socketService.setActiveConversation(this.requestId);
+    // ✅ ვნიშნავთ, რომ ეს ზუსტად ეს საუბარი (requestId + recipientId) ახლა ღიაა -
+    // toast აღარ გამოჩნდება ამ კონკრეტულ საუბარზე
+    this.socketService.setActiveConversation(this.requestId, this.recipientId);
 
     this.socketService.registerConversationMeta(this.requestId, this.recipientId, this.recipientName);
 
@@ -65,8 +66,17 @@ export class ChatModalImprovedComponent implements OnInit, OnDestroy, AfterViewC
     this.socketService.getChatMessages()
       .pipe(takeUntil(this.destroy$))
       .subscribe(messages => {
+        // ✅ ფილტრი ახლა requestId-ზე ᲓᲐ კონკრეტულ წყვილზეა დამოკიდებული
+        // (მე ↔ recipientId), რომ ერთსა და იმავე requestId-ზე სხვა
+        // მომხმარებლების საუბრები აქ არ გამოჩნდეს
         this.messages = messages
-          .filter(m => m.requestId === this.requestId)
+          .filter(m =>
+            m.requestId === this.requestId &&
+            (
+              (m.senderId === this.currentUserId && m.recipientId === this.recipientId) ||
+              (m.senderId === this.recipientId && m.recipientId === this.currentUserId)
+            )
+          )
           .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
 
         this.shouldScrollToBottom = true;

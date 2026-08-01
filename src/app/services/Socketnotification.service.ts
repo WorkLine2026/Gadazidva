@@ -49,8 +49,11 @@ export class SocketNotificationService {
 
   // ✅ ტოსტისთვის: ცალკე stream ახალი (სხვისი) მესიჯებისთვის
   private messageToast$ = new Subject<ChatMessage>();
-  // ✅ ტრეკავს რომელი საუბარია ამჟამად ღია ჩატის მოდალში, რომ toast არ დუბლირდეს
-  private activeRequestId: string | null = null;
+
+  // ✅ ტრეკავს რომელი კონკრეტული საუბარია ამჟამად ღია ჩატის მოდალში
+  // (requestId + ორივე მონაწილის id-ების კომბინაცია, რომ სხვადასხვა
+  // მომხმარებლების საუბრები ერთ requestId-ზე არ აირიოს ერთმანეთში)
+  private activeConversationKey: string | null = null;
 
   // key: `${requestId}:${otherUserId}` -> otherUserName
   private conversationNames = new Map<string, string>();
@@ -95,7 +98,6 @@ export class SocketNotificationService {
   /**
    * ✅ საჯარო მეთოდი, რომ login-ის შემდეგ (თუ service token-ის გარეშე შეიქმნა)
    * თავიდან ავამუშავოთ socket-ი და ჩავტვირთოთ საუბრები.
-   * გამოძახე ეს login flow-ის დასრულების შემდეგ, თუ socket ჯერ არ იყო დაკავშირებული.
    */
   reinitializeAfterLogin(): void {
     if (this.socket?.connected) return;
@@ -189,6 +191,17 @@ export class SocketNotificationService {
     return this.smsService.getCurrentUser()?._id || '';
   }
 
+  /**
+   * ✅ ქმნის უნიკალურ გასაღებს ორ მომხმარებელს შორის საუბრისთვის,
+   * ერთი requestId-ის ფარგლებში. თანმიმდევრობა (ვინ არის sender/recipient)
+   * არ აქვს მნიშვნელობა — ორივე მიმართულებით ერთი და იგივე გასაღები გამოვა.
+   */
+  getConversationKey(requestId: string, otherUserId: string): string {
+    const currentUserId = this.getCurrentUserId();
+    const ids = [currentUserId, otherUserId].filter(Boolean).sort();
+    return `${requestId}::${ids.join('::')}`;
+  }
+
   joinRoom(requestId: string): void {
     console.log('🚪 joinRoom:', requestId);
     this.socket?.emit('join_room', { requestId });
@@ -201,7 +214,6 @@ export class SocketNotificationService {
 
   /**
    * ✅ Profile-ის გახსნისას - ჩატვირთავს ყველა საუბარს backend-იდან
-   * (ახლა ასევე გამოიძახება ავტომატურად socket-ის ინიციალიზაციისას)
    */
   loadConversationsFromServer(): void {
     console.log('📡 loadConversationsFromServer() START');
@@ -341,25 +353,27 @@ export class SocketNotificationService {
 
   /**
    * ✅ ტოსტ-პოპაფებისთვის stream. ქოლფაილება მხოლოდ სხვისი შემომავალი
-   * მესიჯისთვის, თუ ის საუბარი ამჟამად ღია არ არის ჩატის მოდალში.
+   * მესიჯისთვის, თუ ეს კონკრეტული საუბარი (requestId + წყვილი) ამჟამად
+   * ღია არ არის ჩატის მოდალში.
    */
   getMessageToast(): Observable<ChatMessage> {
     return this.messageToast$.asObservable();
   }
 
   /**
-   * ✅ გამოიძახე ChatModal-ის ngOnInit-იდან, რომ ამ საუბრის მესიჯებზე
-   * toast აღარ გამოჩნდეს სანამ ღიაა.
+   * ✅ გამოიძახე ChatModal-ის ngOnInit-იდან — requestId + სხვა
+   * მომხმარებლის id-ითაც, რომ toast ზუსტად ამ საუბრისთვის დაიხუროს,
+   * და არა ამ requestId-ზე მიმდინარე ყველა საუბრისთვის.
    */
-  setActiveConversation(requestId: string): void {
-    this.activeRequestId = requestId;
+  setActiveConversation(requestId: string, otherUserId: string): void {
+    this.activeConversationKey = this.getConversationKey(requestId, otherUserId);
   }
 
   /**
    * ✅ გამოიძახე ChatModal-ის ngOnDestroy-დან.
    */
   clearActiveConversation(): void {
-    this.activeRequestId = null;
+    this.activeConversationKey = null;
   }
 
   clearNotifications(): void {
@@ -395,10 +409,15 @@ export class SocketNotificationService {
       this.rebuildConversations();
       this.recalculateGlobalUnreadCount();
 
-      // ✅ toast მხოლოდ სხვისი მესიჯისთვის და თუ ეს საუბარი ღია არ არის ჩატში
+      // ✅ toast მხოლოდ სხვისი მესიჯისთვის და თუ ეს ზუსტად ეს საუბარი
+      // (requestId + წყვილი) ღია არ არის ჩატში
       const currentUserId = this.getCurrentUserId();
       const isMine = message.senderId === currentUserId;
-      const isChatOpen = message.requestId === this.activeRequestId;
+      const otherUserId = isMine
+        ? (message.recipientId || this.roomRecipients.get(message.requestId) || '')
+        : message.senderId;
+      const msgKey = this.getConversationKey(message.requestId, otherUserId);
+      const isChatOpen = msgKey === this.activeConversationKey;
 
       if (!isMine && !isChatOpen) {
         this.messageToast$.next(message);
