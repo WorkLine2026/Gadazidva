@@ -51,8 +51,6 @@ export class SocketNotificationService {
   private messageToast$ = new Subject<ChatMessage>();
 
   // ✅ ტრეკავს რომელი კონკრეტული საუბარია ამჟამად ღია ჩატის მოდალში
-  // (requestId + ორივე მონაწილის id-ების კომბინაცია, რომ სხვადასხვა
-  // მომხმარებლების საუბრები ერთ requestId-ზე არ აირიოს ერთმანეთში)
   private activeConversationKey: string | null = null;
 
   // key: `${requestId}:${otherUserId}` -> otherUserName
@@ -69,6 +67,18 @@ export class SocketNotificationService {
     private chatService: ChatService
   ) {
     this.initializeSocket();
+  }
+
+  /**
+   * ✅ იცავს კოდს, თუ სადმე ID ობიექტის სახით მოვიდა
+   * (მაგ. Mongoose populate()-ის შედეგად) string-ის ნაცვლად.
+   * მაგ: { _id: "68a...", firstName: "..." } -> "68a..."
+   */
+  private normalizeId(id: any): string {
+    if (!id) return '';
+    if (typeof id === 'string') return id;
+    if (typeof id === 'object') return id._id || id.id || '';
+    return String(id);
   }
 
   private initializeSocket(): void {
@@ -188,17 +198,17 @@ export class SocketNotificationService {
   }
 
   getCurrentUserId(): string {
-    return this.smsService.getCurrentUser()?._id || '';
+    return this.normalizeId(this.smsService.getCurrentUser()?._id);
   }
 
   /**
    * ✅ ქმნის უნიკალურ გასაღებს ორ მომხმარებელს შორის საუბრისთვის,
-   * ერთი requestId-ის ფარგლებში. თანმიმდევრობა (ვინ არის sender/recipient)
-   * არ აქვს მნიშვნელობა — ორივე მიმართულებით ერთი და იგივე გასაღები გამოვა.
+   * ერთი requestId-ის ფარგლებში.
    */
   getConversationKey(requestId: string, otherUserId: string): string {
     const currentUserId = this.getCurrentUserId();
-    const ids = [currentUserId, otherUserId].filter(Boolean).sort();
+    const safeOtherUserId = this.normalizeId(otherUserId);
+    const ids = [currentUserId, safeOtherUserId].filter(Boolean).sort();
     return `${requestId}::${ids.join('::')}`;
   }
 
@@ -213,7 +223,7 @@ export class SocketNotificationService {
   }
 
   /**
-   * ✅ Profile-ის გახსნისას - ჩატვირთავს ყველა საუბარს backend-იდან
+   * ✅ Profile-ის გახსნისას - ჩავტვირთავს ყველა საუბარს backend-იდან
    */
   loadConversationsFromServer(): void {
     console.log('📡 loadConversationsFromServer() START');
@@ -227,6 +237,7 @@ export class SocketNotificationService {
 
           this.seedConversations = res.conversations.map(c => ({
             ...c,
+            userId: this.normalizeId(c.userId),
             lastMessageTime: c.lastMessageTime ? new Date(c.lastMessageTime) : undefined
           }));
 
@@ -254,14 +265,15 @@ export class SocketNotificationService {
       return;
     }
 
-    // თუ recipientId ცარიელია, ამოვიღებთ roomRecipients Map-იდან
-    const targetRecipientId = recipientId || this.roomRecipients.get(requestId) || '';
+    // ✅ ID-ების ნორმალიზება — თუ ობიექტი მოვიდა, ავიღოთ მისი _id
+    const safeRecipientId = this.normalizeId(recipientId);
+    const targetRecipientId = safeRecipientId || this.roomRecipients.get(requestId) || '';
 
     console.log('📤 sendMessage:', { requestId, recipientId: targetRecipientId, message: message.slice(0, 30) });
 
     const msgObj: ChatMessage = {
       requestId,
-      senderId: sender._id,
+      senderId: this.normalizeId(sender._id),
       senderName: `${sender.firstName} ${sender.lastName}`,
       recipientId: targetRecipientId,
       message,
@@ -280,7 +292,8 @@ export class SocketNotificationService {
   }
 
   markConversationAsRead(requestId: string, otherUserId: string): void {
-    console.log('✓ markConversationAsRead:', { requestId, otherUserId });
+    const safeOtherUserId = this.normalizeId(otherUserId);
+    console.log('✓ markConversationAsRead:', { requestId, otherUserId: safeOtherUserId });
 
     const currentUserId = this.getCurrentUserId();
     let changed = false;
@@ -288,7 +301,7 @@ export class SocketNotificationService {
     const updated = this.chatMessages$.value.map(m => {
       const isIncomingFromOther =
         m.requestId === requestId &&
-        m.senderId === otherUserId &&
+        m.senderId === safeOtherUserId &&
         m.senderId !== currentUserId &&
         !m.isRead;
 
@@ -300,7 +313,7 @@ export class SocketNotificationService {
       return m;
     });
 
-    const seedKey = `${requestId}:${otherUserId}`;
+    const seedKey = `${requestId}:${safeOtherUserId}`;
     this.seedConversations = this.seedConversations.map(c =>
       `${c.conversationId}:${c.userId}` === seedKey ? { ...c, unreadCount: 0 } : c
     );
@@ -315,11 +328,14 @@ export class SocketNotificationService {
   registerConversationMeta(requestId: string, otherUserId: string, otherUserName: string): void {
     if (!requestId) return;
 
-    if (otherUserId) {
-      this.roomRecipients.set(requestId, otherUserId);
+    // ✅ ID ნორმალიზება — თუ ობიექტი მოვიდა (populate-ის შედეგად), ავიღოთ _id
+    const safeOtherUserId = this.normalizeId(otherUserId);
+
+    if (safeOtherUserId) {
+      this.roomRecipients.set(requestId, safeOtherUserId);
     }
 
-    const key = `${requestId}:${otherUserId}`;
+    const key = `${requestId}:${safeOtherUserId}`;
     if (otherUserName && otherUserName !== 'მომხმარებელი') {
       this.conversationNames.set(key, otherUserName);
       this.conversationNames.set(requestId, otherUserName);
@@ -328,7 +344,7 @@ export class SocketNotificationService {
   }
 
   sendNotification(recipientId: string, data: NotificationData): void {
-    this.socket?.emit('send_notification', { recipientId, ...data });
+    this.socket?.emit('send_notification', { recipientId: this.normalizeId(recipientId), ...data });
   }
 
   getChatMessages(): Observable<ChatMessage[]> {
@@ -352,21 +368,17 @@ export class SocketNotificationService {
   }
 
   /**
-   * ✅ ტოსტ-პოპაფებისთვის stream. ქოლფაილება მხოლოდ სხვისი შემომავალი
-   * მესიჯისთვის, თუ ეს კონკრეტული საუბარი (requestId + წყვილი) ამჟამად
-   * ღია არ არის ჩატის მოდალში.
+   * ✅ ტოსტ-პოპაფებისთვის stream.
    */
   getMessageToast(): Observable<ChatMessage> {
     return this.messageToast$.asObservable();
   }
 
   /**
-   * ✅ გამოიძახე ChatModal-ის ngOnInit-იდან — requestId + სხვა
-   * მომხმარებლის id-ითაც, რომ toast ზუსტად ამ საუბრისთვის დაიხუროს,
-   * და არა ამ requestId-ზე მიმდინარე ყველა საუბრისთვის.
+   * ✅ გამოიძახე ChatModal-ის ngOnInit-იდან
    */
   setActiveConversation(requestId: string, otherUserId: string): void {
-    this.activeConversationKey = this.getConversationKey(requestId, otherUserId);
+    this.activeConversationKey = this.getConversationKey(requestId, this.normalizeId(otherUserId));
   }
 
   /**
@@ -385,8 +397,15 @@ export class SocketNotificationService {
   }
 
   private mergeChatMessages(messages: ChatMessage[]): void {
+    // ✅ ID-ების ნორმალიზება შემომავალ history-შიც
+    const normalizedMessages = messages.map(m => ({
+      ...m,
+      senderId: this.normalizeId(m.senderId),
+      recipientId: m.recipientId ? this.normalizeId(m.recipientId) : m.recipientId
+    }));
+
     const existing = this.chatMessages$.value;
-    const combined = [...existing, ...messages];
+    const combined = [...existing, ...normalizedMessages];
     const unique = this.dedupeMessages(combined);
     this.chatMessages$.next(unique);
     this.rebuildConversations();
@@ -394,33 +413,40 @@ export class SocketNotificationService {
   }
 
   private addChatMessage(message: ChatMessage): void {
+    // ✅ ID-ების ნორმალიზება, სანამ state-ში შევა
+    const safeMessage: ChatMessage = {
+      ...message,
+      senderId: this.normalizeId(message.senderId),
+      recipientId: message.recipientId ? this.normalizeId(message.recipientId) : message.recipientId
+    };
+
     const messages = this.chatMessages$.value;
     const exists = messages.some(m =>
-      m._id && message._id
-        ? m._id === message._id
-        : m.requestId === message.requestId &&
-          m.senderId === message.senderId &&
-          m.message === message.message &&
-          new Date(m.timestamp).getTime() === new Date(message.timestamp).getTime()
+      m._id && safeMessage._id
+        ? m._id === safeMessage._id
+        : m.requestId === safeMessage.requestId &&
+          m.senderId === safeMessage.senderId &&
+          m.message === safeMessage.message &&
+          new Date(m.timestamp).getTime() === new Date(safeMessage.timestamp).getTime()
     );
 
     if (!exists) {
-      this.chatMessages$.next([...messages, message]);
+      this.chatMessages$.next([...messages, safeMessage]);
       this.rebuildConversations();
       this.recalculateGlobalUnreadCount();
 
       // ✅ toast მხოლოდ სხვისი მესიჯისთვის და თუ ეს ზუსტად ეს საუბარი
       // (requestId + წყვილი) ღია არ არის ჩატში
       const currentUserId = this.getCurrentUserId();
-      const isMine = message.senderId === currentUserId;
+      const isMine = safeMessage.senderId === currentUserId;
       const otherUserId = isMine
-        ? (message.recipientId || this.roomRecipients.get(message.requestId) || '')
-        : message.senderId;
-      const msgKey = this.getConversationKey(message.requestId, otherUserId);
+        ? (safeMessage.recipientId || this.roomRecipients.get(safeMessage.requestId) || '')
+        : safeMessage.senderId;
+      const msgKey = this.getConversationKey(safeMessage.requestId, otherUserId);
       const isChatOpen = msgKey === this.activeConversationKey;
 
       if (!isMine && !isChatOpen) {
-        this.messageToast$.next(message);
+        this.messageToast$.next(safeMessage);
       }
     }
   }
@@ -439,10 +465,11 @@ export class SocketNotificationService {
 
     // 1) seed-ი (backend history)
     for (const seed of this.seedConversations) {
-      const key = `${seed.conversationId}:${seed.userId}`;
-      grouped.set(key, { ...seed });
-      if (seed.userId) {
-        this.roomRecipients.set(seed.conversationId, seed.userId);
+      const safeUserId = this.normalizeId(seed.userId);
+      const key = `${seed.conversationId}:${safeUserId}`;
+      grouped.set(key, { ...seed, userId: safeUserId });
+      if (safeUserId) {
+        this.roomRecipients.set(seed.conversationId, safeUserId);
       }
     }
 
@@ -452,8 +479,10 @@ export class SocketNotificationService {
 
       const isMine = msg.senderId === currentUserId;
 
-      // 💡 recipientId-ის მოძიება (თუ ცარიელია, ავიღოთ roomRecipients-იდან)
-      let otherUserId = isMine ? (msg.recipientId || this.roomRecipients.get(msg.requestId) || '') : msg.senderId;
+      // 💡 recipientId-ის მოძიება + ნორმალიზება (თუ ცარიელია, ავიღოთ roomRecipients-იდან)
+      let otherUserId = this.normalizeId(
+        isMine ? (msg.recipientId || this.roomRecipients.get(msg.requestId) || '') : msg.senderId
+      );
 
       if (!otherUserId) {
         otherUserId = `unknown_${msg.requestId}`;
@@ -507,8 +536,6 @@ export class SocketNotificationService {
   }
 
   private recalculateGlobalUnreadCount(fromSeedOnly: boolean = false): void {
-    const currentUserId = this.getCurrentUserId();
-
     if (fromSeedOnly && this.chatMessages$.value.length === 0) {
       const seedTotal = this.seedConversations.reduce((sum, c) => sum + (c.unreadCount || 0), 0);
       console.log('📊 unreadCount (from seed):', seedTotal);

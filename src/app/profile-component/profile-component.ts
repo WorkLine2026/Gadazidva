@@ -20,6 +20,7 @@ interface ParcelRequest {
   value: number;
   status: 'pending' | 'accepted' | 'in-transit' | 'delivered';
   createdAt: string;
+  images?: string[]; // ✅ ატვირთული ამანათის ფოტოების URL-ები
 }
 
 interface DriverStats {
@@ -388,7 +389,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
   onConversationSelected(conversation: Conversation): void {
     console.log('💬 არჩეული საუბარი:', conversation);
 
-    // თუ userId ცარიელია ან unknown_ Преფიქსითაა, შევამოწმოთ ალტერნატიული ველები
+    // თუ userId ცარიელია ან unknown_ პრეფიქსითაა, შევამოწმოთ ალტერნატიული ველები
     const recipientId = conversation.userId && !conversation.userId.startsWith('unknown_')
       ? conversation.userId
       : ((conversation as any).recipientId || (conversation as any).otherUserId || '');
@@ -435,7 +436,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
   }
 
   viewTripDetails(tripId: string): void {
-    console.log('trip details', tripId);
+    this.router.navigate(['/trip', tripId]);
   }
 
   openNotificationSettings(): void {
@@ -489,5 +490,9 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
   private markFormAsTouched(): void {
     Object.values(this.profileForm.controls).forEach(control => control.markAsTouched());
+  }
+
+  viewRequestDetails(requestId: string): void {
+    this.router.navigate(['/request', requestId]);
   }
 }

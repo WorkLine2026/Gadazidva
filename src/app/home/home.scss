@@ -512,6 +512,10 @@ $transition-slow: 480ms cubic-bezier(0.16, 1, 0.3, 1);
     box-shadow: $shadow-lg;
     border-color: transparent;
   }
+
+  &:hover .card-image img {
+    transform: scale(1.05);
+  }
 }
 
 .request-card-home {
@@ -523,6 +527,53 @@ $transition-slow: 480ms cubic-bezier(0.16, 1, 0.3, 1);
 .trip-card-home {
   &::before {
     background: linear-gradient(90deg, $route, $route-light);
+  }
+}
+
+// ====================================
+// CARD IMAGE (NEW)
+// ====================================
+
+.card-image {
+  position: relative;
+  width: calc(100% + #{$spacing-xl * 2});
+  margin: (-$spacing-xl) (-$spacing-xl) $spacing-lg (-$spacing-xl);
+  height: 150px;
+  overflow: hidden;
+  background: $bg-light;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    @include smooth-transition;
+  }
+
+  &-placeholder {
+    width: 100%;
+    height: 100%;
+    @include flex-center;
+    font-size: 40px;
+    background: linear-gradient(135deg, $bg-light 0%, $border-light 100%);
+    color: $text-light;
+  }
+
+  &-count {
+    position: absolute;
+    bottom: $spacing-sm;
+    right: $spacing-sm;
+    padding: 3px 9px;
+    border-radius: $radius-full;
+    background: rgba($ink, 0.75);
+    color: $text-white;
+    font-size: 11px;
+    font-weight: $font-weight-bold;
+    backdrop-filter: blur(4px);
+  }
+
+  @media (max-width: 480px) {
+    height: 120px;
   }
 }
 
@@ -1262,6 +1313,11 @@ $transition-slow: 480ms cubic-bezier(0.16, 1, 0.3, 1);
     &:hover {
       box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
     }
+  }
+
+  .card-image-placeholder {
+    background: linear-gradient(135deg, #16203A 0%, #1B2745 100%);
+    color: #7C81A0;
   }
 
   .sender-name,

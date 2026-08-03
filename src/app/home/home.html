@@ -51,6 +51,22 @@
 
       <div class="carousel-track requests-carousel" #requestsTrack>
         <div class="request-card-home" *ngFor="let request of recentRequests">
+
+          <!-- ✅ NEW: ფოტო ბლოკი -->
+          <div class="card-image">
+            <img
+              *ngIf="request.images && request.images.length > 0"
+              [src]="request.images[0]"
+              [alt]="request.from + ' → ' + request.to"
+              loading="lazy" />
+            <div class="card-image-placeholder" *ngIf="!request.images || request.images.length === 0">
+              📦
+            </div>
+            <span class="card-image-count" *ngIf="request.images && request.images.length > 1">
+              +{{ request.images.length - 1 }}
+            </span>
+          </div>
+
           <div class="card-header">
             <div class="sender-info">
               <span class="sender-name">{{ request.senderName || 'უცნობი გამგზავნი' }}</span>
@@ -119,6 +135,22 @@
 
       <div class="carousel-track trips-carousel" #tripsTrack>
         <div class="trip-card-home" *ngFor="let trip of recentTrips">
+
+          <!-- ✅ NEW: ფოტო ბლოკი -->
+          <div class="card-image">
+            <img
+              *ngIf="trip.images && trip.images.length > 0"
+              [src]="trip.images[0]"
+              [alt]="trip.from + ' → ' + trip.to"
+              loading="lazy" />
+            <div class="card-image-placeholder" *ngIf="!trip.images || trip.images.length === 0">
+              🚗
+            </div>
+            <span class="card-image-count" *ngIf="trip.images && trip.images.length > 1">
+              +{{ trip.images.length - 1 }}
+            </span>
+          </div>
+
           <div class="card-header">
             <div class="driver-info">
               <span class="driver-name">{{ trip.driverName || 'უცნობი მძღოლი' }}</span>

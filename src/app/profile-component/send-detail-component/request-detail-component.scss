@@ -1,3 +1,6 @@
+// ============================================================
+// 1. VARIABLES
+// ============================================================
 
 $color-bg-primary: #f5f3ff;  // Soft lavender background
 $color-bg-secondary: #ffffff;  // Pure white
@@ -5,7 +8,8 @@ $color-bg-light: #faf9ff;  // Very light purple
 $color-bg-light-alt: #fef5e7;  // Soft peach
 
 // Text Colors - Deep & Elegant
-$color-text-primary: #d5d2da;  // Deep purple
+// ✅ გასწორებულია: წინა მნიშვნელობა (#d5d2da) ძალიან ღია იყო და კონტრასტს კარგავდა
+$color-text-primary: #2d1b4e;  // Deep purple — ნამდვილად მუქი, კარგი კონტრასტისთვის
 $color-text-secondary: #6b5b7f;  // Medium purple
 $color-text-muted: #9b8fb0;  // Light purple
 
@@ -15,7 +19,8 @@ $color-border-light: #ddd2ea;  // Lighter purple border
 
 // Primary Accent - Modern Purple
 $color-primary: #7c3aed;  // Vibrant purple
-$color-primary-dark: #6d28d9;  // Deep purple
+// ✅ გასწორებულია: წინა მნიშვნელობა (#a5a2a8) ნაცრისფერი იყო, "Deep purple" კომენტარის მიუხედავად
+$color-primary-dark: #5b21b6;  // Deep purple
 $color-primary-light: #ede9fe;  // Very light purple
 
 // Success - Fresh Green
@@ -38,7 +43,7 @@ $color-warning-text: #d97706;  // Orange text
 $color-warning-dark-text: #b45309;  // Dark orange text
 
 // Route Colors - Gradient vibes
-$color-border-from: #7c3aed;  // Purple
+$color-border-from: #c3bbd0;  // Purple
 $color-border-to: #06b6d4;  // Cyan
 
 // Accent Colors
@@ -583,12 +588,10 @@ body {
     pointer-events: none;
   }
 
+  // ✅ გასწორებულია: gradient-clip-text ჩანაცვლდა მყარი ფერით,
+  // რომ ბრაუზერის მხარდაუჭერლობის შემთხვევაში ტექსტი არასდროს გაქრეს
   h3 {
-    color: $color-primary;
-    background: linear-gradient(135deg, $color-primary 0%, #a78bfa 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: $color-primary-dark;
     font-size: $font-lg;
     display: flex;
     align-items: center;
@@ -616,7 +619,14 @@ body {
   }
 }
 
+// ✅ NEW: სექცია, რომელსაც სურვილისამებრ შეუძლია დაფაროს ბადის ორივე სვეტი
+// (გამოსადეგი ფოტო-გალერეისთვის, რომელიც ბადის თავზეა)
+.info-section.full-width {
+  grid-column: 1 / -1;
+}
+
 .info-section {
+  // ✅ გასწორებულია: gradient-clip-text ჩანაცვლდა მყარი ფერით
   h3 {
     font-size: $font-lg;
     font-weight: $weight-bold;
@@ -625,10 +635,48 @@ body {
     display: flex;
     align-items: center;
     gap: $space-sm;
-    background: linear-gradient(135deg, $color-text-primary 0%, $color-text-secondary 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+  }
+
+  // ✅ NEW: ფოტო-გალერეა
+  .photo-gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    gap: $space-md;
+
+    @media (max-width: 480px) {
+      grid-template-columns: repeat(3, 1fr);
+      gap: $space-sm;
+    }
+  }
+
+  .photo-thumb {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    border-radius: $radius-md;
+    overflow: hidden;
+    border: 2px solid rgba($color-primary, 0.12);
+    cursor: pointer;
+    transition: all $transition-base;
+    background: $color-bg-light;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform $transition-base;
+    }
+
+    &:hover {
+      border-color: $color-primary;
+      box-shadow: 0 6px 16px rgba($color-primary, 0.2);
+      transform: translateY(-3px);
+
+      img {
+        transform: scale(1.08);
+      }
+    }
   }
 
   // Route Box
@@ -709,12 +757,10 @@ body {
       }
     }
 
+    // ✅ გასწორებულია: gradient-clip-text ჩანაცვლდა მყარი ფერით
     .route-arrow {
       font-size: $font-2xl;
-      background: linear-gradient(135deg, $color-border-from 0%, $color-border-to 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
+      color: $color-primary;
       flex-shrink: 0;
       font-weight: $weight-bold;
 
@@ -767,24 +813,22 @@ body {
       }
     }
 
+    // ✅ გასწორებულია: ეს იყო მთავარი დამნაშავე — gradient-clip-text ვერ
+    // მუშაობდა ბრაუზერში და ტექსტის ნაცვლად მყარი იასამნისფერი ზოლი ჩანდა.
+    // ახლა მყარი, საიმედო, ყოველთვის ხილული ფერია.
     .label {
       font-weight: $weight-bold;
-      background: linear-gradient(135deg, $color-primary 0%, #a78bfa 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
+      color: $color-primary;
       min-width: 120px;
       flex-shrink: 0;
 
       @media (max-width: 640px) {
-        min-width: auto;
         min-width: 100px;
       }
 
       @media (max-width: 480px) {
         min-width: auto;
         width: 100%;
-        background: linear-gradient(135deg, $color-primary 0%, #a78bfa 100%);
       }
     }
 
@@ -1298,7 +1342,7 @@ button:focus {
 }
 
 // ============================================================
-// 20. DARK MODE SUPPORT (optional)
+// 20. DARK MODE SUPPORT
 // ============================================================
 
 @media (prefers-color-scheme: dark) {
@@ -1319,18 +1363,192 @@ button:focus {
     background: linear-gradient(135deg, #1e293b 0%, #1f1f35 100%);
   }
 
+  // ✅ დამატებულია: header-ის ტექსტების კონტრასტი ბნელ ფონზე
+  .header-content {
+    h1 {
+      color: #f1f5f9 !important;
+    }
+
+    .header-subtitle {
+      color: #cbd5e1 !important;
+    }
+  }
+
+  .tab-button {
+    color: #cbd5e1;
+
+    &.active {
+      color: #d8b4fe !important;
+    }
+  }
+
+  .card-header h2 {
+    color: #f1f5f9 !important;
+  }
+
+  // ✅ დამატებულია: სექციების სათაურების და route-city ტექსტების კონტრასტი
+  .info-section h3 {
+    color: #d8b4fe !important;
+  }
+
+  // ✅ NEW: ფოტო thumbnail-ის ჩარჩო ბნელ ფონზე
+  .photo-thumb {
+    background: #16203A !important;
+    border-color: rgba($color-primary, 0.25) !important;
+  }
+
   .route-city {
     background: linear-gradient(135deg, #0f172a 0%, #1a1a2e 100%) !important;
     border-color: rgba($color-primary, 0.3) !important;
+
+    strong {
+      color: #a78bfa !important;
+    }
+
+    p {
+      color: #f1f5f9 !important;
+    }
   }
 
+  // ✅ ეს ყველაზე მნიშვნელოვანია — ზუსტად აქ იყო "უჩინარი ტექსტის" ბაგი
   .detail-item {
     background: linear-gradient(135deg, rgba(124, 58, 237, 0.1) 0%, rgba(6, 182, 212, 0.1) 100%) !important;
     border-color: rgba($color-primary, 0.2) !important;
+
+    .label {
+      color: #c4b5fd !important;
+    }
+
+    .value {
+      color: #f1f5f9 !important;
+    }
+  }
+
+  .action-card {
+    h3 {
+      color: #c4b5fd !important;
+    }
+
+    p {
+      color: #cbd5e1 !important;
+    }
   }
 
   .btn-status {
     background: linear-gradient(135deg, #2d1b4e 0%, #1f1f35 100%) !important;
     border-color: rgba($color-primary, 0.3) !important;
+    color: #e2e8f0 !important;
+  }
+}
+
+// ============================================================
+// 21. PHOTO LIGHTBOX (NEW)
+// ============================================================
+
+.lightbox-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(15, 12, 25, 0.88);
+  @include flex-center;
+  padding: $space-2xl;
+  animation: fadeIn $transition-fast;
+  backdrop-filter: blur(4px);
+
+  @media (max-width: 480px) {
+    padding: $space-md;
+  }
+}
+
+.lightbox-content {
+  position: relative;
+  max-width: 90vw;
+  max-height: 90vh;
+  @include flex-center;
+
+  img {
+    max-width: 90vw;
+    max-height: 85vh;
+    object-fit: contain;
+    border-radius: $radius-md;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  }
+
+  .lightbox-close {
+    @include button-reset;
+    position: absolute;
+    top: -44px;
+    right: 0;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.12);
+    color: #fff;
+    font-size: $font-lg;
+    @include flex-center;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.24);
+    }
+
+    @media (max-width: 480px) {
+      top: -40px;
+      width: 32px;
+      height: 32px;
+    }
+  }
+
+  .lightbox-nav {
+    @include button-reset;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.12);
+    color: #fff;
+    font-size: 26px;
+    line-height: 1;
+    @include flex-center;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.24);
+    }
+
+    @media (max-width: 480px) {
+      width: 38px;
+      height: 38px;
+      font-size: 22px;
+    }
+  }
+
+  .lightbox-prev {
+    left: -60px;
+
+    @media (max-width: 768px) {
+      left: $space-sm;
+    }
+  }
+
+  .lightbox-next {
+    right: -60px;
+
+    @media (max-width: 768px) {
+      right: $space-sm;
+    }
+  }
+
+  .lightbox-counter {
+    position: absolute;
+    bottom: -40px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: $space-xs $space-md;
+    border-radius: $radius-sm;
+    background: rgba(255, 255, 255, 0.12);
+    color: #fff;
+    font-size: $font-xs;
+    font-weight: $weight-semibold;
   }
 }

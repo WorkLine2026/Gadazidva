@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, HostListener, ElementRef } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
@@ -22,7 +22,7 @@ interface StepData {
 })
 export class SendParcelComponent implements OnInit {
   currentStep: SendStep = 'details';
-  
+
   detailsForm!: FormGroup;
   stepData: StepData = {};
 
@@ -31,9 +31,22 @@ export class SendParcelComponent implements OnInit {
   errorMessage: string | null = null;
   successMessage: string | null = null;
 
+  // ✅ ავტოკომპლიტისთვის — გახსნილია თუ არა dropdown და გაფილტრული სია თითოეული ველისთვის
+  showFromDropdown = false;
+  showToDropdown = false;
+  filteredFromCities: string[] = [];
+  filteredToCities: string[] = [];
+
+  // ✅ ფოტოს ატვირთვისთვის
+  maxImages = 3;
+  maxFileSizeBytes = 5 * 1024 * 1024; // 5MB თითო ფოტოზე
+  selectedImages: File[] = [];
+  imagePreviews: string[] = [];
+  imageError: string | null = null;
+
   // ✅ getter-ის მეშვეობით (constructor-მდე initialize არ საჭიროა)
-  get GEORGIAN_CITIES() {
-    return this.parcelService.GEORGIAN_CITIES;
+  get GEORGIAN_CITIES(): string[] {
+    return this.parcelService.GEORGIAN_CITIES_AND_TOWNS;
   }
 
   constructor(
@@ -41,7 +54,8 @@ export class SendParcelComponent implements OnInit {
     private router: Router,
     private parcelService: ParcelService,
     private smsService: SmsVerificationService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private elementRef: ElementRef
   ) {}
 
   ngOnInit(): void {
@@ -65,6 +79,124 @@ export class SendParcelComponent implements OnInit {
       senderPhone: ['', [Validators.required]],
       recipientPhone: ['', [Validators.required]]
     });
+  }
+
+  // ================== "საიდან" ავტოკომპლიტი ==================
+
+  onFromInput(event: Event): void {
+    const value = (event.target as HTMLInputElement).value;
+    this.detailsForm.get('from')!.setValue(value);
+    this.filteredFromCities = this.filterCities(value);
+    this.showFromDropdown = true;
+  }
+
+  onFromFocus(): void {
+    const value = this.detailsForm.get('from')!.value || '';
+    this.filteredFromCities = this.filterCities(value);
+    this.showFromDropdown = true;
+  }
+
+  selectFromCity(city: string): void {
+    this.detailsForm.get('from')!.setValue(city);
+    this.showFromDropdown = false;
+  }
+
+  // ================== "სად" ავტოკომპლიტი ==================
+
+  onToInput(event: Event): void {
+    const value = (event.target as HTMLInputElement).value;
+    this.detailsForm.get('to')!.setValue(value);
+    this.filteredToCities = this.filterCities(value);
+    this.showToDropdown = true;
+  }
+
+  onToFocus(): void {
+    const value = this.detailsForm.get('to')!.value || '';
+    this.filteredToCities = this.filterCities(value);
+    this.showToDropdown = true;
+  }
+
+  selectToCity(city: string): void {
+    this.detailsForm.get('to')!.setValue(city);
+    this.showToDropdown = false;
+  }
+
+  // ✅ ფილტრავს ქალაქების სიას შეყვანილი ტექსტის მიხედვით (case-insensitive)
+  private filterCities(query: string): string[] {
+    const cities = this.GEORGIAN_CITIES || [];
+    if (!query || !query.trim()) {
+      return cities;
+    }
+    const normalizedQuery = query.trim().toLowerCase();
+    return cities.filter(city => city.toLowerCase().includes(normalizedQuery));
+  }
+
+  // ✅ დავხუროთ dropdown-ები, თუ მომხმარებელმა გარეთ დააჭირა
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    if (!this.elementRef.nativeElement.contains(event.target)) {
+      this.showFromDropdown = false;
+      this.showToDropdown = false;
+    }
+  }
+
+  // ============ ფოტოს ატვირთვა ============
+
+  onImagesSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const files = input.files;
+    this.imageError = null;
+
+    if (!files || files.length === 0) {
+      return;
+    }
+
+    const remainingSlots = this.maxImages - this.selectedImages.length;
+
+    if (remainingSlots <= 0) {
+      this.imageError = `მაქსიმუმ ${this.maxImages} ფოტოს ატვირთვა შეგიძლიათ`;
+      input.value = '';
+      return;
+    }
+
+    const filesToProcess = Array.from(files).slice(0, remainingSlots);
+
+    if (files.length > remainingSlots) {
+      this.imageError = `მაქსიმუმ ${this.maxImages} ფოტოს ატვირთვა შეგიძლიათ`;
+    }
+
+    for (const file of filesToProcess) {
+      // ✅ ტიპის შემოწმება
+      if (!file.type.startsWith('image/')) {
+        this.imageError = 'დასაშვებია მხოლოდ სურათის ფაილები';
+        continue;
+      }
+
+      // ✅ ზომის შემოწმება
+      if (file.size > this.maxFileSizeBytes) {
+        this.imageError = 'ფოტოს ზომა არ უნდა აღემატებოდეს 5MB-ს';
+        continue;
+      }
+
+      this.selectedImages.push(file);
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        this.imagePreviews.push(reader.result as string);
+        this.cdr.detectChanges();
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // ✅ input-ის გასუფთავება, რომ იმავე ფაილის ხელახლა არჩევა შესაძლებელი იყოს
+    input.value = '';
+  }
+
+  removeImage(index: number): void {
+    this.selectedImages.splice(index, 1);
+    this.imagePreviews.splice(index, 1);
+    this.imageError = null;
+    this.cdr.detectChanges();
   }
 
   // ============ STEP 1: SUBMIT DETAILS ============
@@ -155,8 +287,12 @@ export class SendParcelComponent implements OnInit {
     this.errorMessage = null;
     this.cdr.detectChanges();
 
-    // ✅ გამოიძახე service რომ დადოს განცხადება
-    this.parcelService.createParcelRequest(this.stepData.parcelDetails).subscribe({
+    // ✅ თუ ფოტოები ატვირთულია, ვაგზავნით FormData-ს, თუ არა — ჩვეულებრივ JSON-ს
+    const payload = this.selectedImages.length > 0
+      ? this.buildFormData(this.stepData.parcelDetails, this.selectedImages)
+      : this.stepData.parcelDetails;
+
+    this.parcelService.createParcelRequest(payload).subscribe({
       next: (res) => {
         this.isSaving = false;
 
@@ -178,6 +314,23 @@ export class SendParcelComponent implements OnInit {
         this.cdr.detectChanges();
       }
     });
+  }
+
+  // ✅ ქმნის FormData-ს ტექსტური ველებით + ფოტოებით ('images' ველის სახელით)
+  private buildFormData(details: ParcelRequest, images: File[]): FormData {
+    const formData = new FormData();
+
+    Object.entries(details).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        formData.append(key, String(value));
+      }
+    });
+
+    images.forEach((file) => {
+      formData.append('images', file, file.name);
+    });
+
+    return formData;
   }
 
   // ============ UTILITIES ============

@@ -9,24 +9,24 @@
     </div>
   </div>
 
-  <div class="rules-toc">
-    <h3 class="toc-title">სარჩევი</h3>
-    <div class="toc-list">
-      <a href="#general" class="toc-link">1. ზოგადი პირობები</a>
-      <a href="#user-responsibilities" class="toc-link">2. მომხმარებელთა პასუხისმგებლობა</a>
-      <a href="#safety" class="toc-link">3. უსაფრთხოება და ვერიფიკაცია</a>
-      <a href="#payments" class="toc-link">4. გადახდა და ტარიფები</a>
-      <a href="#disputes" class="toc-link">5. დავები და კომპენსაცია</a>
-      <a href="#cancellation" class="toc-link">6. გაუქმება და თანხის დაბრუნება (Refund)</a>
-      <a href="#content" class="toc-link">7. კონტენტი და აკრძალული ნივთები</a>
-      <a href="#liability" class="toc-link">8. პასუხისმგებლობის შეზღუდვა</a>
-      <a href="#intellectual" class="toc-link">9. ინტელექტუალური საკუთრება</a>
-      <a href="#account" class="toc-link">10. ანგარიშის ბლოკირება და გაუქმება</a>
-      <a href="#privacy" class="toc-link">11. კონფიდენციალურობის პოლიტიკა</a>
-      <a href="#dispute-resolution" class="toc-link">12. დავების გადაწყვეტის წესი</a>
-      <a href="#contact" class="toc-link">13. კონტაქტი</a>
-    </div>
+<div class="rules-toc">
+  <h3 class="toc-title">სარჩევი</h3>
+  <div class="toc-list">
+    <a href="#general" class="toc-link" (click)="onTocClick($event, 'general')">1. ზოგადი პირობები</a>
+    <a href="#user-responsibilities" class="toc-link" (click)="onTocClick($event, 'user-responsibilities')">2. მომხმარებელთა პასუხისმგებლობა</a>
+    <a href="#safety" class="toc-link" (click)="onTocClick($event, 'safety')">3. უსაფრთხოება და ვერიფიკაცია</a>
+    <a href="#payments" class="toc-link" (click)="onTocClick($event, 'payments')">4. გადახდა და ტარიფები</a>
+    <a href="#disputes" class="toc-link" (click)="onTocClick($event, 'disputes')">5. დავები და კომპენსაცია</a>
+    <a href="#cancellation" class="toc-link" (click)="onTocClick($event, 'cancellation')">6. გაუქმება და თანხის დაბრუნება (Refund)</a>
+    <a href="#content" class="toc-link" (click)="onTocClick($event, 'content')">7. კონტენტი და აკრძალული ნივთები</a>
+    <a href="#liability" class="toc-link" (click)="onTocClick($event, 'liability')">8. პასუხისმგებლობის შეზღუდვა</a>
+    <a href="#intellectual" class="toc-link" (click)="onTocClick($event, 'intellectual')">9. ინტელექტუალური საკუთრება</a>
+    <a href="#account" class="toc-link" (click)="onTocClick($event, 'account')">10. ანგარიშის ბლოკირება და გაუქმება</a>
+    <a href="#privacy" class="toc-link" (click)="onTocClick($event, 'privacy')">11. კონფიდენციალურობის პოლიტიკა</a>
+    <a href="#dispute-resolution" class="toc-link" (click)="onTocClick($event, 'dispute-resolution')">12. დავების გადაწყვეტის წესი</a>
+    <a href="#contact" class="toc-link" (click)="onTocClick($event, 'contact')">13. კონტაქტი</a>
   </div>
+</div>
 
   <div class="rules-content">
     <section id="general" class="rule-section">

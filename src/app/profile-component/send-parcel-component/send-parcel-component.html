@@ -43,24 +43,62 @@
       </div>
 
       <form [formGroup]="detailsForm" class="details-form">
-        <!-- From & To Cities -->
+        <!-- ✅ From & To Cities — ტექსტური input + ავტოკომპლიტ dropdown -->
         <div class="form-row-2">
-          <div class="form-group">
+          <div class="form-group autocomplete-wrapper">
             <label class="form-label">საიდან (ქალაქი)</label>
-            <select class="form-input" formControlName="from" [class.has-error]="isFieldInvalid('from')">
-              <option value="">აირჩიეთ ქალაქი</option>
-              <option *ngFor="let city of GEORGIAN_CITIES" [value]="city">{{ city }}</option>
-            </select>
+            <input
+              type="text"
+              class="form-input"
+              formControlName="from"
+              placeholder="დაწერეთ ან აირჩიეთ ქალაქი"
+              autocomplete="off"
+              [class.has-error]="isFieldInvalid('from')"
+              (input)="onFromInput($event)"
+              (focus)="onFromFocus()"
+            />
             <span class="error-text" *ngIf="isFieldInvalid('from')">ქალაქის არჩევა აუცილებელია</span>
+
+            <ul class="autocomplete-dropdown" *ngIf="showFromDropdown && filteredFromCities.length > 0">
+              <li
+                *ngFor="let city of filteredFromCities"
+                class="autocomplete-item"
+                (click)="selectFromCity(city)"
+              >
+                {{ city }}
+              </li>
+            </ul>
+            <div class="autocomplete-dropdown autocomplete-empty" *ngIf="showFromDropdown && filteredFromCities.length === 0">
+              ქალაქი ვერ მოიძებნა
+            </div>
           </div>
 
-          <div class="form-group">
+          <div class="form-group autocomplete-wrapper">
             <label class="form-label">სად (დანიშნულება)</label>
-            <select class="form-input" formControlName="to" [class.has-error]="isFieldInvalid('to')">
-              <option value="">აირჩიეთ ქალაქი</option>
-              <option *ngFor="let city of GEORGIAN_CITIES" [value]="city">{{ city }}</option>
-            </select>
+            <input
+              type="text"
+              class="form-input"
+              formControlName="to"
+              placeholder="დაწერეთ ან აირჩიეთ ქალაქი"
+              autocomplete="off"
+              [class.has-error]="isFieldInvalid('to')"
+              (input)="onToInput($event)"
+              (focus)="onToFocus()"
+            />
             <span class="error-text" *ngIf="isFieldInvalid('to')">დანიშნულების არჩევა აუცილებელია</span>
+
+            <ul class="autocomplete-dropdown" *ngIf="showToDropdown && filteredToCities.length > 0">
+              <li
+                *ngFor="let city of filteredToCities"
+                class="autocomplete-item"
+                (click)="selectToCity(city)"
+              >
+                {{ city }}
+              </li>
+            </ul>
+            <div class="autocomplete-dropdown autocomplete-empty" *ngIf="showToDropdown && filteredToCities.length === 0">
+              ქალაქი ვერ მოიძებნა
+            </div>
           </div>
         </div>
 
@@ -119,6 +157,48 @@
           </div>
         </div>
 
+        <!-- ✅ NEW: Parcel Photos Upload -->
+        <div class="form-group">
+          <label class="form-label">გზავნილის ფოტო (არასავალდებულო, მაქს. 3)</label>
+
+          <div class="image-upload-area">
+            <input
+              type="file"
+              accept="image/*"
+              multiple
+              (change)="onImagesSelected($event)"
+              class="file-input-hidden"
+              id="parcelImages"
+              #imageInput
+            />
+            <label
+              for="parcelImages"
+              class="upload-trigger-btn"
+              *ngIf="imagePreviews.length < maxImages"
+            >
+              <span class="upload-icon">📷</span>
+              <span>ატვირთეთ ფოტო</span>
+              <span class="upload-hint">{{ imagePreviews.length }}/{{ maxImages }}</span>
+            </label>
+
+            <div class="image-previews" *ngIf="imagePreviews.length > 0">
+              <div class="image-preview-item" *ngFor="let preview of imagePreviews; let i = index">
+                <img [src]="preview" alt="გზავნილის ფოტო" />
+                <button
+                  type="button"
+                  class="remove-image-btn"
+                  (click)="removeImage(i)"
+                  aria-label="ფოტოს წაშლა"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <span class="error-text" *ngIf="imageError">{{ imageError }}</span>
+        </div>
+
         <!-- Additional Notes -->
         <div class="form-group">
           <label class="form-label">დამატებითი პირობები (სურვილისამებრ)</label>
@@ -165,7 +245,7 @@
             (click)="submitDetails()"
             [disabled]="isLoading"
           >
-            {{ isLoading ? 'დამუშავ...' : '→ დემოკრატი' }}
+            {{ isLoading ? 'დამუშავ...' : '→ შემდეგი' }}
           </button>
         </div>
       </form>
@@ -181,6 +261,17 @@
       <!-- SUMMARY CARD -->
       <div class="summary-card">
         <h3 class="summary-title">📦 გაგზავნის დეტალები</h3>
+
+        <!-- ✅ NEW: Photo thumbnails on confirmation step -->
+        <div class="summary-images" *ngIf="imagePreviews.length > 0">
+          <img
+            *ngFor="let preview of imagePreviews"
+            [src]="preview"
+            alt="გზავნილის ფოტო"
+            class="summary-image-thumb"
+          />
+        </div>
+
         <div class="summary-grid">
           <div class="summary-row">
             <span class="summary-label">საიდან:</span>

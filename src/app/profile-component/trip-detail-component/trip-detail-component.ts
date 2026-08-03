@@ -6,11 +6,12 @@ import { Subject } from 'rxjs';
 import { takeUntil, finalize } from 'rxjs/operators';
 import { ParcelService, DriverTrip } from '../../services/Parcel.service';
 import { SmsVerificationService } from '../../services/smsverifikation.service';
+import { ChatModalImprovedComponent } from '../../chat/chat-modal-component/chat-modal-component';
 
 @Component({
   selector: 'app-trip-detail',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ChatModalImprovedComponent],
   templateUrl: './trip-detail-component.html',
   styleUrls: ['./trip-detail-component.scss']
 })
@@ -19,6 +20,14 @@ export class TripDetailComponent implements OnInit, OnDestroy {
   errorMessage = '';
   isAuthenticated = false;
   trip: DriverTrip | null = null;
+
+  // ✅ ჩატის მოდალის მართვა
+  isChatOpen = false;
+  currentUserId = '';
+
+  // ✅ NEW: ფოტოების Lightbox მდგომარეობა
+  lightboxOpen = false;
+  lightboxIndex = 0;
 
   private destroy$ = new Subject<void>();
   public router: Router;
@@ -36,13 +45,16 @@ export class TripDetailComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.isAuthenticated = this.smsService.isAuthenticated();
 
+    if (this.isAuthenticated) {
+      const user = this.smsService.getCurrentUser();
+      this.currentUserId = user?._id || '';
+    }
+
     this.route.params
       .pipe(takeUntil(this.destroy$))
       .subscribe(params => {
         console.log('🔍 Trip route params:', params);
 
-        // ⚠️ თუ თქვენს routes ფაილში :id-ს ნაცვლად სხვა სახელია (მაგ. :tripId),
-        // შესაბამისად შეცვალეთ params['id'] იმ სახელზე
         const tripId = params['id'];
 
         if (tripId) {
@@ -103,6 +115,107 @@ export class TripDetailComponent implements OnInit, OnDestroy {
 
   goBack(): void {
     this.router.navigate(['/']);
+  }
+
+  /**
+   * ✅ driverId უსაფრთხო მიღება String სახით
+   */
+  get recipientIdSafe(): string {
+    const driver = (this.trip as any)?.driverId;
+    if (!driver) return '';
+
+    const id = typeof driver === 'object' ? (driver._id || driver.id || '') : driver;
+    return String(id).trim();
+  }
+
+  /**
+   * ✅ უსაფრთხო შემოწმება — არის თუ არა ეს მგზავრობა ავტორიზებული მომხმარებლის
+   */
+  get isOwnTrip(): boolean {
+    if (!this.trip || !this.currentUserId) return false;
+
+    const recipientId = this.recipientIdSafe.toLowerCase();
+    const currentId = String(this.currentUserId).trim().toLowerCase();
+
+    console.log('🔍 Checking Trip Ownership:', { recipientId, currentId });
+
+    return recipientId === currentId && recipientId !== '';
+  }
+
+  // ===== 💬 შეტყობინების მიწერა =====
+  openChat(): void {
+    console.log('💬 Trip openChat clicked | isOwnTrip:', this.isOwnTrip);
+
+    if (!this.isAuthenticated) {
+      alert('⚠️ შეტყობინების გასაგზავნად გთხოვთ დალოგინდით');
+      this.router.navigate(['/login']);
+      return;
+    }
+
+    if (this.isOwnTrip) {
+      alert('⚠️ საკუთარ მგზავრობაზე შეტყობინებას ვერ გააგზავნით');
+      return;
+    }
+
+    this.isChatOpen = true;
+  }
+
+  closeChat(): void {
+    this.isChatOpen = false;
+  }
+
+  // ============================================================
+  // ✅ NEW: ფოტოების Lightbox
+  // ============================================================
+
+  openLightbox(index: number): void {
+    this.lightboxIndex = index;
+    this.lightboxOpen = true;
+  }
+
+  closeLightbox(): void {
+    this.lightboxOpen = false;
+  }
+
+  nextImage(): void {
+    const images = this.trip?.images;
+    if (!images || images.length === 0) return;
+    this.lightboxIndex = (this.lightboxIndex + 1) % images.length;
+  }
+
+  prevImage(): void {
+    const images = this.trip?.images;
+    if (!images || images.length === 0) return;
+    this.lightboxIndex = (this.lightboxIndex - 1 + images.length) % images.length;
+  }
+
+  // ===== 📧 იმეილის გაგზავნა =====
+  sendEmail(): void {
+    if (!this.trip || this.isOwnTrip) return;
+
+    const email = (this.trip as any).driverEmail;
+    if (!email) return;
+
+    const subject = encodeURIComponent(`მგზავრობა: ${this.trip.from} → ${this.trip.to}`);
+    const body = encodeURIComponent('გამარჯობა, დაინტერესებული ვარ თქვენი მგზავრობით...');
+    window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
+  }
+
+  hasEmail(): boolean {
+    return !!(this.trip as any)?.driverEmail;
+  }
+
+  // ===== 📞 დარეკვა =====
+  call(): void {
+    if (!this.trip || this.isOwnTrip) return;
+
+    const phone = this.trip?.senderPhone || (this.trip as any)?.personalNumber;
+    if (!phone) return;
+    window.location.href = `tel:${phone}`;
+  }
+
+  hasPhone(): boolean {
+    return !!(this.trip?.senderPhone || (this.trip as any)?.personalNumber);
   }
 
   formatDateTime(dateString: string | undefined): string {

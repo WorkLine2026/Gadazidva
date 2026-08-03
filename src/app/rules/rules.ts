@@ -19,15 +19,6 @@ export class RulesComponent implements OnInit {
   /**
    * Scroll to specific section
    */
-  scrollToSection(sectionId: string): void {
-    const element = document.getElementById(sectionId);
-    if (element) {
-      element.scrollIntoView({
-        behavior: 'smooth',
-        block: 'start',
-      });
-    }
-  }
 
   /**
    * Scroll back to top
@@ -53,4 +44,29 @@ export class RulesComponent implements OnInit {
     // TODO: Implement PDF download functionality
     alert('PDF ჩამოტვირთვა მალე იქნება ხელმისაწვდომი');
   }
+  /**
+ * Handle TOC link click - prevent default hash jump, use smooth scroll instead
+ */
+onTocClick(event: Event, sectionId: string): void {
+  event.preventDefault();
+  this.scrollToSection(sectionId);
+}
+
+/**
+ * Scroll to specific section
+ */
+scrollToSection(sectionId: string): void {
+  const element = document.getElementById(sectionId);
+  if (element) {
+    // თუ გაქვთ fixed header, აქ offset-ს გამოვაკლებთ, რომ სათაური header-ქვეშ არ დაიმალოს
+    const headerOffset = 80; // შეცვალეთ თქვენი header-ის სიმაღლის მიხედვით
+    const elementPosition = element.getBoundingClientRect().top + window.pageYOffset;
+    const offsetPosition = elementPosition - headerOffset;
+
+    window.scrollTo({
+      top: offsetPosition,
+      behavior: 'smooth',
+    });
+  }
+}
 }

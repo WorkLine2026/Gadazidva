@@ -36,6 +36,11 @@ export class RequestDetailComponent implements OnInit, OnDestroy {
 
   // 💬 ჩატის მდგომარეობა
   isChatOpen = false;
+  currentUserId = '';
+
+  // ✅ NEW: ფოტოების Lightbox მდგომარეობა
+  lightboxOpen = false;
+  lightboxIndex = 0;
 
   unifiedRequest: UnifiedRequest = {
     originalRequest: null,
@@ -48,27 +53,26 @@ export class RequestDetailComponent implements OnInit, OnDestroy {
   };
 
   private destroy$ = new Subject<void>();
-  public router: Router;
 
   constructor(
     private route: ActivatedRoute,
-    router: Router,
+    public router: Router,
     private parcelService: ParcelService,
     private smsService: SmsVerificationService,
     private cdr: ChangeDetectorRef
-  ) {
-    this.router = router;
-  }
+  ) {}
 
   ngOnInit(): void {
     this.isAuthenticated = this.smsService.isAuthenticated();
-    console.log('🔐 RequestDetailComponent - დალოგინება:', this.isAuthenticated);
+
+    if (this.isAuthenticated) {
+      const user = this.smsService.getCurrentUser();
+      this.currentUserId = user?._id || '';
+    }
 
     this.route.params
       .pipe(takeUntil(this.destroy$))
       .subscribe(params => {
-        console.log('🔍 Route params:', params);
-
         const requestId = params['id'];
 
         if (requestId) {
@@ -76,7 +80,6 @@ export class RequestDetailComponent implements OnInit, OnDestroy {
         } else {
           console.error('❌ requestId არ მოვიდა route-დან. params:', params);
           this.errorMessage = 'არასწორი ბმული — განცხადების ID ვერ მოიძებნა';
-          this.cdr.detectChanges();
         }
       });
   }
@@ -86,25 +89,76 @@ export class RequestDetailComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  // 💬 ჩატის გახსნა
+  get recipientIdSafe(): string {
+  const sender = this.unifiedRequest.originalRequest?.senderId as any;
+  if (!sender) return '';
+  
+  const id = typeof sender === 'object' ? (sender._id || sender.id || '') : sender;
+  return String(id).trim();
+}
+
+get isOwnRequest(): boolean {
+  if (!this.unifiedRequest.originalRequest || !this.currentUserId) return false;
+
+  const recipientId = this.recipientIdSafe.toLowerCase();
+  const currentId = String(this.currentUserId).trim().toLowerCase();
+
+  console.log('🔍 Checking Ownership:', { recipientId, currentId });
+
+  return recipientId === currentId && recipientId !== '';
+}
+
+
+
   openChat(): void {
-    if (!this.isAuthenticated) {
-      alert('⚠️ შეტყობინების გასაგზავნად გთხოვთ დალოგინდით');
-      this.router.navigate(['/login']);
-      return;
-    }
-    this.isChatOpen = true;
+  console.log('💬 openChat clicked | isOwnRequest:', this.isOwnRequest, 'recipientId:', this.recipientIdSafe, 'currentUserId:', this.currentUserId);
+
+  if (!this.isAuthenticated) {
+    alert('⚠️ შეტყობინების გასაგზავნად გთხოვთ დალოგინდით');
+    this.router.navigate(['/login']);
+    return;
   }
 
-  // 💬 ჩატის დახურვა
+  if (this.isOwnRequest) {
+    alert('⚠️ საკუთარ განცხადებაზე შეტყობინებას ვერ გააგზავნით');
+    return;
+  }
+
+  this.isChatOpen = true;
+}
+
   closeChat(): void {
     this.isChatOpen = false;
+  }
+
+  // ============================================================
+  // ✅ NEW: ფოტოების Lightbox
+  // ============================================================
+
+  openLightbox(index: number): void {
+    this.lightboxIndex = index;
+    this.lightboxOpen = true;
+  }
+
+  closeLightbox(): void {
+    this.lightboxOpen = false;
+  }
+
+  nextImage(): void {
+    const images = this.unifiedRequest.originalRequest?.images;
+    if (!images || images.length === 0) return;
+    this.lightboxIndex = (this.lightboxIndex + 1) % images.length;
+  }
+
+  prevImage(): void {
+    const images = this.unifiedRequest.originalRequest?.images;
+    if (!images || images.length === 0) return;
+    this.lightboxIndex = (this.lightboxIndex - 1 + images.length) % images.length;
   }
 
   private loadUnifiedRequest(requestId: string): void {
     this.isLoading = true;
     this.errorMessage = '';
-    this.cdr.detectChanges();
 
     this.parcelService.getParcelRequest(requestId)
       .pipe(
@@ -116,24 +170,17 @@ export class RequestDetailComponent implements OnInit, OnDestroy {
       )
       .subscribe({
         next: (res) => {
-          console.log('📦 პასუხი backend-დან:', res);
-
           if (res.success && res.data) {
             this.unifiedRequest.originalRequest = res.data;
             this.updateRequestStatus(res.data.status);
 
-            if (
-              res.data.status === 'accepted' ||
-              res.data.status === 'in-transit' ||
-              res.data.status === 'delivered'
-            ) {
+            const requestStatus = res.data.status || '';
+            if (['accepted', 'in-transit', 'delivered'].includes(requestStatus)) {
               this.loadAcceptedShippingAndTrip(requestId);
             }
           } else {
             this.errorMessage = res.message || 'განცხადება ვერ მოიძებნა';
           }
-
-          this.cdr.detectChanges();
         },
         error: (err) => {
           console.error('❌ განცხადების ჩატვირთვის შეცდომა:', err);
@@ -143,16 +190,14 @@ export class RequestDetailComponent implements OnInit, OnDestroy {
           } else if (err.status === 0) {
             this.errorMessage = 'სერვერთან კავშირი ვერ დამყარდა — გადაამოწმეთ ინტერნეტი ან სერვერი';
           } else {
-            this.errorMessage = 'განცხადების ჩატვირთვა ვერ ხერხდა (კოდი: ' + err.status + ')';
+            this.errorMessage = `განცხადების ჩატვირთვა ვერ ხერხდა (კოდი: ${err.status})`;
           }
-
-          this.cdr.detectChanges();
         }
       });
   }
 
   private loadAcceptedShippingAndTrip(requestId: string): void {
-    console.log('🔄 მიღებული შეკვეთის მონაცემი...');
+    console.log('🔄 მიღებული შეკვეთის მონაცემი...', requestId);
   }
 
   updateStatus(newStatus: string): void {
@@ -162,15 +207,12 @@ export class RequestDetailComponent implements OnInit, OnDestroy {
       return;
     }
 
-    if (!this.unifiedRequest.originalRequest?._id) return;
+    const requestId = this.unifiedRequest.originalRequest?._id;
+    if (!requestId) return;
 
     this.isLoading = true;
-    this.cdr.detectChanges();
 
-    this.parcelService.updateParcelStatus(
-      this.unifiedRequest.originalRequest._id,
-      newStatus
-    )
+    this.parcelService.updateParcelStatus(requestId, newStatus)
       .pipe(
         takeUntil(this.destroy$),
         finalize(() => {
@@ -187,7 +229,6 @@ export class RequestDetailComponent implements OnInit, OnDestroy {
           } else {
             alert('❌ ' + (res.message || 'სტატუსის განახლება ვერ ხერხდა'));
           }
-          this.cdr.detectChanges();
         },
         error: (err) => {
           alert('❌ სტატუსის განახლება ვერ ხერხდა');
@@ -203,13 +244,13 @@ export class RequestDetailComponent implements OnInit, OnDestroy {
       return;
     }
 
-    if (!this.unifiedRequest.originalRequest?._id) return;
+    const requestId = this.unifiedRequest.originalRequest?._id;
+    if (!requestId) return;
 
-    if (confirm('დარწმუნებული ხართ რომ გამოქვეყნეთ მას თავიდან?')) {
+    if (confirm('დარწმუნებული ხართ რომ გსურთ განცხადების თავიდან გამოქვეყნება?')) {
       this.isLoading = true;
-      this.cdr.detectChanges();
 
-      this.parcelService.republishRequest(this.unifiedRequest.originalRequest._id)
+      this.parcelService.republishRequest(requestId)
         .pipe(
           takeUntil(this.destroy$),
           finalize(() => {
@@ -221,11 +262,10 @@ export class RequestDetailComponent implements OnInit, OnDestroy {
           next: (res) => {
             if (res.success) {
               alert('✅ განცხადება წარმატებით გამოქვეყნდა');
-              this.loadUnifiedRequest(this.unifiedRequest.originalRequest!._id!);
+              this.loadUnifiedRequest(requestId);
             } else {
               alert('❌ ' + (res.message || 'განცხადების გამოქვეყნება ვერ ხერხდა'));
             }
-            this.cdr.detectChanges();
           },
           error: (err) => {
             alert('❌ განცხადების გამოქვეყნება ვერ ხერხდა');
@@ -290,7 +330,7 @@ export class RequestDetailComponent implements OnInit, OnDestroy {
       'pending': '⏳ მოლოდინი',
       'accepted': '✅ მიღებული',
       'in-transit': '🚚 გზაში',
-      'delivered': '📍 დაბრუნებული'
+      'delivered': '📍 ჩაბარებული'
     };
     return labels[status || ''] || status || '—';
   }

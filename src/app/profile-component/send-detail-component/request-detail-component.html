@@ -1,5 +1,5 @@
 <div class="request-detail-container">
-  <!-- Header/უკან ღილაკი -->
+  <!-- Header / უკან ღილაკი -->
   <div class="detail-header">
     <button class="back-button" (click)="goBack()" aria-label="უკან">
       ← უკან
@@ -60,7 +60,20 @@
         </div>
 
         <div class="info-grid">
-          <!-- რუტა -->
+          <!-- ✅ NEW: ფოტოები -->
+          <div class="info-section full-width" *ngIf="originalRequest.images && originalRequest.images.length > 0">
+            <h3>📷 ფოტოები</h3>
+            <div class="photo-gallery">
+              <div
+                class="photo-thumb"
+                *ngFor="let img of originalRequest.images; let i = index"
+                (click)="openLightbox(i)">
+                <img [src]="img" [alt]="'ფოტო ' + (i + 1)" loading="lazy" />
+              </div>
+            </div>
+          </div>
+
+          <!-- მარშრუტი -->
           <div class="info-section">
             <h3>📍 მიწოდების ხაზი</h3>
             <div class="route-box">
@@ -76,9 +89,9 @@
             </div>
           </div>
 
-          <!-- პარიტა დეტალები -->
+          <!-- ამანათის დეტალები -->
           <div class="info-section">
-            <h3>📊 პარიტა დეტალები</h3>
+            <h3>📊 ამანათის დეტალები</h3>
             <div class="detail-list">
               <div class="detail-item">
                 <span class="label">წონა:</span>
@@ -93,7 +106,7 @@
                 <span class="value">{{ originalRequest.description || '—' }}</span>
               </div>
               <div class="detail-item" *ngIf="originalRequest.notes">
-                <span class="label">მენიშვნელი:</span>
+                <span class="label">შენიშვნა:</span>
                 <span class="value">{{ originalRequest.notes }}</span>
               </div>
             </div>
@@ -104,7 +117,7 @@
             <h3>📅 დროის მონაცემები</h3>
             <div class="detail-list">
               <div class="detail-item">
-                <span class="label">განცხადება შექმნა:</span>
+                <span class="label">განცხადება შექმნილია:</span>
                 <span class="value">{{ formatDateTime(originalRequest.createdAt) }}</span>
               </div>
               <div class="detail-item">
@@ -135,50 +148,46 @@
         </div>
       </div>
 
-      <!-- ✅ სტატუსის განახლება - მხოლოდ რეგისტრირებული users -->
-      <div class="action-card" *ngIf="isAuthenticated">
-        <h3>⚙️ სტატუსის განახლება</h3>
+      <!-- ⚙️ კონტაქტის / ჩატის მოქმედებები -->
+      <div class="action-card" *ngIf="isAuthenticated && !isOwnRequest">
+        <h3>⚙️ კომუნიკაცია</h3>
         <p style="color: #64748b; margin-bottom: 16px;">
           განცხადების მიმდინარე სტატუსი: <strong>{{ getStatusLabel(originalRequest.status) }}</strong>
         </p>
         <div class="status-buttons">
-          <button 
+          <button *ngIf="!isOwnRequest"
             class="btn-status"
             (click)="openChat()">
             💬 შეტყობინების გაგზავნა 
           </button>
           <a 
             class="btn-status"
-            [href]="'mailto:' + (originalRequest.senderEmail || '')">
+            [href]="'mailto:' + (originalRequest.senderEmail || '')"
+            *ngIf="originalRequest.senderEmail">
             ✉️ იმეილზე მიწერა
           </a>
           <a 
             class="btn-status"
-            [href]="'tel:' + (originalRequest.senderPhone || '')">
+            [href]="'tel:' + (originalRequest.senderPhone || '')"
+            *ngIf="originalRequest.senderPhone">
             📞 ნომერზე დარეკვა
           </a>
         </div>
       </div>
 
-      <!-- ✅ ხელახალი გამოქვეყნება - მხოლოდ რეგისტრირებული users -->
-      <div class="action-card" *ngIf="isPending && isAuthenticated">
-        <h3>🔄 ხელახლა გამოქვეყნება</h3>
-        <p style="color: #64748b; margin-bottom: 12px;">
-          თუ მძღოლი არ აქვს პასუხი, შეგიძლია განცხადება ხელახლა გამოქვეყნო
-        </p>
-        <button 
-          class="btn-secondary"
-          [disabled]="isLoading"
-          (click)="republishRequest()">
-          ♻️ ხელახლა გამოქვეყნება
-        </button>
+      <!-- ინფორმაცია, თუ ეს საკუთარი განცხადებაა -->
+      <div
+        class="own-request-badge"
+        *ngIf="isAuthenticated && isOwnRequest"
+        style="background-color: #dbeafe; border: 1px solid #93c5fd; border-radius: 8px; padding: 12px 16px; color: #1e40af; text-align: center; margin-top: 12px;">
+        ℹ️ ეს თქვენი განცხადებაა
       </div>
 
-      <!-- ⚠️ რჩევა არა-auth users-თი -->
+      <!-- ⚠️ არა-ავტორიზებული იუზერი -->
       <div class="action-card" *ngIf="!isAuthenticated" style="background-color: #fef3c7; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px;">
         <h3 style="color: #b45309;">🔐 მხოლოდ რეგისტრირებული მომხმარებლებისთვის</h3>
         <p style="color: #92400e; margin-bottom: 12px;">
-          განცხადების რედაქტირებისთვის გთხოვთ დალოგინდით
+          გამგზავნთან დაკავშირების ან დეტალების მართვისთვის გთხოვთ გაიაროთ ავტორიზაცია.
         </p>
         <button 
           class="btn-primary"
@@ -187,138 +196,47 @@
         </button>
       </div>
     </div>
+</div>
 
-    <!-- ============ ACCEPTED SHIPPING TAB ============ -->
-    <div class="tab-content" *ngIf="currentTab === 'accepted' && (isAccepted || isInTransit || isDelivered)">
-      <div class="info-card">
-        <div class="card-header">
-          <h2>✅ მიღებული შეკვეთა</h2>
-          <div class="status-badge" [style.background-color]="getStatusColor(originalRequest.status)">
-            {{ getStatusIcon(originalRequest.status) }} {{ getStatusLabel(originalRequest.status) }}
-          </div>
-        </div>
+  <!-- ✅ NEW: ფოტოების Lightbox -->
+  <div
+    class="lightbox-overlay"
+    *ngIf="lightboxOpen && originalRequest && originalRequest.images"
+    (click)="closeLightbox()">
+    <div class="lightbox-content" (click)="$event.stopPropagation()">
+      <button class="lightbox-close" (click)="closeLightbox()" aria-label="დახურვა">✕</button>
 
-        <div style="text-align: center; padding: 40px 20px; color: #64748b;">
-          <p style="font-size: 16px; margin-bottom: 12px;">
-            🎉 ეს განცხადება მძღოლმა მიიღო!
-          </p>
-          <p style="font-size: 14px; margin-bottom: 20px;">
-            მძღოლის მგზავრობის დეტალები სხვა ტაბში
-          </p>
+      <button
+        class="lightbox-nav lightbox-prev"
+        *ngIf="originalRequest.images.length > 1"
+        (click)="prevImage()"
+        aria-label="წინა ფოტო">
+        ‹
+      </button>
 
-          <div class="accepted-info" *ngIf="acceptedShipping">
-            <div class="info-section">
-              <h3>📦 შეკვეთის მონაცემი</h3>
-              <div class="detail-list">
-                <div class="detail-item">
-                  <span class="label">მიღების თარიღი:</span>
-                  <span class="value">{{ formatDateTime(acceptedShipping.createdAt) }}</span>
-                </div>
-                <div class="detail-item">
-                  <span class="label">გამგზავნი:</span>
-                  <span class="value">{{ acceptedShipping.senderName || '—' }}</span>
-                </div>
-              </div>
-            </div>
-          </div>
+      <img [src]="originalRequest.images[lightboxIndex]" [alt]="'ფოტო ' + (lightboxIndex + 1)" />
 
-          <button 
-            class="btn-primary"
-            *ngIf="driverTrip"
-            (click)="currentTab = 'trip'">
-            🚗 მძღოლის მგზავრობის ნახვა
-          </button>
-        </div>
-      </div>
-    </div>
+      <button
+        class="lightbox-nav lightbox-next"
+        *ngIf="originalRequest.images.length > 1"
+        (click)="nextImage()"
+        aria-label="შემდეგი ფოტო">
+        ›
+      </button>
 
-    <!-- ============ DRIVER TRIP TAB ============ -->
-    <div class="tab-content" *ngIf="currentTab === 'trip' && driverTrip">
-      <div class="info-card">
-        <div class="card-header">
-          <div>
-            <h2>🚗 მძღოლის მგზავრობა</h2>
-            <p class="driver-name">მძღოლი: <strong>{{ driverTrip.driverName || 'უცნობი' }}</strong></p>
-          </div>
-          <div class="status-badge" [style.background-color]="getStatusColor(driverTrip.status)">
-            {{ driverTrip.status || '—' }}
-          </div>
-        </div>
-
-        <div class="info-grid">
-          <!-- რუტა -->
-          <div class="info-section">
-            <h3>📍 მგზავრობის ხაზი</h3>
-            <div class="route-box">
-              <div class="route-city from">
-                <strong>საიდან</strong>
-                <p>{{ driverTrip.from }}</p>
-              </div>
-              <div class="route-arrow">→</div>
-              <div class="route-city to">
-                <strong>სად</strong>
-                <p>{{ driverTrip.to }}</p>
-              </div>
-            </div>
-          </div>
-
-          <!-- მგზავრობის დეტალები -->
-          <div class="info-section">
-            <h3>📊 მგზავრობის დეტალები</h3>
-            <div class="detail-list">
-              <div class="detail-item">
-                <span class="label">გასვლის დრო:</span>
-                <span class="value">{{ formatDateTime(driverTrip.departureDate) }}</span>
-              </div>
-              <div class="detail-item">
-                <span class="label">მანქანის მოდელი:</span>
-                <span class="value">{{ driverTrip.carModel || '—' }}</span>
-              </div>
-              <div class="detail-item">
-                <span class="label">ნომერი:</span>
-                <span class="value">{{ driverTrip.carPlate || '—' }}</span>
-              </div>
-              <div class="detail-item">
-                <span class="label">ფასი per კგ:</span>
-                <span class="value">{{ driverTrip.pricePerKg }} ₾/კგ</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- კონტაქტი -->
-          <div class="info-section">
-            <h3>☎️ კონტაქტი</h3>
-            <div class="detail-list">
-              <div class="detail-item">
-                <span class="label">მძღოლის ტელ:</span>
-                <span class="value">{{ driverTrip.senderPhone || driverTrip.personalNumber || '—' }}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- მძღოლის დეტალებზე გადასვლა -->
-      <div class="action-card">
-        <h3>🔗 სხვადასხვა ხელმისაწვდომი</h3>
-        <p style="color: #64748b; margin-bottom: 12px;">
-          მძღოლის სრული პროფილი და მას მგზავრობების სია
-        </p>
-        <button 
-          class="btn-secondary"
-          (click)="viewDriverTrip()">
-          🚗 მძღოლის მგზავრობის დეტალი
-        </button>
+      <div class="lightbox-counter" *ngIf="originalRequest.images.length > 1">
+        {{ lightboxIndex + 1 }} / {{ originalRequest.images.length }}
       </div>
     </div>
   </div>
 </div>
 
-<!-- 💬 Socket.IO Chat Modal -->
+<!-- 💬 Socket.IO Chat Modal (დარწმუნდით, რომ selector ემთხვევა import-ს) -->
 <app-chat-modal
-  *ngIf="isChatOpen && originalRequest"
+  *ngIf="isChatOpen && originalRequest && !isOwnRequest"
   [requestId]="originalRequest._id || ''"
-  [recipientId]="originalRequest.userId || ''"
+  [recipientId]="recipientIdSafe"
   [recipientName]="originalRequest.senderName || 'გამგზავნი'"
+  [currentUserId]="currentUserId"
   (close)="closeChat()">
 </app-chat-modal>

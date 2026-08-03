@@ -39,6 +39,19 @@
       </div>
 
       <div class="info-grid">
+        <!-- ✅ NEW: მანქანის ფოტოები -->
+        <div class="info-section full-width" *ngIf="trip.images && trip.images.length > 0">
+          <h3>📷 მანქანის ფოტოები</h3>
+          <div class="photo-gallery">
+            <div
+              class="photo-thumb"
+              *ngFor="let img of trip.images; let i = index"
+              (click)="openLightbox(i)">
+              <img [src]="img" [alt]="'ფოტო ' + (i + 1)" loading="lazy" />
+            </div>
+          </div>
+        </div>
+
         <!-- რუტა -->
         <div class="info-section">
           <h3>📍 მგზავრობის ხაზი</h3>
@@ -114,15 +127,80 @@
       </div>
     </div>
 
-    <!-- ავტორიზაციის მოწოდება -->
-    <div class="action-card" *ngIf="!isAuthenticated" style="background-color: #fef3c7; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px;">
-      <h3 style="color: #b45309;">🔐 გინდათ ამ მძღოლთან დაკავშირება?</h3>
-      <p style="color: #92400e; margin-bottom: 12px;">
-        შეთავაზების გასაგზავნად ან საკონტაქტოდ გთხოვთ დალოგინდით
-      </p>
-      <button class="btn-primary" (click)="router.navigate(['/login'])">
-        🔐 დალოგინება
+    <!-- Contact Info ღილაკები — გამოჩნდება მხოლოდ თუ ავტორიზებული ხართ და ეს არ არის საკუთარი განცხადება -->
+    <div class="Contact-info" *ngIf="isAuthenticated && !isOwnTrip">
+      <button class="btn-primary" (click)="openChat()">
+        💬 შეტყობინების მიწერა
       </button>
+
+      <button (click)="sendEmail()" [disabled]="!hasEmail()">
+        📧 იმეილის გაგზავნა
+      </button>
+
+      <button (click)="call()" [disabled]="!hasPhone()">
+        📞 დარეკვა
+      </button>
+    </div>
+
+    <!-- ინფორმაცია, თუ ეს საკუთარი განცხადებაა -->
+    <div
+      class="own-trip-badge"
+      *ngIf="isAuthenticated && isOwnTrip"
+      style="background-color: #dbeafe; border: 1px solid #93c5fd; border-radius: 8px; padding: 12px 16px; color: #1e40af; text-align: center; margin-top: 12px;">
+      ℹ️ ეს თქვენივე განცხადებაა
+    </div>
+  </div>
+
+  <!-- ავტორიზაციის მოწოდება -->
+  <div class="action-card" *ngIf="!isAuthenticated" style="background-color: #fef3c7; border: 1px solid #fcd34d; border-radius: 8px; padding: 16px;">
+    <h3 style="color: #b45309;">🔐 გინდათ ამ მძღოლთან დაკავშირება?</h3>
+    <p style="color: #92400e; margin-bottom: 12px;">
+      შეთავაზების გასაგზავნად ან საკონტაქტოდ გთხოვთ დალოგინდით
+    </p>
+    <button class="btn-primary" (click)="router.navigate(['/login'])">
+      🔐 დალოგინება
+    </button>
+  </div>
+
+  <!-- ✅ NEW: ფოტოების Lightbox -->
+  <div
+    class="lightbox-overlay"
+    *ngIf="lightboxOpen && trip && trip.images"
+    (click)="closeLightbox()">
+    <div class="lightbox-content" (click)="$event.stopPropagation()">
+      <button class="lightbox-close" (click)="closeLightbox()" aria-label="დახურვა">✕</button>
+
+      <button
+        class="lightbox-nav lightbox-prev"
+        *ngIf="trip.images.length > 1"
+        (click)="prevImage()"
+        aria-label="წინა ფოტო">
+        ‹
+      </button>
+
+      <img [src]="trip.images[lightboxIndex]" [alt]="'ფოტო ' + (lightboxIndex + 1)" />
+
+      <button
+        class="lightbox-nav lightbox-next"
+        *ngIf="trip.images.length > 1"
+        (click)="nextImage()"
+        aria-label="შემდეგი ფოტო">
+        ›
+      </button>
+
+      <div class="lightbox-counter" *ngIf="trip.images.length > 1">
+        {{ lightboxIndex + 1 }} / {{ trip.images.length }}
+      </div>
     </div>
   </div>
 </div>
+
+<!-- ✅ ჩატის მოდალი -->
+<app-chat-modal
+  *ngIf="isChatOpen && trip"
+  [requestId]="trip._id || ''"
+  [recipientId]="recipientIdSafe"
+  [recipientName]="trip.driverName || 'მძღოლი'"
+  [currentUserId]="currentUserId"
+  (close)="closeChat()">
+</app-chat-modal>

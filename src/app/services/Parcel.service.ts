@@ -28,6 +28,7 @@ export interface AvailableShipping {
 export interface ParcelRequest {
   _id?: string;
   userId?: string;        // 👈 დამატებულია ჩატისთვის და იდენტიფიკაციისთვის
+  senderId?: string;      // 👈 დაამატეთ ეს სტრიქონი TS2339 შეცდომის გასასწორებლად
   senderEmail?: string;   // 👈 დამატებულია ელ.ფოსტაზე მიწერისთვის
   from: string;
   to: string;
@@ -41,6 +42,7 @@ export interface ParcelRequest {
   status?: 'pending' | 'accepted' | 'in-transit' | 'delivered';
   createdAt?: string;
   senderName?: string;
+  images?: string[];      // 👈 ატვირთული ფოტოების URL-ები (სერვერიდან დაბრუნებული)
 }
 
 export interface AcceptedShipping {
@@ -72,6 +74,7 @@ export interface DriverTrip {
   createdAt?: string;
   updatedAt?: string;
   driverName?: string;
+  images?: string[];      // 👈 ატვირთული მანქანის ფოტოების URL-ები (სერვერიდან დაბრუნებული)
 }
 
 export interface DriverStats {
@@ -126,10 +129,45 @@ export class ParcelService {
 
   private tripCreated$ = new Subject<DriverTrip>();
 
-  readonly GEORGIAN_CITIES = [
-    'თბილისი', 'ბათუმი', 'ქუთაისი', 'გორი', 'დუშეთი',
-    'ზუგდიდი', 'სოხუმი', 'თელავი', 'გორიცხე', 'ხელვაჩაური',
-    'სარპი', 'ფოთი', 'მცხეთა', 'სიღნაღი', 'ხაშური'
+ readonly GEORGIAN_CITIES_AND_TOWNS = [
+    // 1. მსხვილი ქალაქები და რეგიონული ცენტრები
+    'თბილისი', 'ბათუმი', 'ქუთაისი', 'რუსთავი', 'გორი',
+    'ზუგდიდი', 'ფოთი', 'ხაშური', 'სამტრედია', 'სენაკი',
+    'ზესტაფონი', 'თელავი', 'ახალციხე', 'ქობულეთი', 'ოზურგეთი',
+
+    // 2. შიდა ქართლი & ქვემო ქართლი
+    'კასპი', 'მარნეული', 'გარდაბანი', 'ბოლნისი', 'დმანისი',
+    'წალკა', 'თეთრიწყარო', 'ქარელი', 'სურამი', 'აგარა',
+    'მცხეთა', 'თიანეთი', 'ჟინვალი', 'ფასანაური',
+
+    // 3. იმერეთი & რაჭა-ლეჩხუმი-ქვემო სვანეთი
+    'ტყიბული', 'წყალტუბო', 'ჭიათურა', 'საჩხერე', 'ხონი',
+    'ბაღდათი', 'ვანი', 'თერჯოლა', 'ამბროლაური', 'ონი',
+    'ცაგერი', 'ლენტეხი', 'კულაში',
+
+    // 4. სამეგრელო-ზემო სვანეთი
+    'ჯვარი', 'აბაშა', 'მარტვილი', 'წალენჯიხა', 'მესტია',
+    'ჩხოროწყუ', 'ანაკლია',
+
+    // 5. კახეთი
+    'საგარეჯო', 'გურჯაანი', 'ყვარელი', 'სიღნაღი',
+    'დედოფლისწყარო', 'ლაგოდეხი', 'ახმეტა',
+
+    // 6. სამცხე-ჯავახეთი
+    'ახალქალაქი', 'ნინოწმინდა', 'ბორჯომი', 'ვალე',
+    'აბასთუმანი', 'ბაკურიანი', 'ადიგენი', 'ასპინძა',
+
+    // 7. გურია & აჭარა
+    'ლანჩხუთი', 'ჩოხატაური', 'ურეკი', 'ქედა',
+    'შუახევი', 'ხულო', 'ჩაქვი', 'ხელვაჩაური',
+
+    // 8. მცხეთა-მთიანეთი
+    'დუშეთი', 'სტეფანწმინდა',
+
+    // 9. აფხაზეთი & ცხინვალის რეგიონი
+    'სოხუმი', 'გაგრა', 'გუდაუთა', 'ოჩამჩირე', 'გალი',
+    'ტყვარჩელი', 'ახალი ათონი', 'ცხინვალი', 'ჯავა',
+    'ქურთას დასახლება', 'ახალგორი', 'ბიჭვინთა', 'gulripshi'
   ];
 
   constructor(
@@ -150,6 +188,22 @@ export class ParcelService {
 
     return new HttpHeaders({
       'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    });
+  }
+
+  /**
+   * ✅ NEW: ავტორიზაციის header-ები FormData-სთვის (Content-Type არ ეწერება,
+   * რომ ბრაუზერმა თავად დააყენოს multipart/form-data სწორი boundary-თი)
+   */
+  private getAuthHeadersForFormData(): HttpHeaders {
+    const token = this.smsService.getAuthToken();
+
+    if (!token) {
+      throw new Error('ავტორიზაცია საჭიროა');
+    }
+
+    return new HttpHeaders({
       'Authorization': `Bearer ${token}`
     });
   }
@@ -179,11 +233,20 @@ export class ParcelService {
 
   // ============ PARCEL REQUESTS ============
 
-  createParcelRequest(data: ParcelRequest): Observable<TripResponse> {
+  /**
+   * ✅ UPDATED: ახლა ორივეს იღებს — ჩვეულებრივ ParcelRequest ობიექტს (JSON)
+   * ან FormData-ს (როცა ფოტოებია ატვირთული). FormData-ს შემთხვევაში
+   * Content-Type header არ ეწერება ხელით — ბრაუზერი თავად აყენებს.
+   */
+  createParcelRequest(data: ParcelRequest | FormData): Observable<TripResponse> {
     try {
       this.ensureAuthenticated();
+
+      const isFormData = data instanceof FormData;
+      const headers = isFormData ? this.getAuthHeadersForFormData() : this.getAuthHeaders();
+
       return this.http.post<TripResponse>(`${this.apiUrl}/request`, data, {
-        headers: this.getAuthHeaders()
+        headers
       });
     } catch (err) {
       return throwError(() => err);
@@ -255,11 +318,19 @@ export class ParcelService {
 
   // ============ DRIVER TRIPS ============
 
-  createTrip(data: DriverTrip): Observable<TripResponse> {
+  /**
+   * ✅ UPDATED: ახლა ორივეს იღებს — ჩვეულებრივ DriverTrip ობიექტს (JSON)
+   * ან FormData-ს (როცა მანქანის ფოტოებია ატვირთული).
+   */
+  createTrip(data: DriverTrip | FormData): Observable<TripResponse> {
     try {
       this.ensureAuthenticated();
+
+      const isFormData = data instanceof FormData;
+      const headers = isFormData ? this.getAuthHeadersForFormData() : this.getAuthHeaders();
+
       return this.http.post<TripResponse>(`${this.driverUrl}/create-trip`, data, {
-        headers: this.getAuthHeaders()
+        headers
       });
     } catch (err) {
       return throwError(() => err);
@@ -477,7 +548,7 @@ export class ParcelService {
   isValidRoute(from: string, to: string): boolean {
     if (!from || !to) return false;
     if (from === to) return false;
-    return this.GEORGIAN_CITIES.includes(from) && this.GEORGIAN_CITIES.includes(to);
+    return this.GEORGIAN_CITIES_AND_TOWNS.includes(from) && this.GEORGIAN_CITIES_AND_TOWNS.includes(to);
   }
 
   isValidWeight(weight: number): boolean {
