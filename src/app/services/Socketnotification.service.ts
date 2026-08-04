@@ -35,6 +35,14 @@ export interface NotificationData {
   data?: any;
 }
 
+// ✅ NEW: წაშლის event-ის payload backend-იდან
+export interface MessageDeletedPayload {
+  messageId: string;
+  requestId: string;
+  senderId: string;
+  recipientId?: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -49,6 +57,9 @@ export class SocketNotificationService {
 
   // ✅ ტოსტისთვის: ცალკე stream ახალი (სხვისი) მესიჯებისთვის
   private messageToast$ = new Subject<ChatMessage>();
+
+  // ✅ NEW: სტრიმი, რომელიც აცნობებს კომპონენტებს კონკრეტული მესიჯის წაშლაზე
+  private messageDeleted$ = new Subject<MessageDeletedPayload>();
 
   // ✅ ტრეკავს რომელი კონკრეტული საუბარია ამჟამად ღია ჩატის მოდალში
   private activeConversationKey: string | null = null;
@@ -151,10 +162,21 @@ export class SocketNotificationService {
       this.rebuildConversations();
     });
 
+    // ✅ NEW: სხვა/ჩვენი მხრიდან წაშლილი მესიჯის მოსმენა და ლოკალურად ამოღება
+    this.socket.on('message_deleted', (payload: MessageDeletedPayload) => {
+      console.log('🗑️ message_deleted event:', payload);
+      this.removeChatMessage(payload.messageId);
+      this.messageDeleted$.next(payload);
+    });
+
     this.socket.on('notification', (data: NotificationData) => {
       console.log('🔔 notification event:', data);
       this.notifications$.next([data, ...this.notifications$.value]);
       this.showPushNotification(data);
+    });
+
+    this.socket.on('message_error', (err: { message: string }) => {
+      console.error('🚨 message_error:', err?.message);
     });
 
     this.socket.on('error', (error: any) => {
@@ -212,14 +234,25 @@ export class SocketNotificationService {
     return `${requestId}::${ids.join('::')}`;
   }
 
-  joinRoom(requestId: string): void {
-    console.log('🚪 joinRoom:', requestId);
-    this.socket?.emit('join_room', { requestId });
+  /**
+   * ✅ FIXED: ახლა otherUserId-საც უგზავნის backend-ს, რომ სწორი,
+   * ორ-მხრიანი room შეიქმნას (წინააღმდეგ შემთხვევაში ერთსა და იმავე
+   * requestId-ზე სხვადასხვა წყვილის საუბრები ერევა ერთმანეთში).
+   */
+  joinRoom(requestId: string, otherUserId?: string): void {
+    const safeOtherUserId = this.normalizeId(otherUserId);
+    console.log('🚪 joinRoom:', { requestId, otherUserId: safeOtherUserId });
+    this.socket?.emit('join_room', { requestId, otherUserId: safeOtherUserId || undefined });
   }
 
-  loadChatHistory(requestId: string): void {
-    console.log('📜 loadChatHistory:', requestId);
-    this.socket?.emit('load_messages', { requestId });
+  /**
+   * ✅ FIXED: ახლა otherUserId-საც უგზავნის backend-ს fetchPairHistory-სთვის,
+   * რომ ისტორია მხოლოდ ამ კონკრეტულ წყვილს დაუბრუნდეს.
+   */
+  loadChatHistory(requestId: string, otherUserId?: string): void {
+    const safeOtherUserId = this.normalizeId(otherUserId);
+    console.log('📜 loadChatHistory:', { requestId, otherUserId: safeOtherUserId });
+    this.socket?.emit('load_messages', { requestId, otherUserId: safeOtherUserId || undefined });
   }
 
   /**
@@ -260,6 +293,16 @@ export class SocketNotificationService {
 
   sendMessage(requestId: string, message: string, recipientId?: string): void {
     const sender = this.smsService.getCurrentUser();
+
+    // 🔍 დროებითი დიაგნოსტიკური ლოგი — ზუსტად რომელი პირობაა ჩავარდნილი
+    console.log('🔍 sendMessage დიაგნოსტიკა:', {
+      hasSender: !!sender,
+      sender,
+      hasSocket: !!this.socket,
+      socketConnected: this.socket?.connected,
+      hasToken: !!this.smsService.getAuthToken()
+    });
+
     if (!sender || !this.socket?.connected) {
       console.warn('⚠️ sendMessage: user ან socket ვერ მოიძებნა');
       return;
@@ -347,6 +390,18 @@ export class SocketNotificationService {
     this.socket?.emit('send_notification', { recipientId: this.normalizeId(recipientId), ...data });
   }
 
+  /**
+   * ✅ NEW: მოთხოვნა backend-თან კონკრეტული მესიჯის წასაშლელად.
+   * ბექენდი ამოწმებს, რომ მხოლოდ სენდერს შეუძლია საკუთარი მესიჯის წაშლა.
+   * ლოკალურად UI-დან ამოღება ხდება 'message_deleted' event-ის დაბრუნებისას,
+   * რომ ორივე მხარეს (გამგზავნი + მიმღები) ერთდროულად გაუქრეს realtime.
+   */
+  deleteMessage(messageId: string): void {
+    if (!messageId) return;
+    console.log('🗑️ deleteMessage მოთხოვნა:', messageId);
+    this.socket?.emit('delete_message', { messageId });
+  }
+
   getChatMessages(): Observable<ChatMessage[]> {
     return this.chatMessages$.asObservable();
   }
@@ -372,6 +427,14 @@ export class SocketNotificationService {
    */
   getMessageToast(): Observable<ChatMessage> {
     return this.messageToast$.asObservable();
+  }
+
+  /**
+   * ✅ NEW: წაშლის event-ების stream — თუ კომპონენტს დამატებით
+   * რეაქციის გატარება სჭირდება (მაგ. toast "წაიშალა" შეტყობინებაზე).
+   */
+  getMessageDeleted(): Observable<MessageDeletedPayload> {
+    return this.messageDeleted$.asObservable();
   }
 
   /**
@@ -448,6 +511,23 @@ export class SocketNotificationService {
       if (!isMine && !isChatOpen) {
         this.messageToast$.next(safeMessage);
       }
+    }
+  }
+
+  /**
+   * ✅ NEW: მესიჯის ლოკალურად ამოღება state-იდან (წაშლის შემდეგ)
+   * და conversations/unread-ის თავიდან გამოთვლა.
+   */
+  private removeChatMessage(messageId: string): void {
+    if (!messageId) return;
+
+    const messages = this.chatMessages$.value;
+    const filtered = messages.filter(m => m._id !== messageId);
+
+    if (filtered.length !== messages.length) {
+      this.chatMessages$.next(filtered);
+      this.rebuildConversations();
+      this.recalculateGlobalUnreadCount();
     }
   }
 

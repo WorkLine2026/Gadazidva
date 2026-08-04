@@ -214,6 +214,30 @@ export class RegisterComponent implements OnInit, OnDestroy {
     });
   }
 
+
+
+downloadTerms(event: Event): void {
+  event.preventDefault();
+  event.stopPropagation();
+
+  const fileUrl = 'https://files.catbox.moe/qevi2n.pdf';
+
+  fetch(fileUrl)
+    .then(response => response.blob())
+    .then(blob => {
+      const blobUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = 'წესები-და-კონფიდენციალურობა.pdf';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(blobUrl);
+    })
+    .catch(error => console.error('Error downloading file:', error));
+}
+
+
   onVerifyCode(): void {
     this.verificationError = null;
 

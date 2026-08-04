@@ -37,6 +37,9 @@ export class ChatModalImprovedComponent implements OnInit, OnDestroy, AfterViewC
   isOnline = false;
   isTyping = false;
 
+  // ✅ NEW: რომელი მესიჯის წაშლის დადასტურებას ველოდებით (id ან null)
+  pendingDeleteId: string | null = null;
+
   private destroy$ = new Subject<void>();
   private typingTimeout: any = null;
   private shouldScrollToBottom = false;
@@ -60,13 +63,16 @@ export class ChatModalImprovedComponent implements OnInit, OnDestroy, AfterViewC
 
     this.socketService.registerConversationMeta(this.requestId, this.recipientId, this.recipientName);
 
-    this.socketService.joinRoom(this.requestId);
-    this.socketService.loadChatHistory(this.requestId);
+    // ✅ FIXED: recipientId ახლა გადაეცემა join_room-სა და load_messages-საც,
+    // რომ ბექენდმა ზუსტად ამ წყვილის ისტორია დააბრუნოს და არა ყველა საუბარი
+    // ერთად ამ requestId-ზე.
+    this.socketService.joinRoom(this.requestId, this.recipientId);
+    this.socketService.loadChatHistory(this.requestId, this.recipientId);
 
     this.socketService.getChatMessages()
       .pipe(takeUntil(this.destroy$))
       .subscribe(messages => {
-        // ✅ ფილტრი ახლა requestId-ზე ᲓᲐ კონკრეტულ წყვილზეა დამოკიდებული
+        // ✅ ფილტრი requestId-ზე ᲓᲐ კონკრეტულ წყვილზეა დამოკიდებული
         // (მე ↔ recipientId), რომ ერთსა და იმავე requestId-ზე სხვა
         // მომხმარებლების საუბრები აქ არ გამოჩნდეს
         this.messages = messages
@@ -148,6 +154,35 @@ export class ChatModalImprovedComponent implements OnInit, OnDestroy, AfterViewC
     this.close.emit();
   }
 
+  /**
+   * ✅ NEW: მხოლოდ საკუთარი მესიჯების წაშლის ღილაკის ჩვენება შესაძლებელია
+   */
+  canDelete(msg: ChatMessage): boolean {
+    return msg.senderId === this.currentUserId && !!msg._id;
+  }
+
+  /**
+   * ✅ NEW: პირველი დაჭერით ვთხოვთ დადასტურებას, მეორეზე ვშლით.
+   * (მარტივი ორნაბიჯიანი UX, ცალკე confirm-მოდალის გარეშე)
+   */
+  requestDelete(msg: ChatMessage): void {
+    if (!msg._id) return;
+
+    if (this.pendingDeleteId === msg._id) {
+      this.socketService.deleteMessage(msg._id);
+      this.pendingDeleteId = null;
+    } else {
+      this.pendingDeleteId = msg._id;
+      // 3 წამის შემდეგ ავტომატურად გაუქმდეს დადასტურების მოლოდინი
+      setTimeout(() => {
+        if (this.pendingDeleteId === msg._id) {
+          this.pendingDeleteId = null;
+          this.cdr.detectChanges();
+        }
+      }, 3000);
+    }
+  }
+
   private scrollToBottom(): void {
     setTimeout(() => {
       const container = this.messagesContainer?.nativeElement;
@@ -193,7 +228,10 @@ export class ChatModalImprovedComponent implements OnInit, OnDestroy, AfterViewC
     return new Date(date1).toDateString() !== new Date(date2).toDateString();
   }
 
-  trackByIndex(index: number): number {
-    return index;
+  // ✅ FIXED: trackBy ახლა _id-ს იყენებს (თუ არსებობს), რომ Angular-მა
+  // წაშლილი მესიჯი სწორად ამოიცნოს და DOM-იდან ამოშალოს ინდექსის
+  // მიხედვით slip-ის გარეშე.
+  trackByIndex(index: number, msg: ChatMessage): string | number {
+    return msg._id || index;
   }
 }

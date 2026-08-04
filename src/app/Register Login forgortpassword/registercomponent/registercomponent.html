@@ -113,15 +113,19 @@
           </div>
         </div>
 
-        <div class="terms-checkbox">
-          <label class="checkbox-container">
-            <input type="checkbox" formControlName="agreeTerms" />
-            <span class="checkmark"></span>
-            <span class="checkbox-text">
-              ვეცნობი და ვეთანხმები პლატფორმის <a href="#" class="terms-link">წესებსა და კონფიდენციალურობის პოლიტიკას</a>
-            </span>
-          </label>
-        </div>
+<div class="terms-checkbox">
+  <label class="checkbox-container">
+    <input type="checkbox" formControlName="agreeTerms" />
+    <span class="checkmark"></span>
+    <span class="checkbox-text">
+      ვეცნობი და ვეთანხმები პლატფორმის
+      <a
+        class="terms-link"
+        (click)="downloadTerms($event)"
+      >წესებსა და კონფიდენციალურობის პოლიტიკას</a>
+    </span>
+  </label>
+</div>
 
         <button type="submit" class="submit-btn" [disabled]="registerForm.invalid || isSendingCode">
           <span *ngIf="!isSendingCode">გაგრძელება — SMS კოდის გაგზავნა</span>
@@ -143,7 +147,6 @@
           გამოგზავნილია 4-ნიშნა კოდი ნომერზე <strong>{{ maskedPhone }}</strong>
         </p>
       </div>
-
 
       <div *ngIf="verificationError" class="error-banner">
         <span class="error-circle-icon">✕</span>

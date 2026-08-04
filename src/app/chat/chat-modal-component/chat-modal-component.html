@@ -32,6 +32,17 @@
 
       <div class="message-row" [class.my-message]="msg.senderId === currentUserId">
         <div class="message-bubble">
+          <!-- ✅ წაშლის ღილაკი მხოლოდ საკუთარ მესიჯებზე -->
+          <button
+            *ngIf="canDelete(msg)"
+            class="message-delete-btn"
+            [class.confirm-state]="pendingDeleteId === msg._id"
+            (click)="requestDelete(msg)"
+            [title]="pendingDeleteId === msg._id ? 'დააჭირეთ დასადასტურებლად' : 'შეტყობინების წაშლა'">
+            <ng-container *ngIf="pendingDeleteId === msg._id; else trashIcon">✓</ng-container>
+            <ng-template #trashIcon>🗑</ng-template>
+          </button>
+
           <div class="message-text">{{ msg.message }}</div>
           <div class="message-time">
             {{ formatTime(msg.timestamp) }}
