@@ -1,5 +1,5 @@
 export const environment = {
   production: true,
- apiUrl: 'https://ggzavnabeck.onrender.com/api',
-    socketUrl: 'https://ggzavnabeck.onrender.com' 
+ apiUrl: 'http://localhost:3000/api',
+    socketUrl: 'http://localhost:3000' 
 };

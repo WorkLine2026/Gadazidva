@@ -103,6 +103,7 @@ $transition-default: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 0 10px 30px $shadow-color-blue;
   font-family: $font-stack;
   transition: $transition-default;
+  overflow: hidden;
 
   @media (max-width: 1024px) { top: 12px; left: 12px; right: 12px; border-radius: 16px; }
   @media (max-width: 480px) { top: 8px; left: 8px; right: 8px; border-radius: 14px; }
@@ -361,6 +362,92 @@ $transition-default: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 // ====================================
+// Animated Route — a small van drives across the bottom edge
+// ====================================
+.nav-road {
+  position: absolute;
+  left: 28px;
+  right: 28px;
+  bottom: 5px;
+  height: 12px;
+  pointer-events: none;
+
+  @media (max-width: 1024px) {
+    left: 20px;
+    right: 20px;
+    bottom: 4px;
+    height: 10px;
+  }
+
+  @media (max-width: 480px) {
+    left: 14px;
+    right: 14px;
+    bottom: 3px;
+    height: 9px;
+  }
+}
+
+.nav-road__track {
+  position: absolute;
+  left: 0; right: 0;
+  top: 50%;
+  height: 2px;
+  transform: translateY(-50%);
+  border-radius: 2px;
+  background-image: linear-gradient(
+    to right,
+    rgba($primary-blue-light, 0.4) 0 6px, transparent 6px 13px
+  );
+  background-size: 19px 2px;
+  background-repeat: repeat-x;
+
+  @media (max-width: 480px) {
+    background-image: linear-gradient(
+      to right,
+      rgba($primary-blue-light, 0.4) 0 4px, transparent 4px 9px
+    );
+    background-size: 13px 2px;
+  }
+}
+
+.nav-road__car-wrap {
+  position: absolute;
+  top: 50%;
+  left: -6%;
+  transform: translateY(-50%);
+  animation: navRoadDrive 9s linear infinite;
+
+  @media (max-width: 1024px) { animation-duration: 7s; }
+  @media (max-width: 480px) { animation-duration: 5.5s; }
+}
+
+.nav-road__car {
+  display: block;
+  width: 26px;
+  height: 13px;
+  filter: drop-shadow(0 2px 3px rgba(30, 64, 175, 0.25));
+  animation: navRoadBounce 0.5s ease-in-out infinite;
+
+  @media (max-width: 1024px) { width: 20px; height: 10px; }
+  @media (max-width: 480px) { width: 16px; height: 8px; }
+}
+
+@keyframes navRoadDrive {
+  0%   { left: -6%; }
+  100% { left: 106%; }
+}
+
+@keyframes navRoadBounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-1px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav-road__car-wrap { animation: none; left: 50%; }
+  .nav-road__car { animation: none; }
+}
+
+// ====================================
 // Dark Mode Support
 // ====================================
 @media (prefers-color-scheme: dark) {
@@ -373,4 +460,10 @@ $transition-default: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   .btn-signin { color: #f3f4f6; border-color: #374151; &:hover { background-color: #1f2937; } }
   .hamburger span { background-color: #f3f4f6; }
   .nav-wrapper { @media (max-width: 1024px) { background: #111827; border-color: #374151; } }
+  .nav-road__track {
+    background-image: linear-gradient(
+      to right,
+      rgba($secondary-orange, 0.45) 0 6px, transparent 6px 13px
+    );
+  }
 }

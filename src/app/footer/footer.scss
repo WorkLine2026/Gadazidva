@@ -18,6 +18,64 @@
       gap: 30px;
     }
   }
+  /* კონტეინერის სტილი */
+.social-buttons {
+  display: flex;
+  gap: 15px; /* ღილაკებს შორის დაშორება */
+  align-items: center;
+}
+
+/* ძირითადი ღილაკის სტილი მუქი ფონისთვის */
+.social-btn {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%; /* მომრგვალებული ფორმა */
+  border: 1px solid rgba(255, 255, 255, 0.15); /* ნაზი თეთრი კანტი */
+  background: rgba(255, 255, 255, 0.05); /* ოდნავ გამჭვირვალე ფონი */
+  color: #ffffff; /* იკონკის საწყისი თეთრი ფერი */
+  font-size: 20px; /* იკონკის ზომა */
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease-in-out;
+  outline: none;
+  backdrop-filter: blur(5px);
+}
+
+/* Hover ეფექტი — წამოწევა და ნათება */
+
+/* Facebook */
+.social-btn.facebook:hover {
+  background-color: #1877f2;
+  border-color: #1877f2;
+  color: #ffffff;
+  transform: translateY(-4px); /* ოდნავ ზემოთ წამოწევა */
+  box-shadow: 0 8px 20px rgba(24, 119, 242, 0.4); /* ცისფერი ნათება */
+}
+
+/* Instagram */
+.social-btn.instagram:hover {
+  background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+  border-color: transparent;
+  color: #ffffff;
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(220, 39, 67, 0.4); /* ვარდისფერი/გრადიენტული ნათება */
+}
+
+/* LinkedIn */
+.social-btn.linkedin:hover {
+  background-color: #0a66c2;
+  border-color: #0a66c2;
+  color: #ffffff;
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(10, 102, 194, 0.4); /* ლურჯი ნათება */
+}
+
+/* დაჭერისას (Active) */
+.social-btn:active {
+  transform: translateY(-1px);
+}
 
   .footer-column {
     display: flex;

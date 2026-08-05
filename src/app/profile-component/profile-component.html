@@ -1,384 +1,388 @@
-<!-- ========== პროფილი ჰედერი ========== -->
-<div class="profile-wrapper">
-  <div class="profile-container">
-    <div class="profile-header">
-      <h1 class="profile-title">ჩემი პროფილი</h1>
-      <div class="header-actions">
-        <button class="back-btn" (click)="goToDashboard()">← დაბრუნება</button>
-        <button class="menu-btn" (click)="toggleMenu()">⋮ მენიუ</button>
+<!-- ========== როუთ-ჰედერი ========== -->
+<div class="profile-page">
+  <div class="profile-shell">
+
+    <header class="route-header">
+      <div class="route-header__path" aria-hidden="true">
+        <span class="waypoint waypoint--start"></span>
+        <span class="dash-line"></span>
+        <span class="waypoint waypoint--end"></span>
       </div>
-    </div>
+      <div class="route-header__row">
+        <div>
+          <span class="route-header__eyebrow">ანგარიში</span>
+          <h1 class="route-header__title">ჩემი პროფილი</h1>
+        </div>
+        <div class="route-header__actions">
+          <button class="btn-ghost" (click)="goToDashboard()">← დაბრუნება</button>
+          <button class="btn-ghost btn-ghost--icon" (click)="toggleMenu()">⋮</button>
+        </div>
+      </div>
+    </header>
 
     <!-- ========== ორსვეტიანი ძირითადი განლაგება ========== -->
-    <div class="profile-layout-grid">
+    <div class="profile-grid">
 
-      <!-- მარცხენა სვეტი (იუზერ კარტი) -->
+      <!-- მარცხენა სვეტი — გასაკიდი ტეგივით -->
       <div class="profile-sidebar-column">
-        <div class="user-card" *ngIf="!isLoading">
-          <div class="avatar">{{ getUserInitials() }}</div>
 
-          <div class="user-info-block">
-            <div class="user-name">{{ firstName }} {{ lastName }}</div>
-            <div class="user-profession">{{ email }}</div>
-            <span class="role-badge" [ngClass]="userRole === 'driver' ? 'role-driver' : 'role-sender'">
+        <div class="tag-card" *ngIf="!isLoading">
+          <div class="tag-card__strap" aria-hidden="true"></div>
+          <div class="tag-card__grommet" aria-hidden="true"></div>
+
+          <div class="tag-card__top">
+            <div class="tag-card__avatar">{{ getUserInitials() }}</div>
+            <div class="tag-card__name">{{ firstName }} {{ lastName }}</div>
+            <div class="tag-card__email">{{ email }}</div>
+            <span class="tag-card__stamp" [ngClass]="userRole === 'driver' ? 'stamp--driver' : 'stamp--sender'">
               {{ getRoleLabel() }}
             </span>
           </div>
 
-          <div class="user-status-inline">
-            <div [ngClass]="phoneVerified ? 'verified' : 'unverified'">
-              {{ phoneVerified ? 'ტელ. დადასტურებული' : 'ტელ. დადასტურებული არ არის' }}
+          <div class="tag-card__perforation" aria-hidden="true"></div>
+
+          <div class="tag-card__status">
+            <div class="status-line" [ngClass]="phoneVerified ? 'status-line--ok' : 'status-line--warn'">
+              <span class="status-dot"></span>
+              {{ phoneVerified ? 'ტელეფონი დადასტურებულია' : 'ტელეფონი არ არის დადასტურებული' }}
             </div>
-            <div style="color: rgba(255,255,255,0.55); font-weight: normal;">{{ formatPhone(phone) }}</div>
+            <div class="status-phone">{{ formatPhone(phone) }}</div>
           </div>
 
-          <div class="user-actions">
-            <button class="edit-btn" (click)="toggleEditMode()">✏️ რედაქტირება</button>
+          <div class="tag-card__actions">
+            <button class="btn-tag btn-tag--outline" (click)="toggleEditMode()">
+              <span>✏️</span> რედაქტირება
+            </button>
             <button
-              class="messages-btn"
+              class="btn-tag btn-tag--solid"
               (click)="toggleConversations()"
               [class.has-unread]="unreadCount > 0">
-              <span class="messages-btn-icon">💬</span>
-              <span class="messages-btn-label">შეტყობინებები</span>
+              <span>💬</span>
+              <span>შეტყობინებები</span>
               <span *ngIf="unreadCount > 0" class="unread-badge">{{ unreadCount }}</span>
             </button>
           </div>
 
-          <div class="stats-container" *ngIf="userRole === 'sender'">
-            <div class="stat-box">
-              <div class="stat-value">{{ userRequests.length }}</div>
-              <div class="stat-label">განცხადება</div>
+          <div class="tag-card__stats" *ngIf="userRole === 'sender'">
+            <div class="stat-chip">
+              <div class="stat-chip__value">{{ userRequests.length }}</div>
+              <div class="stat-chip__label">განცხადება</div>
             </div>
-            <div class="stat-box">
-              <div class="stat-value">📊</div>
-              <div class="stat-label">სტატისტიკა</div>
+            <div class="stat-chip stat-chip--accent">
+              <div class="stat-chip__value">📊</div>
+              <div class="stat-chip__label">სტატისტიკა</div>
             </div>
           </div>
 
-          <div class="stats-container" *ngIf="userRole === 'driver'">
-            <div class="stat-box">
-              <div class="stat-value">{{ driverTrips.length }}</div>
-              <div class="stat-label">მგზავრობა</div>
+          <div class="tag-card__stats" *ngIf="userRole === 'driver'">
+            <div class="stat-chip">
+              <div class="stat-chip__value">{{ driverTrips.length }}</div>
+              <div class="stat-chip__label">მგზავრობა</div>
             </div>
-            <div class="stat-box">
-              <div class="stat-value">📊</div>
-              <div class="stat-label">სტატისტიკა</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- დამატებითი ინფო მძღოლებისთვის — ცალკე ბარათად, კარტის ქვემოთ -->
-        <div class="info-card" *ngIf="!isLoading && userRole === 'driver'">
-          <div style="font-size: 12px; font-weight: 700; color: #7C8093; text-transform: uppercase; letter-spacing: 0.3px;">🚘 ავტომობილი</div>
-          <div class="info-grid">
-            <div class="info-item">
-              <div class="info-label">მოდელი</div>
-              <div class="info-value">{{ carModel || '—' }}</div>
-            </div>
-            <div class="info-item">
-              <div class="info-label">ნომერი</div>
-              <div class="info-value"><span class="plate-number">{{ carPlate || '—' }}</span></div>
+            <div class="stat-chip stat-chip--accent">
+              <div class="stat-chip__value">📊</div>
+              <div class="stat-chip__label">სტატისტიკა</div>
             </div>
           </div>
         </div>
 
-        <!-- ზღუარი ჩატვირთვისას -->
-        <div *ngIf="isLoading" class="sidebar-skeleton">⏳ ჩატვირთვა...</div>
+        <!-- მძღოლის მანქანის მინი-მანიფესტი -->
+        <div class="manifest-card" *ngIf="!isLoading && userRole === 'driver'">
+          <div class="manifest-card__title">🚘 ავტომობილის მანიფესტი</div>
+          <div class="manifest-grid">
+            <div class="manifest-item">
+              <div class="manifest-item__label">მოდელი</div>
+              <div class="manifest-item__value">{{ carModel || '—' }}</div>
+            </div>
+            <div class="manifest-item">
+              <div class="manifest-item__label">ნომერი</div>
+              <div class="manifest-item__value">
+                <span class="plate-chip">{{ carPlate || '—' }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="isLoading" class="skeleton-block">იტვირთება…</div>
       </div>
 
-      <!-- მარჯვენა სვეტი (პარამეტრები + განცხადებები/მგზავრობები) -->
+      <!-- მარჯვენა სვეტი -->
       <div class="profile-main-column">
 
-        <!-- რედაქტირების რეჟიმი -->
-        <div class="edit-section" *ngIf="isEditing">
-          <h3>პროფილის რედაქტირება</h3>
-          <p>განაახლეთ თქვენი ინფორმაცია</p>
+        <!-- რედაქტირების ფორმა -->
+        <div class="form-panel" *ngIf="isEditing">
+          <div class="form-panel__header">
+            <span class="form-panel__eyebrow">განახლება</span>
+            <h3>პროფილის რედაქტირება</h3>
+            <p>განაახლეთ თქვენი მონაცემები ქვემოთ</p>
+          </div>
 
           <form [formGroup]="profileForm" class="profile-form">
-            <!-- სახელი და გვარი -->
-            <div class="form-grid-2">
-              <div class="form-row">
-                <label class="field-label">სახელი</label>
+            <div class="field-grid field-grid--2">
+              <div class="field">
+                <label class="field__label">სახელი</label>
                 <input
                   type="text"
-                  class="input-field"
+                  class="field__input"
                   formControlName="firstName"
-                  [style.border-color]="isFieldInvalid('firstName') ? '#ef4444' : '#cbd5e1'"
+                  [style.border-color]="isFieldInvalid('firstName') ? '#E11D48' : ''"
                 />
-                <span *ngIf="isFieldInvalid('firstName')" class="field-hint">სახელი აუცილებელია</span>
+                <span *ngIf="isFieldInvalid('firstName')" class="field__hint">სახელი აუცილებელია</span>
               </div>
-              <div class="form-row">
-                <label class="field-label">გვარი</label>
+              <div class="field">
+                <label class="field__label">გვარი</label>
                 <input
                   type="text"
-                  class="input-field"
+                  class="field__input"
                   formControlName="lastName"
-                  [style.border-color]="isFieldInvalid('lastName') ? '#ef4444' : '#cbd5e1'"
+                  [style.border-color]="isFieldInvalid('lastName') ? '#E11D48' : ''"
                 />
-                <span *ngIf="isFieldInvalid('lastName')" class="field-hint">გვარი აუცილებელია</span>
+                <span *ngIf="isFieldInvalid('lastName')" class="field__hint">გვარი აუცილებელია</span>
               </div>
             </div>
 
-            <!-- ელფოსტა -->
-            <div class="form-row">
-              <label class="field-label">ელფოსტა</label>
+            <div class="field">
+              <label class="field__label">ელფოსტა</label>
               <input
                 type="email"
-                class="input-field"
+                class="field__input"
                 formControlName="email"
-                [style.border-color]="isFieldInvalid('email') ? '#ef4444' : '#cbd5e1'"
+                [style.border-color]="isFieldInvalid('email') ? '#E11D48' : ''"
               />
-              <span *ngIf="isFieldInvalid('email')" class="field-hint">სწორი ელფოსტა აუცილებელია</span>
+              <span *ngIf="isFieldInvalid('email')" class="field__hint">სწორი ელფოსტა აუცილებელია</span>
             </div>
 
-            <!-- პირადი ნომერი (გამორთული) -->
-            <div class="form-row">
-              <label class="field-label">პირადი ნომერი</label>
+            <div class="field">
+              <label class="field__label">პირადი ნომერი</label>
               <input
                 type="text"
-                class="input-field"
+                class="field__input"
                 formControlName="personalNumber"
                 [disabled]="true"
               />
             </div>
 
-            <!-- მძღოლის ველები -->
             <div *ngIf="userRole === 'driver'">
-              <div class="section-subtitle">ავტომობილის დეტალები</div>
+              <div class="field-grid__divider">ავტომობილის დეტალები</div>
 
-              <div class="form-grid-2">
-                <div class="form-row">
-                  <label class="field-label">მოდელი</label>
+              <div class="field-grid field-grid--2">
+                <div class="field">
+                  <label class="field__label">მოდელი</label>
                   <input
                     type="text"
-                    class="input-field"
+                    class="field__input"
                     formControlName="carModel"
-                    [style.border-color]="isFieldInvalid('carModel') ? '#ef4444' : '#cbd5e1'"
+                    [style.border-color]="isFieldInvalid('carModel') ? '#E11D48' : ''"
                   />
-                  <span *ngIf="isFieldInvalid('carModel')" class="field-hint">მოდელი აუცილებელია</span>
+                  <span *ngIf="isFieldInvalid('carModel')" class="field__hint">მოდელი აუცილებელია</span>
                 </div>
-                <div class="form-row">
-                  <label class="field-label">ნომერი (AA-000-AA)</label>
+                <div class="field">
+                  <label class="field__label">ნომერი (AA-000-AA)</label>
                   <input
                     type="text"
-                    class="input-field"
+                    class="field__input"
                     formControlName="carPlate"
-                    [style.border-color]="isFieldInvalid('carPlate') ? '#ef4444' : '#cbd5e1'"
+                    [style.border-color]="isFieldInvalid('carPlate') ? '#E11D48' : ''"
                   />
-                  <span *ngIf="isFieldInvalid('carPlate')" class="field-hint">სწორი ფორმატი: AA-000-AA</span>
+                  <span *ngIf="isFieldInvalid('carPlate')" class="field__hint">სწორი ფორმატი: AA-000-AA</span>
                 </div>
               </div>
 
-              <div class="form-row">
-                <label class="field-label">მართვის მოწმობის ნომერი</label>
+              <div class="field">
+                <label class="field__label">მართვის მოწმობის ნომერი</label>
                 <input
                   type="text"
-                  class="input-field"
+                  class="field__input"
                   formControlName="driverLicenseNumber"
-                  [style.border-color]="isFieldInvalid('driverLicenseNumber') ? '#ef4444' : '#cbd5e1'"
+                  [style.border-color]="isFieldInvalid('driverLicenseNumber') ? '#E11D48' : ''"
                 />
-                <span *ngIf="isFieldInvalid('driverLicenseNumber')" class="field-hint">ლიცენზია აუცილებელია</span>
+                <span *ngIf="isFieldInvalid('driverLicenseNumber')" class="field__hint">ლიცენზია აუცილებელია</span>
               </div>
             </div>
 
-            <!-- ღილაკები -->
-            <div class="form-actions">
+            <div class="form-panel__actions">
               <button type="button" class="btn-primary" (click)="saveProfile()" [disabled]="isSaving">
-                {{ isSaving ? '💾 შენახვა...' : '💾 შენახვა' }}
+                {{ isSaving ? 'ინახება…' : '💾 შენახვა' }}
               </button>
               <button type="button" class="btn-secondary" (click)="cancelEdit()">გაუქმება</button>
             </div>
 
-            <!-- შეცდომის შეტყობინება -->
-            <div *ngIf="errorMessage" class="error-message">
+            <div *ngIf="errorMessage" class="alert-error">
               ⚠️ {{ errorMessage }}
             </div>
           </form>
         </div>
 
-        <!-- ========== DRIVER STATS AND TRIPS SECTION ========== -->
+        <!-- ========== მძღოლის მგზავრობები ========== -->
         <div *ngIf="!isEditing && userRole === 'driver'">
-          <div class="section-heading">
-            <h2>🚗 ჩემი მგზავრობები</h2>
-            <button class="btn-primary" (click)="openPickupFlow()" style="padding: 10px 16px; font-size: 14px;">
-              + ახალი მგზავრობა
-            </button>
+          <div class="section-head">
+            <div>
+              <span class="section-head__eyebrow">ტვირთის მარშრუტები</span>
+              <h2>🚗 ჩემი მგზავრობები</h2>
+            </div>
+            <button class="btn-cta" (click)="openPickupFlow()">+ ახალი მგზავრობა</button>
           </div>
 
-          <!-- ზღუარი ჩატვირთვისას -->
-          <div *ngIf="isLoadingTrips" class="loading-skeleton">⏳ მგზავრობების ჩატვირთვა...</div>
+          <div *ngIf="isLoadingTrips" class="skeleton-block">მგზავრობები იტვირთება…</div>
 
-          <!-- თუ მგზავრობები არ არის -->
-          <div *ngIf="!isLoadingTrips && driverTrips.length === 0" class="empty-state">
-            <div class="empty-icon">🛣️</div>
-            <div class="empty-title">მგზავრობა არ არის</div>
-            <div class="empty-sub">დაიწყეთ ახალი მგზავრობის დაგეგმვა</div>
+          <div *ngIf="!isLoadingTrips && driverTrips.length === 0" class="empty-panel">
+            <div class="empty-panel__icon">🛣️</div>
+            <div class="empty-panel__title">მგზავრობა ჯერ არ გაქვთ</div>
+            <div class="empty-panel__sub">დაგეგმეთ პირველი მარშრუტი და დაიწყეთ შემოსავლის მიღება</div>
           </div>
 
-          <!-- მგზავრობების სია (ქარდები) -->
-          <div class="trips-grid" *ngIf="!isLoadingTrips && driverTrips.length > 0">
-            <div class="trip-card" *ngFor="let trip of driverTrips; let i = index" [style.animation-delay.ms]="i * 60">
+          <div class="stub-grid" *ngIf="!isLoadingTrips && driverTrips.length > 0">
+            <div class="stub-card" *ngFor="let trip of driverTrips; let i = index" [style.animation-delay.ms]="i * 60">
 
-              <!-- მანქანის ფოტო -->
-              <div class="card-image">
+              <div class="stub-card__media">
                 <img
                   *ngIf="trip.images && trip.images.length > 0"
                   [src]="trip.images[0]"
                   [alt]="trip.from + ' → ' + trip.to"
                   loading="lazy" />
-                <div class="card-image-placeholder" *ngIf="!trip.images || trip.images.length === 0">
-                  🚗
-                </div>
-                <span class="card-image-count" *ngIf="trip.images && trip.images.length > 1">
+                <div class="stub-card__media-placeholder" *ngIf="!trip.images || trip.images.length === 0">🚗</div>
+                <span class="stub-card__media-count" *ngIf="trip.images && trip.images.length > 1">
                   +{{ trip.images.length - 1 }}
                 </span>
-              </div>
-
-              <!-- მარშრუტი და სტატუსი -->
-              <div class="trip-header">
-                <div class="trip-route">
-                  <span class="route-from">{{ trip.from }}</span>
-                  <span class="route-arrow">→</span>
-                  <span class="route-to">{{ trip.to }}</span>
-                </div>
-                <div [ngClass]="'trip-status-badge status-' + (trip.status || 'pending')">
+                <div [ngClass]="'stub-card__status status--' + (trip.status || 'pending')">
                   {{ getTripStatusLabel(trip.status) }}
                 </div>
               </div>
 
-              <!-- მთავარი ინფორმაცია -->
-              <div class="trip-body">
-                <div class="trip-info-row">
-                  <div class="info-box">
-                    <div class="info-box-label">გამგზავრება</div>
-                    <div class="info-box-value">{{ formatDateTime(trip.departureDate) }}</div>
+              <div class="stub-card__route">
+                <span class="route-dot route-dot--from"></span>
+                <span class="route-name">{{ trip.from }}</span>
+                <span class="route-track" aria-hidden="true"></span>
+                <span class="route-name">{{ trip.to }}</span>
+                <span class="route-dot route-dot--to"></span>
+              </div>
+
+              <div class="stub-card__body">
+                <div class="stub-card__info">
+                  <div class="info-cell">
+                    <div class="info-cell__label">გამგზავრება</div>
+                    <div class="info-cell__value">{{ formatDateTime(trip.departureDate) }}</div>
                   </div>
-                  <div class="info-box">
-                    <div class="info-box-label">თავისუფალი ადგილი</div>
-                    <div class="info-box-value">{{ trip.availableSpace }} კგ</div>
+                  <div class="info-cell">
+                    <div class="info-cell__label">თავისუფალი წონა</div>
+                    <div class="info-cell__value">{{ trip.availableSpace }} კგ</div>
                   </div>
-                  <div class="info-box">
-                    <div class="info-box-label">ფასი</div>
-                    <div class="info-box-value">{{ trip.pricePerKg }} ₾/კგ</div>
+                  <div class="info-cell">
+                    <div class="info-cell__label">ფასი</div>
+                    <div class="info-cell__value">{{ trip.pricePerKg }} ₾/კგ</div>
                   </div>
+                </div>
+
+                <div *ngIf="trip.acceptedShippings && trip.acceptedShippings.length > 0" class="stub-card__earnings">
+                  <span>✓ მიღებული {{ trip.acceptedShippings.length }} შეკვეთა</span>
+                  <span class="stub-card__earnings-value">{{ getTripEarnings(trip) }}</span>
                 </div>
               </div>
 
-              <!-- მიღებული შეკვეთები -->
-              <div *ngIf="trip.acceptedShippings && trip.acceptedShippings.length > 0" class="earnings-callout">
-                <span class="earnings-label">✓ მიღებული {{ trip.acceptedShippings.length }} შეკვეთა</span>
-                <span class="earnings-value">შემოსავალი: {{ getTripEarnings(trip) }}</span>
-              </div>
+              <div class="stub-card__tear" aria-hidden="true"></div>
 
-              <!-- ქვედა მხარე (ID + ღილაკი) -->
-              <div class="trip-footer">
-                <div class="ticket-id">ID: <span>{{ trip._id.slice(0, 8) }}...</span></div>
-                <button class="btn-view-details" (click)="viewTripDetails(trip._id)">დეტალები →</button>
+              <div class="stub-card__footer">
+                <div class="stub-card__id">№ {{ trip._id.slice(0, 8) }}</div>
+                <button class="btn-details" (click)="viewTripDetails(trip._id)">დეტალები →</button>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- ========== SENDER REQUESTS SECTION ========== -->
+        <!-- ========== გამომგზავნის განცხადებები ========== -->
         <div *ngIf="!isEditing && userRole === 'sender'">
-          <div class="section-heading">
-            <h2>📦 ჩემი განცხადებები</h2>
-            <button class="btn-primary" (click)="openSendItemFlow()" style="padding: 10px 16px; font-size: 14px;">
-              + ახალი განცხადება
-            </button>
+          <div class="section-head">
+            <div>
+              <span class="section-head__eyebrow">ამანათების ისტორია</span>
+              <h2>📦 ჩემი განცხადებები</h2>
+            </div>
+            <button class="btn-cta" (click)="openSendItemFlow()">+ ახალი განცხადება</button>
           </div>
 
-          <!-- ზღუარი ჩატვირთვისას -->
-          <div *ngIf="isLoadingRequests" class="loading-skeleton">⏳ განცხადებების ჩატვირთვა...</div>
+          <div *ngIf="isLoadingRequests" class="skeleton-block">განცხადებები იტვირთება…</div>
 
-          <!-- თუ განცხადებები არ არის -->
-          <div *ngIf="!isLoadingRequests && userRequests.length === 0" class="empty-state">
-            <div class="empty-icon">📭</div>
-            <div class="empty-title">განცხადება არ არის</div>
-            <div class="empty-sub">დაიწყეთ ნივთის გაგზავნა</div>
+          <div *ngIf="!isLoadingRequests && userRequests.length === 0" class="empty-panel">
+            <div class="empty-panel__icon">📭</div>
+            <div class="empty-panel__title">განცხადება ჯერ არ გაქვთ</div>
+            <div class="empty-panel__sub">გამოაგზავნეთ პირველი ამანათი ერთ წუთში</div>
           </div>
 
-          <!-- განცხადებების სია (ქარდები) -->
-          <div class="requests-grid" *ngIf="!isLoadingRequests && userRequests.length > 0">
-            <div class="request-card" *ngFor="let request of userRequests; let i = index" [style.animation-delay.ms]="i * 60">
+          <div class="stub-grid" *ngIf="!isLoadingRequests && userRequests.length > 0">
+            <div class="stub-card" *ngFor="let request of userRequests; let i = index" [style.animation-delay.ms]="i * 60">
 
-              <!-- ამანათის ფოტო -->
-              <div class="card-image">
+              <div class="stub-card__media">
                 <img
                   *ngIf="request.images && request.images.length > 0"
                   [src]="request.images[0]"
                   [alt]="request.from + ' → ' + request.to"
                   loading="lazy" />
-                <div class="card-image-placeholder" *ngIf="!request.images || request.images.length === 0">
-                  📦
-                </div>
-                <span class="card-image-count" *ngIf="request.images && request.images.length > 1">
+                <div class="stub-card__media-placeholder" *ngIf="!request.images || request.images.length === 0">📦</div>
+                <span class="stub-card__media-count" *ngIf="request.images && request.images.length > 1">
                   +{{ request.images.length - 1 }}
                 </span>
-              </div>
-
-              <!-- სტატუს ბეჯი -->
-              <div class="request-header">
-                <div class="request-route">
-                  <span class="route-from">{{ request.from }}</span>
-                  <span class="route-arrow">→</span>
-                  <span class="route-to">{{ request.to }}</span>
-                </div>
-                <div [ngClass]="'status-badge status-' + request.status">
+                <div [ngClass]="'stub-card__status status--' + request.status">
                   {{ getStatusLabel(request.status) }}
                 </div>
               </div>
 
-              <!-- მთავარი ინფორმაცია -->
-              <div class="request-body">
-                <div class="request-info-row">
-                  <div class="info-box">
-                    <div class="info-box-label">წონა</div>
-                    <div class="info-box-value">{{ request.weight }} კგ</div>
+              <div class="stub-card__route">
+                <span class="route-dot route-dot--from"></span>
+                <span class="route-name">{{ request.from }}</span>
+                <span class="route-track" aria-hidden="true"></span>
+                <span class="route-name">{{ request.to }}</span>
+                <span class="route-dot route-dot--to"></span>
+              </div>
+
+              <div class="stub-card__body">
+                <div class="stub-card__info">
+                  <div class="info-cell">
+                    <div class="info-cell__label">წონა</div>
+                    <div class="info-cell__value">{{ request.weight }} კგ</div>
                   </div>
-                  <div class="info-box">
-                    <div class="info-box-label">ღირებულება</div>
-                    <div class="info-box-value">{{ request.value }} ₾</div>
+                  <div class="info-cell">
+                    <div class="info-cell__label">ღირებულება</div>
+                    <div class="info-cell__value">{{ request.value }} ₾</div>
                   </div>
-                  <div class="info-box">
-                    <div class="info-box-label">თარიღი</div>
-                    <div class="info-box-value">{{ formatDate(request.createdAt) }}</div>
+                  <div class="info-cell">
+                    <div class="info-cell__label">თარიღი</div>
+                    <div class="info-cell__value">{{ formatDate(request.createdAt) }}</div>
                   </div>
                 </div>
               </div>
 
-              <!-- ქვედა მხარე (ID + ღილაკი) -->
-              <div class="request-footer">
-                <div class="ticket-id">ID: <span>{{ request._id.slice(0, 8) }}...</span></div>
-                <button class="btn-view-details" (click)="viewRequestDetails(request._id)">დეტალები →</button>
+              <div class="stub-card__tear" aria-hidden="true"></div>
+
+              <div class="stub-card__footer">
+                <div class="stub-card__id">№ {{ request._id.slice(0, 8) }}</div>
+                <button class="btn-details" (click)="viewRequestDetails(request._id)">დეტალები →</button>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- ========== SETTINGS MENU (BOTH ROLES) ========== -->
-        <div *ngIf="!isEditing" style="margin-top: 8px;">
-          <div class="menu-group-title">პარამეტრები</div>
-          <div class="menu-list">
-            <button class="menu-item-row logout-row" (click)="logout()">
-              <div class="menu-item-left">
-                <span class="menu-item-icon">🚪</span>
-                <div class="menu-item-text">
-                  <div class="menu-item-title">გამოსვლა</div>
-                  <div class="menu-item-sub">ანგარიშიდან გასვლა</div>
+        <!-- ========== პარამეტრები ========== -->
+        <div *ngIf="!isEditing" class="settings-block">
+          <span class="settings-block__eyebrow">პარამეტრები</span>
+          <div class="settings-list">
+            <button class="settings-row" (click)="logout()">
+              <div class="settings-row__left">
+                <span class="settings-row__icon">🚪</span>
+                <div>
+                  <div class="settings-row__title">გამოსვლა</div>
+                  <div class="settings-row__sub">ანგარიშიდან გასვლა</div>
                 </div>
               </div>
-              <span class="menu-item-arrow">›</span>
+              <span class="settings-row__arrow">›</span>
             </button>
-            <button class="menu-item-row delete-row" (click)="openDeleteConfirm()">
-              <div class="menu-item-left">
-                <span class="menu-item-icon">🗑️</span>
-                <div class="menu-item-text">
-                  <div class="menu-item-title">ანგარიშის წაშლა</div>
-                  <div class="menu-item-sub">მუდმივი წაშლა</div>
+            <button class="settings-row settings-row--danger" (click)="openDeleteConfirm()">
+              <div class="settings-row__left">
+                <span class="settings-row__icon">🗑️</span>
+                <div>
+                  <div class="settings-row__title">ანგარიშის წაშლა</div>
+                  <div class="settings-row__sub">მუდმივი და შეუქცევადი</div>
                 </div>
               </div>
-              <span class="menu-item-arrow">›</span>
+              <span class="settings-row__arrow">›</span>
             </button>
           </div>
         </div>
@@ -389,10 +393,10 @@
   </div>
 </div>
 
-<!-- 🗨️ საუბრების ცენტრირებული მოდალი -->
-<div class="conversations-modal-backdrop" *ngIf="showConversations" (click)="toggleConversations()">
-  <div class="conversations-modal" (click)="$event.stopPropagation()">
-    <button class="conversations-modal-close" (click)="toggleConversations()">✕</button>
+<!-- 🗨️ საუბრების მოდალი -->
+<div class="modal-backdrop" *ngIf="showConversations" (click)="toggleConversations()">
+  <div class="modal-panel" (click)="$event.stopPropagation()">
+    <button class="modal-close" (click)="toggleConversations()">✕</button>
     <app-conversations-list
       [currentUserId]="userId"
       (conversationSelected)="onConversationSelected($event)">
@@ -400,7 +404,7 @@
   </div>
 </div>
 
-<!-- 💬 ჩატის მოდალი პროფილიდან -->
+<!-- 💬 ჩატის მოდალი -->
 <app-chat-modal
   *ngIf="showChatModal && selectedConversation"
   [requestId]="selectedConversation.conversationId"
