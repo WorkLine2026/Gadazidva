@@ -14,6 +14,7 @@
 
     <button 
       class="hamburger" 
+      [class.active]="isMenuOpen"
       #hamburger
       (click)="toggleMenu()"
       [attr.aria-label]="isMenuOpen ? 'Close menu' : 'Open menu'"
@@ -23,7 +24,7 @@
       <span></span>
     </button>
 
-    <div class="nav-wrapper" #navWrapper>
+    <div class="nav-wrapper" [class.active]="isMenuOpen" #navWrapper>
       <ul class="nav-links">
         <li>
           <a 

@@ -103,7 +103,9 @@ $transition-default: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 0 10px 30px $shadow-color-blue;
   font-family: $font-stack;
   transition: $transition-default;
-  overflow: hidden;
+  // 🛠️ overflow: hidden აქედან მოვხსენით — ის კლიპავდა mobile dropdown მენიუს
+  // (.nav-wrapper.active), რომელიც ნავბარის ქვემოთ, position:absolute-ით იხსნება.
+  // კლიპვა ახლა მხოლოდ .nav-road-ზეა გადატანილი, სადაც საწყისად იყო საჭირო.
 
   @media (max-width: 1024px) { top: 12px; left: 12px; right: 12px; border-radius: 16px; }
   @media (max-width: 480px) { top: 8px; left: 8px; right: 8px; border-radius: 14px; }
@@ -195,6 +197,7 @@ $transition-default: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     flex-direction: column;
     gap: 20px;
     align-items: stretch;
+    z-index: 999;
 
     &.active {
       display: flex; 
@@ -371,6 +374,9 @@ $transition-default: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   bottom: 5px;
   height: 12px;
   pointer-events: none;
+  overflow: hidden; // 🛠️ აქ გადმოვიტანეთ .navbar-დან — მანქანის ტრეკი ისევ იჭრება,
+                     // მაგრამ აღარ ეხება mobile dropdown მენიუს, რომელიც .navbar-ის
+                     // შვილი ელემენტია და ცალკე stacking-ში დგას.
 
   @media (max-width: 1024px) {
     left: 20px;
