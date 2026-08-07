@@ -244,9 +244,6 @@
                 <span class="stub-card__media-count" *ngIf="trip.images && trip.images.length > 1">
                   +{{ trip.images.length - 1 }}
                 </span>
-                <div [ngClass]="'stub-card__status status--' + (trip.status || 'pending')">
-                  {{ getTripStatusLabel(trip.status) }}
-                </div>
               </div>
 
               <div class="stub-card__route">
@@ -283,7 +280,16 @@
 
               <div class="stub-card__footer">
                 <div class="stub-card__id">№ {{ trip._id.slice(0, 8) }}</div>
-                <button class="btn-details" (click)="viewTripDetails(trip._id)">დეტალები →</button>
+                <div class="stub-card__footer-actions">
+                  <button
+                    *ngIf="canDeleteTrip(trip)"
+                    class="btn-delete"
+                    (click)="deleteTrip(trip._id)"
+                    [disabled]="deletingTripId === trip._id">
+                    {{ deletingTripId === trip._id ? 'იშლება…' : '🗑️ წაშლა' }}
+                  </button>
+                  <button class="btn-details" (click)="viewTripDetails(trip._id)">დეტალები →</button>
+                </div>
               </div>
             </div>
           </div>
@@ -320,9 +326,6 @@
                 <span class="stub-card__media-count" *ngIf="request.images && request.images.length > 1">
                   +{{ request.images.length - 1 }}
                 </span>
-                <div [ngClass]="'stub-card__status status--' + request.status">
-                  {{ getStatusLabel(request.status) }}
-                </div>
               </div>
 
               <div class="stub-card__route">
@@ -354,7 +357,16 @@
 
               <div class="stub-card__footer">
                 <div class="stub-card__id">№ {{ request._id.slice(0, 8) }}</div>
-                <button class="btn-details" (click)="viewRequestDetails(request._id)">დეტალები →</button>
+                <div class="stub-card__footer-actions">
+                  <button
+                    *ngIf="canDeleteRequest(request)"
+                    class="btn-delete"
+                    (click)="deleteRequest(request._id)"
+                    [disabled]="deletingRequestId === request._id">
+                    {{ deletingRequestId === request._id ? 'იშლება…' : '🗑️ წაშლა' }}
+                  </button>
+                  <button class="btn-details" (click)="viewRequestDetails(request._id)">დეტალები →</button>
+                </div>
               </div>
             </div>
           </div>

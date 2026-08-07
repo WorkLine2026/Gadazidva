@@ -288,7 +288,31 @@
   border-top: 2px dashed var(--line);
   position: relative;
 }
+.stub-card__footer-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
 
+.btn-delete {
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid #E11D48;
+  background: transparent;
+  color: #E11D48;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background 0.15s ease;
+
+  &:hover:not(:disabled) {
+    background: rgba(225, 29, 72, 0.08);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
 .tag-card__perforation::before,
 .tag-card__perforation::after {
   content: '';

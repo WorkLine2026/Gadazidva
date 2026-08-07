@@ -73,9 +73,11 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
   userRequests: ParcelRequest[] = [];
   isLoadingRequests = false;
+  deletingRequestId: string | null = null; // 👈 გამომგზავნის განცხადების წაშლის loading state
 
   driverTrips: DriverTrip[] = [];
   isLoadingTrips = false;
+  deletingTripId: string | null = null; // 👈 მძღოლის მგზავრობის წაშლის loading state
 
   driverStats: DriverStats | null = null;
 
@@ -295,25 +297,9 @@ export class ProfileComponent implements OnInit, OnDestroy {
     })} ${date.toLocaleTimeString('ka-GE', { hour: '2-digit', minute: '2-digit' })}`;
   }
 
-  getStatusLabel(status: string): string {
-    const labels: { [key: string]: string } = {
-      pending: '⏳ მოლოდინი',
-      accepted: '✅ მიღებული',
-      'in-transit': '🚚 გზაში',
-      delivered: '📍 დაბრუნებული'
-    };
-    return labels[status] || status;
-  }
 
-  getTripStatusLabel(status: string | undefined): string {
-    const labels: { [key: string]: string } = {
-      pending: '⏳ დაგეგმილი',
-      active: '🚗 აქტიური',
-      completed: '✅ დასრულებული',
-      cancelled: '❌ გაუქმებული'
-    };
-    return labels[status || 'pending'] || status || '⏳ დაგეგმილი';
-  }
+
+ 
 
   getTripEarnings(trip: DriverTrip): string {
     if (!trip.acceptedShippings || trip.acceptedShippings.length === 0) {
@@ -494,5 +480,79 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
   viewRequestDetails(requestId: string): void {
     this.router.navigate(['/request', requestId]);
+  }
+
+  /**
+   * ✅ საკუთარი განცხადების წაშლა — სტატუსის მიუხედავად ყოველთვის ჩანს
+   */
+  canDeleteRequest(request: ParcelRequest): boolean {
+    return true;
+  }
+
+  deleteRequest(requestId: string): void {
+    const confirmed = confirm(
+      '⚠️ დარწმუნებული ხართ, რომ გსურთ ამ განცხადების წაშლა?\nუკან დაბრუნება შეუძლებელი იქნება.'
+    );
+
+    if (!confirmed) return;
+
+    this.deletingRequestId = requestId;
+    this.cdr.detectChanges();
+
+    this.parcelService.deleteParcelRequest(requestId).subscribe({
+      next: (res) => {
+        this.deletingRequestId = null;
+
+        if (res.success) {
+          this.userRequests = this.userRequests.filter(r => r._id !== requestId);
+        } else {
+          alert(res.message ?? 'განცხადების წაშლა ვერ მოხერხდა');
+        }
+
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.deletingRequestId = null;
+        alert(err.error?.message || 'განცხადების წაშლა ვერ მოხერხდა');
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  /**
+   * ✅ საკუთარი მგზავრობის წაშლა — სტატუსის მიუხედავად ყოველთვის ჩანს
+   */
+  canDeleteTrip(trip: DriverTrip): boolean {
+    return true;
+  }
+
+  deleteTrip(tripId: string): void {
+    const confirmed = confirm(
+      '⚠️ დარწმუნებული ხართ, რომ გსურთ ამ მგზავრობის წაშლა?\nუკან დაბრუნება შეუძლებელი იქნება.'
+    );
+
+    if (!confirmed) return;
+
+    this.deletingTripId = tripId;
+    this.cdr.detectChanges();
+
+    this.parcelService.deleteTrip(tripId).subscribe({
+      next: (res) => {
+        this.deletingTripId = null;
+
+        if (res.success) {
+          this.driverTrips = this.driverTrips.filter(t => t._id !== tripId);
+        } else {
+          alert(res.message ?? 'მგზავრობის წაშლა ვერ მოხერხდა');
+        }
+
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.deletingTripId = null;
+        alert(err.error?.message || 'მგზავრობის წაშლა ვერ მოხერხდა');
+        this.cdr.detectChanges();
+      }
+    });
   }
 }

@@ -302,6 +302,21 @@ export class ParcelService {
     }
   }
 
+  /**
+   * ✅ PROTECTED - მხოლოდ sender-ს შეუძლია საკუთარი განცხადების წაშლა
+   */
+  deleteParcelRequest(requestId: string): Observable<ApiResponse<null>> {
+    try {
+      this.ensureAuthenticated();
+      return this.http.delete<ApiResponse<null>>(
+        `${this.apiUrl}/request/${requestId}`,
+        { headers: this.getAuthHeaders() }
+      );
+    } catch (err) {
+      return throwError(() => err);
+    }
+  }
+
   // ============ PUBLIC TRIPS (HOME PAGE) ============
 
   getRecentTrips(): Observable<TripsResponse> {
@@ -392,6 +407,21 @@ export class ParcelService {
       return this.http.put<ApiResponse<DriverTrip>>(
         `${this.driverUrl}/${tripId}/complete`,
         {},
+        { headers: this.getAuthHeaders() }
+      );
+    } catch (err) {
+      return throwError(() => err);
+    }
+  }
+
+  /**
+   * ✅ PROTECTED - მხოლოდ driver-ს შეუძლია საკუთარი მგზავრობის წაშლა
+   */
+  deleteTrip(tripId: string): Observable<ApiResponse<null>> {
+    try {
+      this.ensureAuthenticated();
+      return this.http.delete<ApiResponse<null>>(
+        `${this.driverUrl}/${tripId}`,
         { headers: this.getAuthHeaders() }
       );
     } catch (err) {
