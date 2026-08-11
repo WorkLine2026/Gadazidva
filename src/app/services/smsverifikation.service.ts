@@ -185,13 +185,34 @@ export class SmsVerificationService {
 
   // ======================== REGISTRATION FLOW ========================
 
-  sendRegistrationCode(formData: any): Observable<SendCodeResponse> {
+  sendRegistrationCode(formData: any, licensePhoto?: File | null): Observable<SendCodeResponse> {
     if (!formData || !formData.phone) {
       return throwError(() => 'ტელეფონის ნომერი სავალდებულოა');
     }
 
     const formattedPhone = `995${formData.phone}`;
 
+    // ✅ driver + ატვირთული ფაილი → multipart/form-data
+    if (licensePhoto) {
+      const fd = new FormData();
+      fd.append('firstName', formData.firstName || '');
+      fd.append('lastName', formData.lastName || '');
+      fd.append('personalNumber', formData.personalNumber || '');
+      fd.append('email', formData.email || '');
+      fd.append('phone', formattedPhone);
+      fd.append('password', formData.password || '');
+      fd.append('role', formData.role || 'sender');
+      fd.append('carModel', formData.carModel || '');
+      fd.append('carPlate', formData.carPlate || '');
+      fd.append('driverLicenseNumber', formData.driverLicenseNumber || '');
+      fd.append('licensePhoto', licensePhoto, licensePhoto.name);
+
+      // ⚠️ Content-Type ხელით არ დავაყენოთ — ბრაუზერი თავად
+      // დააყენებს "multipart/form-data; boundary=..."-ს
+      return this.http.post<SendCodeResponse>(`${this.apiUrl}/register`, fd);
+    }
+
+    // sender ან ფაილის გარეშე → ჩვეულებრივი JSON
     const payload = {
       firstName: formData.firstName || '',
       lastName: formData.lastName || '',
@@ -207,7 +228,6 @@ export class SmsVerificationService {
 
     return this.http.post<SendCodeResponse>(`${this.apiUrl}/register`, payload);
   }
-
   verifyRegistrationCode(phone: string, code: string): Observable<VerifyCodeResponse> {
     if (!phone || !code) {
       return throwError(() => 'ტელეფონი და კოდი სავალდებულოა');

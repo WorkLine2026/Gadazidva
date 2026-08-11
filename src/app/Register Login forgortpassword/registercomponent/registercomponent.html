@@ -38,13 +38,13 @@
         <div class="form-grid">
           <div class="form-row">
             <label class="field-label">სახელი</label>
-            <input type="text"  class="input-field" formControlName="firstName" [class.has-error]="isFieldInvalid('firstName')" />
+            <input type="text" class="input-field" formControlName="firstName" [class.has-error]="isFieldInvalid('firstName')" />
             <span class="error-text" *ngIf="isFieldInvalid('firstName')">სახელის შევსება სავალდებულოა</span>
           </div>
 
           <div class="form-row">
             <label class="field-label">გვარი</label>
-            <input type="text"  class="input-field" formControlName="lastName" [class.has-error]="isFieldInvalid('lastName')" />
+            <input type="text" class="input-field" formControlName="lastName" [class.has-error]="isFieldInvalid('lastName')" />
             <span class="error-text" *ngIf="isFieldInvalid('lastName')">გვარის შევსება სავალდებულოა</span>
           </div>
         </div>
@@ -84,10 +84,6 @@
           </div>
         </div>
 
-        <!-- Sender-ის ველები - ეს რეგისტრაციის დროს აიკლოსწ, მოგვიანებით profile-ში დაემატება -->
-        <!-- თუ გთხოვ მოდი დეშბორდზე დაამატებ ამანათის დეტალები -->
-
-
         <!-- Driver-ის ველები - მხოლოდ driver role-ის დროს -->
         <div *ngIf="activeRole === 'driver'" class="driver-extra-fields">
           <div class="section-divider"><span>ავტომობილის მონაცემები</span></div>
@@ -111,21 +107,50 @@
             <input type="text" placeholder="DL1234567" class="input-field" formControlName="driverLicenseNumber" [class.has-error]="isFieldInvalid('driverLicenseNumber')" />
             <span class="error-text" *ngIf="isFieldInvalid('driverLicenseNumber')">მართვის მოწმობის ნომერი სავალდებულოა</span>
           </div>
+
+          <!-- ✅ ახალი: მართვის მოწმობის ფოტოს ატვირთვა -->
+          <div class="form-row">
+            <label class="field-label">მართვის მოწმობის ფოტო</label>
+
+            <div class="file-upload-box" [class.has-error]="licenseFileError || isFieldInvalid('licensePhoto')">
+              <input
+                type="file"
+                id="licensePhotoInput"
+                accept=".jpg,.jpeg,.png,.pdf"
+                class="file-input-hidden"
+                (change)="onLicenseFileSelected($event)"
+              />
+
+              <label for="licensePhotoInput" class="file-upload-label" *ngIf="!licenseFileName">
+                <span class="upload-icon">📎</span>
+                <span>აირჩიეთ ფაილი — JPG, PNG ან PDF, მაქს. 5MB</span>
+              </label>
+
+              <div class="file-preview" *ngIf="licenseFileName">
+                <img *ngIf="licensePreviewUrl" [src]="licensePreviewUrl" alt="მართვის მოწმობის გადახედვა" class="preview-thumb" />
+                <span *ngIf="!licensePreviewUrl" class="pdf-icon">📄</span>
+                <span class="file-name">{{ licenseFileName }}</span>
+                <button type="button" class="remove-file-btn" (click)="removeLicenseFile()">✕</button>
+              </div>
+            </div>
+
+            <span class="error-text" *ngIf="licenseFileError">{{ licenseFileError }}</span>
+            <span class="error-text" *ngIf="!licenseFileError && isFieldInvalid('licensePhoto')">
+              მართვის მოწმობის ფოტოს ატვირთვა სავალდებულოა
+            </span>
+          </div>
         </div>
 
-<div class="terms-checkbox">
-  <label class="checkbox-container">
-    <input type="checkbox" formControlName="agreeTerms" />
-    <span class="checkmark"></span>
-    <span class="checkbox-text">
-      ვეცნობი და ვეთანხმები პლატფორმის
-      <a
-        class="terms-link"
-        (click)="downloadTerms($event)"
-      >წესებსა და კონფიდენციალურობის პოლიტიკას</a>
-    </span>
-  </label>
-</div>
+        <div class="terms-checkbox">
+          <label class="checkbox-container">
+            <input type="checkbox" formControlName="agreeTerms" />
+            <span class="checkmark"></span>
+            <span class="checkbox-text">
+              ვეცნობი და ვეთანხმები პლატფორმის
+              <a class="terms-link" (click)="downloadTerms($event)">წესებსა და კონფიდენციალურობის პოლიტიკას</a>
+            </span>
+          </label>
+        </div>
 
         <button type="submit" class="submit-btn" [disabled]="registerForm.invalid || isSendingCode">
           <span *ngIf="!isSendingCode">გაგრძელება — SMS კოდის გაგზავნა</span>
@@ -150,7 +175,7 @@
 
       <div *ngIf="verificationError" class="error-banner">
         <span class="error-circle-icon">✕</span>
-        <span class="error-messagAe-text">{{ verificationError }}</span>
+        <span class="error-message-text">{{ verificationError }}</span>
       </div>
 
       <form [formGroup]="verificationForm" (ngSubmit)="onVerifyCode()" class="register-form">

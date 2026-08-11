@@ -244,7 +244,69 @@ textarea.input-field {
     }
   }
 }
+.file-upload-box {
+  border: 1.5px dashed rgba(0, 0, 0, 0.2);
+  border-radius: 10px;
+  padding: 14px;
+  transition: border-color 0.2s ease;
 
+  &.has-error {
+    border-color: #e53935;
+  }
+}
+
+.file-input-hidden {
+  display: none;
+}
+
+.file-upload-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: rgba(0, 0, 0, 0.6);
+
+  .upload-icon {
+    font-size: 1.1rem;
+  }
+}
+
+.file-preview {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  .preview-thumb {
+    width: 48px;
+    height: 48px;
+    object-fit: cover;
+    border-radius: 6px;
+  }
+
+  .pdf-icon {
+    font-size: 1.6rem;
+  }
+
+  .file-name {
+    flex: 1;
+    font-size: 0.85rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .remove-file-btn {
+    border: none;
+    background: rgba(229, 57, 53, 0.1);
+    color: #e53935;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 0.8rem;
+  }
+}
 // ============= Error Styles =============
 .error-text {
   font-size: 12px;
