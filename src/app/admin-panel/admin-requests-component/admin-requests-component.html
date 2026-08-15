@@ -1,0 +1,77 @@
+<div class="admin-page">
+  <div class="page-header">
+    <h2>📦 განცხადებების მართვა</h2>
+    <button class="btn-secondary" (click)="loadRequests()">🔄 განახლება</button>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters-bar">
+    <input
+      type="text"
+      class="search-input"
+      placeholder="ძებნა (ქალაქი, სახელი, ტელეფონი)..."
+      [(ngModel)]="searchTerm"
+      (ngModelChange)="onSearchChange()" />
+
+    <select class="status-select" [(ngModel)]="statusFilter" (ngModelChange)="onStatusFilterChange()">
+      <option value="all">ყველა სტატუსი</option>
+      <option value="pending">⏳ მოლოდინი</option>
+      <option value="accepted">✅ მიღებული</option>
+      <option value="in-transit">🚚 გზაში</option>
+      <option value="delivered">📍 ჩაბარებული</option>
+    </select>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="isLoading" class="loading-state">
+    <div class="spinner">⏳</div>
+    <p>ჩატვირთვა...</p>
+  </div>
+
+  <!-- Error -->
+  <div *ngIf="!isLoading && errorMessage" class="error-state">
+    <p>⚠️ {{ errorMessage }}</p>
+  </div>
+
+  <!-- Table -->
+  <div *ngIf="!isLoading && !errorMessage" class="table-wrapper">
+    <table class="admin-table" *ngIf="filteredRequests.length > 0; else emptyState">
+      <thead>
+        <tr>
+          <th>მარშრუტი</th>
+          <th>გამგზავნი</th>
+          <th>წონა / ღირებულება</th>
+          <th>სტატუსი</th>
+          <th>შექმნის თარიღი</th>
+          <th>მოქმედება</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let req of filteredRequests">
+          <td>{{ req.from }} → {{ req.to }}</td>
+          <td>
+            <div>{{ req.senderName || '—' }}</div>
+            <div class="muted">{{ req.senderPhone || '—' }}</div>
+          </td>
+          <td>{{ req.weight }} კგ / {{ req.value }} ₾</td>
+          <td>
+            <span class="status-badge" [style.background-color]="getStatusColor(req.status)">
+              {{ getStatusLabel(req.status) }}
+            </span>
+          </td>
+          <td>{{ req.createdAt | date: 'dd.MM.yyyy HH:mm' }}</td>
+          <td class="actions-cell">
+            <a class="btn-link" [routerLink]="['/request', req._id]" target="_blank">👁 ნახვა</a>
+            <button class="btn-danger" (click)="deleteRequest(req._id)">🗑 წაშლა</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <ng-template #emptyState>
+      <div class="empty-state">
+        <p>განცხადებები ვერ მოიძებნა</p>
+      </div>
+    </ng-template>
+  </div>
+</div>

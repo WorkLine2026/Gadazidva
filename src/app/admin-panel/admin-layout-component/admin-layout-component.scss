@@ -1,0 +1,134 @@
+$primary-blue: #2563eb;
+$secondary-orange: #f97316;
+$sidebar-bg: #111827;
+$sidebar-width: 240px;
+$sidebar-width-collapsed: 72px;
+
+.admin-shell {
+  display: flex;
+  min-height: 100vh;
+  background: #f3f4f6;
+  font-family: inherit;
+}
+
+.admin-sidebar {
+  width: $sidebar-width;
+  background: $sidebar-bg;
+  color: #e5e7eb;
+  display: flex;
+  flex-direction: column;
+  transition: width 0.2s ease;
+  flex-shrink: 0;
+
+  &.collapsed {
+    width: $sidebar-width-collapsed;
+  }
+
+  .sidebar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+
+    .logo {
+      font-weight: 700;
+      font-size: 16px;
+      color: white;
+    }
+
+    .toggle-btn {
+      background: none;
+      border: none;
+      color: #9ca3af;
+      cursor: pointer;
+      font-size: 16px;
+    }
+  }
+
+  .sidebar-nav {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 12px 8px;
+    gap: 4px;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    color: #d1d5db;
+    text-decoration: none;
+    font-size: 14px;
+    transition: background 0.15s ease;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    &.active {
+      background: $primary-blue;
+      color: white;
+    }
+
+    .nav-icon {
+      width: 20px;
+      text-align: center;
+    }
+  }
+
+  .logout-btn {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 8px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    background: none;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #f87171;
+    cursor: pointer;
+    font-size: 14px;
+
+    &:hover {
+      background: rgba(248, 113, 113, 0.1);
+    }
+  }
+}
+
+.admin-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.admin-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  background: white;
+  border-bottom: 1px solid #e5e7eb;
+
+  h1 {
+    font-size: 18px;
+    font-weight: 700;
+    color: #111827;
+    margin: 0;
+  }
+
+  .admin-user {
+    font-size: 14px;
+    color: #4b5563;
+  }
+}
+
+.admin-content {
+  flex: 1;
+  padding: 24px;
+  overflow-y: auto;
+}

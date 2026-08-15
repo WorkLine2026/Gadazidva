@@ -1,0 +1,53 @@
+<div class="dashboard">
+  <!-- Loading -->
+  <div *ngIf="isLoading" class="loading-state">
+    <div class="spinner">⏳</div>
+    <p>ჩატვირთვა...</p>
+  </div>
+
+  <!-- Error -->
+  <div *ngIf="!isLoading && errorMessage" class="error-state">
+    <p>⚠️ {{ errorMessage }}</p>
+  </div>
+
+  <div *ngIf="!isLoading && !errorMessage">
+    <!-- Stat Cards -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon">📦</div>
+        <div class="stat-value">{{ stats.totalRequests }}</div>
+        <div class="stat-label">განცხადებები (ბოლო)</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">⏳</div>
+        <div class="stat-value">{{ stats.pendingRequests }}</div>
+        <div class="stat-label">მოლოდინში</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">🚗</div>
+        <div class="stat-value">{{ stats.totalTrips }}</div>
+        <div class="stat-label">მგზავრობები (ბოლო)</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">✅</div>
+        <div class="stat-value">{{ stats.activeTrips }}</div>
+        <div class="stat-label">აქტიური მგზავრობა</div>
+      </div>
+    </div>
+
+    <p class="disclaimer">
+      ⚠️ ეს რიცხვები ეყრდნობა "ბოლო" ჩანაწერების endpoint-ს (ლიმიტირებულია backend-ზე).
+      ზუსტი "სულ რაოდენობისთვის" საჭირო იქნება ცალკე admin stats endpoint.
+    </p>
+
+    <!-- Quick links -->
+    <div class="quick-links">
+      <a routerLink="/admin/requests" class="quick-link">
+        📦 ყველა განცხადების ნახვა →
+      </a>
+      <a routerLink="/admin/trips" class="quick-link">
+        🚗 ყველა მგზავრობის ნახვა →
+      </a>
+    </div>
+  </div>
+</div>

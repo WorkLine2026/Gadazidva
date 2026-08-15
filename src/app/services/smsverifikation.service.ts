@@ -54,7 +54,7 @@ export interface UserProfile {
   email: string;
   phone: string;
   personalNumber: string;
-  role: 'sender' | 'driver';
+   role: 'sender' | 'driver' | 'admin'; 
   phoneVerified: boolean;
   carModel?: string;
   carPlate?: string;

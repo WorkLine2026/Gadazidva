@@ -244,7 +244,8 @@ export class ProfileComponent implements OnInit, OnDestroy {
     this.phone = user.phone;
     this.personalNumber = user.personalNumber;
     this.phoneVerified = user.phoneVerified;
-    this.userRole = user.role;
+    // Cast incoming user.role to the local UserRole type to handle possible extra roles
+    this.userRole = user.role as UserRole;
     this.carModel = user.carModel ?? '';
     this.carPlate = user.carPlate ?? '';
     this.driverLicenseNumber = user.driverLicenseNumber ?? '';

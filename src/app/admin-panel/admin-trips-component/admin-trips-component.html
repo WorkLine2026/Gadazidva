@@ -1,0 +1,87 @@
+<div class="admin-page">
+  <div class="page-header">
+    <h2>🚗 მგზავრობების მართვა</h2>
+    <button class="btn-secondary" (click)="loadTrips()">🔄 განახლება</button>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters-bar">
+    <input
+      type="text"
+      class="search-input"
+      placeholder="ძებნა (ქალაქი, მძღოლი, ნომერი)..."
+      [(ngModel)]="searchTerm"
+      (ngModelChange)="onSearchChange()" />
+
+    <select class="status-select" [(ngModel)]="statusFilter" (ngModelChange)="onStatusFilterChange()">
+      <option value="all">ყველა სტატუსი</option>
+      <option value="pending">⏳ დაგეგმილი</option>
+      <option value="active">🚗 აქტიური</option>
+      <option value="completed">✅ დასრულებული</option>
+      <option value="cancelled">❌ გაუქმებული</option>
+    </select>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="isLoading" class="loading-state">
+    <div class="spinner">⏳</div>
+    <p>ჩატვირთვა...</p>
+  </div>
+
+  <!-- Error -->
+  <div *ngIf="!isLoading && errorMessage" class="error-state">
+    <p>⚠️ {{ errorMessage }}</p>
+  </div>
+
+  <!-- Table -->
+  <div *ngIf="!isLoading && !errorMessage" class="table-wrapper">
+    <table class="admin-table" *ngIf="filteredTrips.length > 0; else emptyState">
+      <thead>
+        <tr>
+          <th>მარშრუტი</th>
+          <th>მძღოლი</th>
+          <th>მანქანა</th>
+          <th>ფასი / ადგილი</th>
+          <th>სტატუსი</th>
+          <th>გასვლის დრო</th>
+          <th>მოქმედება</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let trip of filteredTrips">
+          <td>{{ trip.from }} → {{ trip.to }}</td>
+          <td>
+            <div>{{ trip.driverName || '—' }}</div>
+            <div class="muted">{{ trip.senderPhone || '—' }}</div>
+          </td>
+          <td>
+            <div>{{ trip.carModel || '—' }}</div>
+            <div class="muted">{{ trip.carPlate || '—' }}</div>
+          </td>
+          <td>{{ trip.pricePerKg }} ₾/კგ · {{ trip.availableSpace }} კგ</td>
+          <td>
+            <span class="status-badge" [style.background-color]="getStatusColor(trip.status)">
+              {{ getStatusLabel(trip.status) }}
+            </span>
+          </td>
+          <td>{{ trip.departureDate | date: 'dd.MM.yyyy HH:mm' }}</td>
+          <td class="actions-cell">
+            <a class="btn-link" [routerLink]="['/trip', trip._id]" target="_blank">👁 ნახვა</a>
+            <button
+              class="btn-danger"
+              [disabled]="trip.status === 'cancelled' || trip.status === 'completed'"
+              (click)="cancelTrip(trip._id)">
+              🚫 გაუქმება
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <ng-template #emptyState>
+      <div class="empty-state">
+        <p>მგზავრობები ვერ მოიძებნა</p>
+      </div>
+    </ng-template>
+  </div>
+</div>

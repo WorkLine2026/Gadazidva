@@ -1,0 +1,39 @@
+<div class="admin-shell">
+  <!-- Sidebar -->
+  <aside class="admin-sidebar" [class.collapsed]="!sidebarOpen">
+    <div class="sidebar-header">
+      <span class="logo" *ngIf="sidebarOpen">Gagzavna Admin</span>
+      <button class="toggle-btn" (click)="toggleSidebar()" aria-label="მენიუს ჩაკეცვა">
+        {{ sidebarOpen ? '⏴' : '⏵' }}
+      </button>
+    </div>
+
+    <nav class="sidebar-nav">
+      <a
+        *ngFor="let item of navItems"
+        [routerLink]="item.route"
+        routerLinkActive="active"
+        class="nav-item">
+        <span class="nav-icon">{{ item.icon }}</span>
+        <span class="nav-label" *ngIf="sidebarOpen">{{ item.label }}</span>
+      </a>
+    </nav>
+
+    <button class="logout-btn" (click)="logout()">
+      <span class="nav-icon">🚪</span>
+      <span class="nav-label" *ngIf="sidebarOpen">გასვლა</span>
+    </button>
+  </aside>
+
+  <!-- Main content -->
+  <div class="admin-main">
+    <header class="admin-topbar">
+      <h1>ადმინ პანელი</h1>
+      <div class="admin-user">👤 {{ currentUserName }}</div>
+    </header>
+
+    <main class="admin-content">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+</div>
