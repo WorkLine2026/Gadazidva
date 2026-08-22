@@ -1,3 +1,7 @@
+<div appPullToRefresh (refresh)="onRefresh($event)" class="home-container">
+
+
+
 <div class="hero-slogans">
   <div class="hero-content">
     <span class="hero-badge">
@@ -155,9 +159,6 @@
             <div class="driver-info">
               <span class="driver-name">{{ trip.driverName || 'უცნობი მძღოლი' }}</span>
             </div>
-            <div [ngClass]="'trip-status-badge status-' + (trip.status || 'pending')">
-              {{ getTripStatusLabel(trip.status) }}
-            </div>
           </div>
 
           <div class="route-display">
@@ -249,3 +250,5 @@
     </div>
   </div>
 </section>
+
+</div>

@@ -13,6 +13,7 @@ import { PickupParcelComponent } from '../app/profile-component/pickup-parcel-co
 import { RequestDetailComponent } from './profile-component/send-detail-component/request-detail-component';
 import { TripDetailComponent } from './profile-component/trip-detail-component/trip-detail-component';
 import { adminRoutes } from './admin-panel/Admin.routes';
+import { AllListingsComponent } from './profile-component/all-listings-component/all-listings-component';
 
 export const routes: Routes = [
     
@@ -60,6 +61,9 @@ export const routes: Routes = [
         component: TripDetailComponent
     },
     ...adminRoutes,
+    {
+       path:"listing", component:AllListingsComponent
+    },
     {
         path: '**', redirectTo: 'home'
     }

@@ -1,0 +1,701 @@
+// ======================================================
+// ALL LISTINGS — DARK PREMIUM STYLE
+// ======================================================
+
+.listings-page {
+  min-height: 100vh;
+  padding: 55px 7% 90px;
+
+  color: #fff;
+
+  background:
+    radial-gradient(
+      circle at 15% 10%,
+      rgba(255, 92, 30, 0.12),
+      transparent 28%
+    ),
+    radial-gradient(
+      circle at 85% 20%,
+      rgba(34, 120, 255, 0.12),
+      transparent 30%
+    ),
+    linear-gradient(
+      135deg,
+      #15121e 0%,
+      #101827 48%,
+      #071522 100%
+    );
+
+  position: relative;
+  overflow: hidden;
+
+  // პატარა დეკორატიული წერტილები
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+
+    background-image:
+      radial-gradient(
+        rgba(255, 255, 255, 0.08) 1px,
+        transparent 1px
+      );
+
+    background-size: 34px 34px;
+
+    opacity: 0.25;
+    pointer-events: none;
+  }
+
+  // ზედა ნარინჯისფერი glow
+  &::after {
+    content: '';
+    position: absolute;
+
+    width: 500px;
+    height: 500px;
+
+    top: -250px;
+    left: 50%;
+
+    transform: translateX(-50%);
+
+    background: rgba(255, 87, 34, 0.08);
+
+    filter: blur(100px);
+    border-radius: 50%;
+
+    pointer-events: none;
+  }
+
+  > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  // ====================================================
+  // TITLE
+  // ====================================================
+
+  h1 {
+    margin: 0 0 45px;
+
+    text-align: center;
+
+    font-size: clamp(36px, 5vw, 64px);
+    font-weight: 900;
+
+    letter-spacing: -1.5px;
+
+    color: #ffffff;
+
+    text-shadow:
+      0 5px 25px rgba(0, 0, 0, 0.35);
+
+    position: relative;
+
+    &::after {
+      content: '';
+
+      display: block;
+
+      width: 85px;
+      height: 5px;
+
+      margin: 20px auto 0;
+
+      border-radius: 20px;
+
+      background: linear-gradient(
+        90deg,
+        #ff5722,
+        #ff7043
+      );
+
+      box-shadow:
+        0 0 20px rgba(255, 87, 34, 0.45);
+    }
+  }
+
+
+  // ====================================================
+  // LOADING
+  // ====================================================
+
+  .loading {
+    width: fit-content;
+
+    margin: 70px auto;
+
+    padding: 18px 30px;
+
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    border-radius: 18px;
+
+    background: rgba(255, 255, 255, 0.045);
+
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+
+    color: #cbd5e1;
+
+    font-size: 17px;
+    font-weight: 600;
+
+    box-shadow:
+      0 15px 45px rgba(0, 0, 0, 0.2);
+
+    animation: loadingPulse 1.8s ease-in-out infinite;
+  }
+
+
+  // ====================================================
+  // EMPTY
+  // ====================================================
+
+  .empty {
+    max-width: 600px;
+
+    margin: 70px auto;
+
+    padding: 45px 30px;
+
+    text-align: center;
+
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 24px;
+
+    background:
+      linear-gradient(
+        145deg,
+        rgba(255, 255, 255, 0.055),
+        rgba(255, 255, 255, 0.018)
+      );
+
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+
+    color: #aeb8ca;
+
+    font-size: 18px;
+    font-weight: 600;
+  }
+
+
+  // ====================================================
+  // SECTION
+  // ====================================================
+
+  .listings-section {
+    margin-bottom: 65px;
+
+    animation: sectionAppear 0.55s ease both;
+  }
+
+
+  // ====================================================
+  // SECTION HEADER
+  // ====================================================
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    margin-bottom: 25px;
+
+    padding: 20px 24px;
+
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 20px;
+
+    background:
+      linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0.06),
+        rgba(255, 255, 255, 0.025)
+      );
+
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+
+    box-shadow:
+      0 12px 40px rgba(0, 0, 0, 0.18);
+
+    h2 {
+      margin: 0;
+
+      display: flex;
+      align-items: center;
+      gap: 12px;
+
+      font-size: 25px;
+      font-weight: 850;
+
+      color: #ffffff;
+    }
+
+    .count {
+      min-width: 42px;
+      height: 42px;
+
+      padding: 0 12px;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      border-radius: 13px;
+
+      background:
+        linear-gradient(
+          135deg,
+          #ff5722,
+          #ff7043
+        );
+
+      color: #fff;
+
+      font-size: 16px;
+      font-weight: 800;
+
+      box-shadow:
+        0 8px 22px rgba(255, 87, 34, 0.28);
+    }
+  }
+
+
+  // ====================================================
+  // GRID
+  // ====================================================
+
+  .listings-grid {
+    display: grid;
+
+    grid-template-columns:
+      repeat(
+        auto-fit,
+        minmax(300px, 1fr)
+      );
+
+    gap: 22px;
+  }
+
+
+  // ====================================================
+  // CARD
+  // ====================================================
+
+  .listing-card {
+    position: relative;
+
+    padding: 25px;
+
+    min-height: 215px;
+
+    display: flex;
+    flex-direction: column;
+
+    border: 1px solid rgba(255, 255, 255, 0.075);
+    border-radius: 24px;
+
+    background:
+      linear-gradient(
+        145deg,
+        rgba(255, 255, 255, 0.065),
+        rgba(255, 255, 255, 0.025)
+      );
+
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+
+    box-shadow:
+      0 15px 45px rgba(0, 0, 0, 0.22);
+
+    overflow: hidden;
+
+    transition:
+      transform 0.3s ease,
+      border-color 0.3s ease,
+      box-shadow 0.3s ease,
+      background 0.3s ease;
+
+    // ზედა ნარინჯისფერი ხაზი
+    &::before {
+      content: '';
+
+      position: absolute;
+
+      top: 0;
+      left: 25px;
+      right: 25px;
+
+      height: 2px;
+
+      border-radius: 0 0 10px 10px;
+
+      background:
+        linear-gradient(
+          90deg,
+          transparent,
+          rgba(255, 87, 34, 0.8),
+          transparent
+        );
+
+      opacity: 0.7;
+    }
+
+    // მარჯვენა glow
+    &::after {
+      content: '';
+
+      position: absolute;
+
+      width: 130px;
+      height: 130px;
+
+      right: -65px;
+      bottom: -65px;
+
+      border-radius: 50%;
+
+      background: rgba(255, 87, 34, 0.07);
+
+      filter: blur(30px);
+
+      pointer-events: none;
+    }
+
+    &:hover {
+      transform: translateY(-7px);
+
+      border-color:
+        rgba(255, 87, 34, 0.3);
+
+      background:
+        linear-gradient(
+          145deg,
+          rgba(255, 255, 255, 0.085),
+          rgba(255, 255, 255, 0.035)
+        );
+
+      box-shadow:
+        0 22px 55px rgba(0, 0, 0, 0.32),
+        0 0 30px rgba(255, 87, 34, 0.07);
+    }
+
+
+    // ==================================================
+    // ROUTE
+    // ==================================================
+
+    .route {
+      position: relative;
+
+      margin-bottom: 20px;
+
+      padding-bottom: 17px;
+
+      font-size: 21px;
+      font-weight: 850;
+
+      color: #ffffff;
+
+      letter-spacing: -0.3px;
+
+      border-bottom:
+        1px solid rgba(255, 255, 255, 0.07);
+
+      // პატარა orange marker
+      &::before {
+        content: '';
+
+        display: inline-block;
+
+        width: 7px;
+        height: 7px;
+
+        margin-right: 10px;
+
+        vertical-align: middle;
+
+        border-radius: 50%;
+
+        background: #ff5722;
+
+        box-shadow:
+          0 0 12px rgba(255, 87, 34, 0.7);
+      }
+    }
+
+
+    // ==================================================
+    // DETAILS
+    // ==================================================
+
+    .details {
+      display: flex;
+      flex-wrap: wrap;
+
+      gap: 9px;
+
+      margin-bottom: 15px;
+
+      span {
+        display: inline-flex;
+        align-items: center;
+
+        padding: 8px 11px;
+
+        border-radius: 10px;
+
+        background:
+          rgba(255, 255, 255, 0.045);
+
+        border:
+          1px solid rgba(255, 255, 255, 0.055);
+
+        color: #b9c4d5;
+
+        font-size: 13px;
+        font-weight: 600;
+
+        transition:
+          background 0.25s ease,
+          color 0.25s ease;
+
+        &:hover {
+          background:
+            rgba(255, 87, 34, 0.09);
+
+          color: #ffffff;
+        }
+      }
+    }
+
+
+    // ==================================================
+    // DESCRIPTION
+    // ==================================================
+
+    .description {
+      margin: 3px 0 22px;
+
+      color: #8996aa;
+
+      font-size: 14px;
+      line-height: 1.65;
+
+      display: -webkit-box;
+      
+      -webkit-box-orient: vertical;
+
+      overflow: hidden;
+    }
+
+
+    // ==================================================
+    // BUTTON
+    // ==================================================
+
+    .btn-details {
+      margin-top: auto;
+
+      width: 100%;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      min-height: 45px;
+
+      border-radius: 13px;
+
+      background:
+        linear-gradient(
+          135deg,
+          #ff5722,
+          #ff7043
+        );
+
+      color: #ffffff;
+
+      text-decoration: none;
+
+      font-size: 14px;
+      font-weight: 800;
+
+      letter-spacing: 0.2px;
+
+      box-shadow:
+        0 8px 22px rgba(255, 87, 34, 0.2);
+
+      transition:
+        transform 0.25s ease,
+        box-shadow 0.25s ease,
+        filter 0.25s ease;
+
+      &:hover {
+        transform: translateY(-2px);
+
+        filter: brightness(1.08);
+
+        box-shadow:
+          0 12px 28px rgba(255, 87, 34, 0.34);
+      }
+
+      &:active {
+        transform: translateY(0);
+      }
+    }
+  }
+}
+
+
+// ======================================================
+// ANIMATIONS
+// ======================================================
+
+@keyframes sectionAppear {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes loadingPulse {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+
+// ======================================================
+// TABLET
+// ======================================================
+
+@media (max-width: 900px) {
+
+  .listings-page {
+    padding: 45px 5% 70px;
+
+    h1 {
+      font-size: 42px;
+    }
+
+    .listings-grid {
+      grid-template-columns:
+        repeat(
+          auto-fit,
+          minmax(280px, 1fr)
+        );
+    }
+  }
+}
+
+
+// ======================================================
+// MOBILE
+// ======================================================
+
+@media (max-width: 600px) {
+
+  .listings-page {
+    padding: 30px 18px 55px;
+
+    h1 {
+      margin-bottom: 30px;
+
+      font-size: 34px;
+      line-height: 1.15;
+
+      letter-spacing: -0.8px;
+
+      &::after {
+        width: 65px;
+        height: 4px;
+
+        margin-top: 15px;
+      }
+    }
+
+    .section-header {
+      padding: 16px 17px;
+
+      border-radius: 17px;
+
+      h2 {
+        font-size: 20px;
+      }
+
+      .count {
+        min-width: 36px;
+        height: 36px;
+
+        font-size: 14px;
+      }
+    }
+
+    .listings-grid {
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+
+    .listing-card {
+      padding: 21px;
+
+      min-height: 205px;
+
+      border-radius: 20px;
+
+      .route {
+        font-size: 18px;
+      }
+
+      .details {
+        span {
+          font-size: 12px;
+        }
+      }
+    }
+  }
+}
+
+
+// ======================================================
+// VERY SMALL DEVICES
+// ======================================================
+
+@media (max-width: 380px) {
+
+  .listings-page {
+    padding-left: 13px;
+    padding-right: 13px;
+
+    h1 {
+      font-size: 30px;
+    }
+
+    .listing-card {
+      padding: 18px;
+
+      .details {
+        flex-direction: column;
+
+        span {
+          width: fit-content;
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,1094 @@
+// =====================================================
+// BOTTOM NAVBAR
+// PREMIUM DARK / GLASS STYLE
+// =====================================================
+
+
+// =====================================================
+// VARIABLES
+// =====================================================
+
+$orange: #ff5722;
+$orange-light: #ff7043;
+$orange-dark: #e64a19;
+
+$blue: #2563eb;
+$blue-light: #3b82f6;
+
+$dark-1: #0b1020;
+$dark-2: #111827;
+
+$text: #ffffff;
+$text-muted: #94a3b8;
+
+$border: rgba(255, 255, 255, 0.08);
+
+$font-stack:
+  -apple-system,
+  BlinkMacSystemFont,
+  "Segoe UI",
+  "Helvetica Neue",
+  Arial,
+  sans-serif;
+
+
+// =====================================================
+// NAVBAR
+// =====================================================
+
+.bottom-navbar {
+
+  position: fixed;
+
+  left: 0;
+  right: 0;
+  bottom: 0;
+
+  height: 72px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+
+  padding:
+    0 16px
+    env(safe-area-inset-bottom);
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(11, 16, 32, 0.96),
+      rgba(15, 23, 42, 0.94)
+    );
+
+  border-top:
+    1px solid rgba(255, 255, 255, 0.08);
+
+  box-shadow:
+    0 -10px 40px rgba(0, 0, 0, 0.35);
+
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+
+  z-index: 1000;
+
+  font-family: $font-stack;
+
+
+  // ზედა subtle glow
+
+  &::before {
+
+    content: "";
+
+    position: absolute;
+
+    top: 0;
+    left: 12%;
+    right: 12%;
+
+    height: 1px;
+
+    background:
+      linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 87, 34, 0.45),
+        transparent
+      );
+
+    pointer-events: none;
+
+  }
+
+}
+
+
+// =====================================================
+// NORMAL NAV ITEM
+// =====================================================
+
+.nav-item {
+
+  position: relative;
+
+  width: 82px;
+  height: 64px;
+
+  display: flex;
+  flex-direction: column;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 4px;
+
+  color: $text-muted;
+
+  text-decoration: none;
+
+  font-size: 10px;
+
+  font-weight: 700;
+
+  letter-spacing: 0.1px;
+
+  border-radius: 16px;
+
+  transition:
+    color 0.25s ease,
+    transform 0.25s ease,
+    background 0.25s ease;
+
+  -webkit-tap-highlight-color: transparent;
+
+
+  // ===================================================
+  // ICON
+  // ===================================================
+
+  .nav-icon-wrap {
+
+    width: 38px;
+    height: 32px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 12px;
+
+    transition:
+      background 0.25s ease,
+      transform 0.25s ease;
+
+  }
+
+
+  .icon {
+
+    width: 22px;
+    height: 22px;
+
+    stroke: currentColor;
+
+    transition:
+      transform 0.25s ease,
+      filter 0.25s ease;
+
+  }
+
+
+  .label {
+
+    line-height: 1;
+
+    white-space: nowrap;
+
+  }
+
+
+  // ===================================================
+  // HOVER
+  // ===================================================
+
+  &:hover {
+
+    color: #ffffff;
+
+    .nav-icon-wrap {
+
+      background:
+        rgba(255, 255, 255, 0.05);
+
+    }
+
+    .icon {
+
+      transform: translateY(-1px);
+
+    }
+
+  }
+
+
+  // ===================================================
+  // ACTIVE
+  // ===================================================
+
+  &.active {
+
+    color: $orange;
+
+
+    .nav-icon-wrap {
+
+      background:
+        rgba(255, 87, 34, 0.10);
+
+    }
+
+
+    .icon {
+
+      filter:
+        drop-shadow(
+          0 0 8px
+          rgba(255, 87, 34, 0.45)
+        );
+
+    }
+
+
+    &::after {
+
+      content: "";
+
+      position: absolute;
+
+      bottom: 2px;
+
+      width: 5px;
+      height: 5px;
+
+      border-radius: 50%;
+
+      background: $orange;
+
+      box-shadow:
+        0 0 10px
+        rgba(255, 87, 34, 0.8);
+
+    }
+
+  }
+
+
+  &:active {
+
+    transform: scale(0.94);
+
+  }
+
+}
+
+
+// =====================================================
+// PROFILE AVATAR
+// =====================================================
+
+.profile-avatar {
+
+  width: 30px;
+  height: 30px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background:
+    linear-gradient(
+      135deg,
+      $orange,
+      $orange-dark
+    );
+
+  color: #ffffff;
+
+  font-size: 10px;
+
+  font-weight: 900;
+
+  border:
+    2px solid
+    rgba(255, 255, 255, 0.15);
+
+  box-shadow:
+    0 5px 16px
+    rgba(255, 87, 34, 0.28);
+
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease;
+
+}
+
+
+.profile-item:hover {
+
+  .profile-avatar {
+
+    transform: scale(1.07);
+
+    box-shadow:
+      0 7px 20px
+      rgba(255, 87, 34, 0.38);
+
+  }
+
+}
+
+
+// =====================================================
+// ADD MENU CONTAINER
+// =====================================================
+
+.add-menu {
+
+  position: relative;
+
+  width: 90px;
+  height: 100%;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  z-index: 1100;
+
+}
+
+
+// =====================================================
+// BACKDROP
+// =====================================================
+
+.add-backdrop {
+
+  position: fixed;
+
+  inset: 0;
+
+  background:
+    rgba(2, 6, 23, 0.48);
+
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+
+  z-index: -1;
+
+  animation:
+    backdropAppear 0.25s ease;
+
+}
+
+
+// =====================================================
+// PLUS BUTTON
+// =====================================================
+
+.plus-button {
+
+  position: absolute;
+
+  bottom: 13px;
+
+  left: 50%;
+
+  width: 68px;
+  height: 68px;
+
+  transform:
+    translateX(-50%);
+
+  border: none;
+
+  padding: 0;
+
+  background: transparent;
+
+  cursor: pointer;
+
+  z-index: 1200;
+
+  -webkit-tap-highlight-color: transparent;
+
+
+  // ===================================================
+  // CIRCLE
+  // ===================================================
+
+  .plus-circle {
+
+    width: 58px;
+    height: 58px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    margin: auto;
+
+    border-radius: 50%;
+
+    background:
+      linear-gradient(
+        145deg,
+        $orange-light 0%,
+        $orange 55%,
+        $orange-dark 100%
+      );
+
+    border:
+      4px solid
+      rgba(15, 23, 42, 0.95);
+
+    box-shadow:
+
+      0 8px 25px
+      rgba(0, 0, 0, 0.35),
+
+      0 0 0 1px
+      rgba(255, 255, 255, 0.12),
+
+      0 0 30px
+      rgba(255, 87, 34, 0.32);
+
+    transition:
+      transform 0.35s cubic-bezier(.4, 0, .2, 1),
+      box-shadow 0.35s ease,
+      background 0.35s ease;
+
+  }
+
+
+  // ===================================================
+  // PLUS ICON
+  // ===================================================
+
+  .plus-icon {
+
+    width: 28px;
+    height: 28px;
+
+    fill: none;
+
+    stroke: #ffffff;
+
+    stroke-width: 2.5;
+
+    stroke-linecap: round;
+
+    transition:
+      transform 0.35s
+      cubic-bezier(.4, 0, .2, 1);
+
+  }
+
+
+  // ===================================================
+  // LABEL
+  // ===================================================
+
+  .plus-label {
+
+    display: block;
+
+    margin-top: 2px;
+
+    color: #cbd5e1;
+
+    font-size: 9px;
+
+    font-weight: 800;
+
+    transition:
+      color 0.25s ease;
+
+  }
+
+
+  &:hover {
+
+    .plus-circle {
+
+      transform: translateY(-3px) scale(1.04);
+
+      box-shadow:
+
+        0 12px 30px
+        rgba(0, 0, 0, 0.4),
+
+        0 0 38px
+        rgba(255, 87, 34, 0.45);
+
+    }
+
+  }
+
+
+  &:active {
+
+    .plus-circle {
+
+      transform:
+        translateY(-1px)
+        scale(0.96);
+
+    }
+
+  }
+
+
+  // ===================================================
+  // OPEN STATE
+  // ===================================================
+
+  &.open {
+
+    .plus-circle {
+
+      background:
+        linear-gradient(
+          145deg,
+          #334155,
+          #1e293b
+        );
+
+      box-shadow:
+
+        0 10px 30px
+        rgba(0, 0, 0, 0.45),
+
+        0 0 25px
+        rgba(148, 163, 184, 0.15);
+
+    }
+
+
+    .plus-icon {
+
+      transform:
+        rotate(45deg);
+
+    }
+
+
+    .plus-label {
+
+      color: #ffffff;
+
+    }
+
+  }
+
+}
+
+
+// =====================================================
+// ADD OPTIONS
+// =====================================================
+
+.add-options {
+
+  position: absolute;
+
+  bottom: 68px;
+
+  left: 50%;
+
+  transform:
+    translateX(-50%);
+
+  width: 245px;
+
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 12px;
+
+  pointer-events: none;
+
+  opacity: 0;
+
+  visibility: hidden;
+
+  transition:
+    opacity 0.25s ease,
+    visibility 0.25s ease;
+
+}
+
+
+// =====================================================
+// OPEN MENU
+// =====================================================
+
+.add-menu.open {
+
+  .add-options {
+
+    opacity: 1;
+
+    visibility: visible;
+
+    pointer-events: auto;
+
+  }
+
+
+  .add-option {
+
+    opacity: 1;
+
+    transform:
+      translateY(0)
+      scale(1);
+
+  }
+
+}
+
+
+// =====================================================
+// ADD OPTION
+// =====================================================
+
+.add-option {
+
+  width: 100%;
+
+  min-height: 68px;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 14px;
+
+  padding: 10px 16px;
+
+  border:
+    1px solid
+    rgba(255, 255, 255, 0.09);
+
+  border-radius: 19px;
+
+  color: #ffffff;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(15, 23, 42, 0.97),
+      rgba(30, 41, 59, 0.96)
+    );
+
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+
+  box-shadow:
+    0 14px 40px
+    rgba(0, 0, 0, 0.4);
+
+  cursor: pointer;
+
+  text-align: left;
+
+  opacity: 0;
+
+  transform:
+    translateY(18px)
+    scale(0.94);
+
+  transition:
+    opacity 0.3s ease,
+    transform 0.3s
+      cubic-bezier(.4, 0, .2, 1),
+    border-color 0.25s ease,
+    background 0.25s ease;
+
+  -webkit-tap-highlight-color: transparent;
+
+
+  // ===================================================
+  // ICON
+  // ===================================================
+
+  .option-icon {
+
+    width: 44px;
+    height: 44px;
+
+    flex-shrink: 0;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 14px;
+
+    background:
+      rgba(255, 87, 34, 0.12);
+
+    color: $orange;
+
+    font-size: 20px;
+
+    transition:
+      transform 0.25s ease,
+      background 0.25s ease;
+
+    svg {
+
+      width: 22px;
+      height: 22px;
+
+      stroke: currentColor;
+
+    }
+
+  }
+
+
+  // ===================================================
+  // CONTENT
+  // ===================================================
+
+  .option-content {
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 3px;
+
+    min-width: 0;
+
+  }
+
+
+  strong {
+
+    color: #ffffff;
+
+    font-size: 15px;
+
+    font-weight: 800;
+
+  }
+
+
+  small {
+
+    color: #94a3b8;
+
+    font-size: 11px;
+
+    font-weight: 600;
+
+  }
+
+
+  // ===================================================
+  // HOVER
+  // ===================================================
+
+  &:hover {
+
+    border-color:
+      rgba(255, 87, 34, 0.35);
+
+    background:
+      linear-gradient(
+        135deg,
+        rgba(30, 41, 59, 0.99),
+        rgba(51, 65, 85, 0.96)
+      );
+
+
+    .option-icon {
+
+      transform: scale(1.06);
+
+      background:
+        rgba(255, 87, 34, 0.18);
+
+    }
+
+  }
+
+
+  &:active {
+
+    transform:
+      scale(0.97) !important;
+
+  }
+
+}
+
+
+// =====================================================
+// DIFFERENT ANIMATION DELAYS
+// =====================================================
+
+.add-menu.open {
+
+  .send-option {
+
+    transition-delay: 0.03s;
+
+  }
+
+
+  .ride-option {
+
+    transition-delay: 0.09s;
+
+  }
+
+}
+
+
+// =====================================================
+// SEND OPTION
+// =====================================================
+
+.send-option {
+
+  .option-icon {
+
+    color: #fb923c;
+
+  }
+
+}
+
+
+// =====================================================
+// RIDE OPTION
+// =====================================================
+
+.ride-option {
+
+  .option-icon {
+
+    color: #60a5fa;
+
+    background:
+      rgba(59, 130, 246, 0.12);
+
+  }
+
+
+  &:hover {
+
+    .option-icon {
+
+      background:
+        rgba(59, 130, 246, 0.18);
+
+    }
+
+  }
+
+}
+
+// =====================================================
+// LISTINGS OPTION
+// =====================================================
+
+.listings-option {
+
+  .option-icon {
+
+    color: #4ade80;
+
+    background:
+      rgba(74, 222, 128, 0.12);
+
+  }
+
+
+  &:hover {
+
+    .option-icon {
+
+      background:
+        rgba(74, 222, 128, 0.18);
+
+    }
+
+  }
+
+}
+
+.add-menu.open {
+
+  .send-option {
+
+    transition-delay: 0.03s;
+
+  }
+
+
+  .ride-option {
+
+    transition-delay: 0.09s;
+
+  }
+
+
+  .listings-option {
+
+    transition-delay: 0.15s;
+
+  }
+
+}
+
+
+// =====================================================
+// ANIMATIONS
+// =====================================================
+
+@keyframes backdropAppear {
+
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+
+}
+
+
+// =====================================================
+// MOBILE
+// =====================================================
+
+@media (max-width: 600px) {
+
+  .bottom-navbar {
+
+    height: 68px;
+
+    padding-left: 8px;
+    padding-right: 8px;
+
+  }
+
+
+  .nav-item {
+
+    width: 76px;
+
+    height: 62px;
+
+    font-size: 9px;
+
+  }
+
+
+  .add-menu {
+
+    width: 82px;
+
+  }
+
+
+  .plus-button {
+
+    bottom: 11px;
+
+    .plus-circle {
+
+      width: 58px;
+      height: 58px;
+
+    }
+
+  }
+
+
+  .add-options {
+
+    width: min(
+      245px,
+      calc(100vw - 32px)
+    );
+
+    bottom: 65px;
+
+  }
+
+}
+
+
+// =====================================================
+// SMALL PHONES
+// =====================================================
+
+@media (max-width: 380px) {
+
+  .bottom-navbar {
+
+    height: 64px;
+
+  }
+
+
+  .nav-item {
+
+    width: 68px;
+
+    .icon {
+
+      width: 20px;
+      height: 20px;
+
+    }
+
+  }
+
+
+  .plus-button {
+
+    bottom: 8px;
+
+    .plus-circle {
+
+      width: 54px;
+      height: 54px;
+
+    }
+
+  }
+
+
+  .add-options {
+
+    bottom: 61px;
+
+  }
+
+}
+
+
+// =====================================================
+// REDUCE MOTION
+// =====================================================
+
+@media (prefers-reduced-motion: reduce) {
+
+  .bottom-navbar *,
+  .bottom-navbar *::before,
+  .bottom-navbar *::after {
+
+    animation-duration: 0.01ms !important;
+
+    animation-iteration-count: 1 !important;
+
+    transition-duration: 0.01ms !important;
+
+  }
+
+}

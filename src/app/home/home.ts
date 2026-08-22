@@ -5,6 +5,7 @@ import { CommonModule } from '@angular/common';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { ParcelService, ParcelRequest, DriverTrip } from '../services/Parcel.service';
+import { PullToRefreshDirective } from '../android-components/directives/pull-to-refresh.directive';
 
 interface Step {
   id: number;
@@ -20,7 +21,7 @@ interface Badge {
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, PullToRefreshDirective],
   templateUrl: './home.html',
   styleUrls: ['./home.scss'],
 })
@@ -270,4 +271,11 @@ export class HomeComponent implements OnInit, OnDestroy {
 
     track.scrollBy({ left: direction * cardWidth * 2, behavior: 'smooth' });
   }
+
+ onRefresh(done: () => void): void {
+  this.loadRecentRequests();
+  this.loadRecentTrips();
+  setTimeout(() => done(), 800); // მარტივი — 800ms-ის შემდეგ indicator იმალება
+}
+
 }

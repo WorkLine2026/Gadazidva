@@ -115,7 +115,10 @@ export class NavbarComponent implements OnInit, OnDestroy {
       this.closeMenu();
     }
   }
-
+navigateToAllListings(): void {
+  this.closeMenu();
+  this.router.navigate(['/listing']);
+}
   navigateToLogin(): void {
     this.closeMenu();
     this.router.navigate(['/login']);

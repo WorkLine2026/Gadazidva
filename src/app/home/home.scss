@@ -1,19 +1,8 @@
-// FONTS — Noto Sans Georgian renders the
-// Georgian script cleanly at every weight
-// we use; Latin/numerals fall back to the
-// same family so labels and prices match.
-// ====================================
+@use "sass:color";
+
 
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@400;500;600;700;800;900&display=swap');
-
-// ====================================
-// COLOR PALETTE
-// "Cargo ticket" system — ink navy for
-// structure, cargo-orange for movement,
-// route-teal for confirmed/success states,
-// on a warm paper ground.
-// ====================================
-
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@400;500;600;700;800;900&display=swap');
 $ink: #101B33;
 $ink-soft: #24314F;
 $paper: #FBF7F0;
@@ -598,7 +587,13 @@ $transition-slow: 480ms cubic-bezier(0.16, 1, 0.3, 1);
   color: $text-dark;
   @include text-truncate;
 }
-
+scss
+.home-scroll-wrapper {
+  overflow-y: auto;
+  height: 100vh;      // ან calc(100vh - navbar-height), თუ navbar ფიქსირებულია ზემოთ
+  position: relative; // directive-ის pull-indicator-ისთვის საჭიროა
+  -webkit-overflow-scrolling: touch; // iOS/Android-ზე smooth scroll
+}
 .status-badge,
 .trip-status-badge {
   flex-shrink: 0;
@@ -610,10 +605,10 @@ $transition-slow: 480ms cubic-bezier(0.16, 1, 0.3, 1);
   background: $bg-light;
   color: $text-gray;
 
-  &.status-pending {
-    background: rgba($warning, 0.15);
-    color: darken($warning, 15%);
-  }
+&.status-pending {
+  background: rgba($warning, 0.15);
+  color: color.adjust($warning, $lightness: -15%);
+}
 
   &.status-accepted,
   &.status-active {

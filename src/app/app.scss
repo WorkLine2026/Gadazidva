@@ -1,0 +1,7 @@
+main {
+  &.native-app-padding {
+    min-height: 100vh;
+    // თუ bottom-navbar-ი overlay-ით ეხურება content-ს, დაამატე padding-bottom-იც
+    // padding-bottom: 60px; // bottom-navbar-ის სიმაღლის მიხედვით
+  }
+}
