@@ -29,6 +29,10 @@ export class TripDetailComponent implements OnInit, OnDestroy {
   lightboxOpen = false;
   lightboxIndex = 0;
 
+  // ✅ NEW: ნივთის შეკვეთის გაგზავნის მდგომარეობა
+  isSendingPickupRequest = false;
+  pickupRequestSent = false;
+
   private destroy$ = new Subject<void>();
   public router: Router;
 
@@ -53,7 +57,6 @@ export class TripDetailComponent implements OnInit, OnDestroy {
     this.route.params
       .pipe(takeUntil(this.destroy$))
       .subscribe(params => {
-        console.log('🔍 Trip route params:', params);
 
         const tripId = params['id'];
 
@@ -87,7 +90,6 @@ export class TripDetailComponent implements OnInit, OnDestroy {
       )
       .subscribe({
         next: (res) => {
-          console.log('📦 ტრიპის პასუხი backend-დან:', res);
 
           if (res.success && res.data) {
             this.trip = res.data;
@@ -117,9 +119,6 @@ export class TripDetailComponent implements OnInit, OnDestroy {
     this.router.navigate(['/']);
   }
 
-  /**
-   * ✅ driverId უსაფრთხო მიღება String სახით
-   */
   get recipientIdSafe(): string {
     const driver = (this.trip as any)?.driverId;
     if (!driver) return '';
@@ -128,23 +127,17 @@ export class TripDetailComponent implements OnInit, OnDestroy {
     return String(id).trim();
   }
 
-  /**
-   * ✅ უსაფრთხო შემოწმება — არის თუ არა ეს მგზავრობა ავტორიზებული მომხმარებლის
-   */
   get isOwnTrip(): boolean {
     if (!this.trip || !this.currentUserId) return false;
 
     const recipientId = this.recipientIdSafe.toLowerCase();
     const currentId = String(this.currentUserId).trim().toLowerCase();
 
-    console.log('🔍 Checking Trip Ownership:', { recipientId, currentId });
-
     return recipientId === currentId && recipientId !== '';
   }
 
   // ===== 💬 შეტყობინების მიწერა =====
   openChat(): void {
-    console.log('💬 Trip openChat clicked | isOwnTrip:', this.isOwnTrip);
 
     if (!this.isAuthenticated) {
       alert('⚠️ შეტყობინების გასაგზავნად გთხოვთ დალოგინდით');
@@ -162,6 +155,53 @@ export class TripDetailComponent implements OnInit, OnDestroy {
 
   closeChat(): void {
     this.isChatOpen = false;
+  }
+
+  // ============================================================
+  // ✅ NEW: ნივთის შეკვეთის გაგზავნა (trip pickup request)
+  // ============================================================
+
+  sendPickupRequest(): void {
+    if (!this.trip || !this.trip._id) return;
+
+    if (!this.isAuthenticated) {
+      alert('⚠️ მოთხოვნის გასაგზავნად გთხოვთ დალოგინდით');
+      this.router.navigate(['/login']);
+      return;
+    }
+
+    if (this.isOwnTrip) {
+      alert('⚠️ საკუთარ მგზავრობაზე მოთხოვნას ვერ გააგზავნით');
+      return;
+    }
+
+    if (this.isSendingPickupRequest || this.pickupRequestSent) return;
+
+    this.isSendingPickupRequest = true;
+    this.cdr.detectChanges();
+
+    this.parcelService.sendTripPickupRequest(this.trip._id)
+      .pipe(finalize(() => {
+        this.isSendingPickupRequest = false;
+        this.cdr.detectChanges();
+      }))
+      .subscribe({
+        next: (res) => {
+          if (res.success) {
+            this.pickupRequestSent = true;
+            alert('✅ მოთხოვნა გაეგზავნა მძღოლს — პასუხს შეტყობინებებში მიიღებთ');
+          } else {
+            alert('❌ ' + (res.message || 'მოთხოვნის გაგზავნა ვერ მოხერხდა'));
+          }
+        },
+        error: (err) => {
+          if (err.status === 409) {
+            // უკვე გაგზავნილია ადრე — backend შეიძლება ასე დააბრუნოს
+            this.pickupRequestSent = true;
+          }
+          alert('❌ ' + (err.error?.message || 'მოთხოვნის გაგზავნა ვერ მოხერხდა'));
+        }
+      });
   }
 
   // ============================================================

@@ -1,0 +1,57 @@
+<div class="modal-backdrop" (click)="onBackdropClick()">
+  <div class="modal-panel" (click)="$event.stopPropagation()">
+    <button class="modal-close" (click)="cancel()" [disabled]="isDeleting">✕</button>
+
+    <!-- ნაბიჯი 1: გაფრთხილება -->
+    <div *ngIf="step === 'warning'">
+      <h3>⚠️ ანგარიშის სამუდამო წაშლა</h3>
+      <p class="delete-modal__intro">ამ ოპერაციით სამუდამოდ წაიშლება:</p>
+      <ul class="delete-modal__list">
+        <li>თქვენი პროფილის მონაცემები</li>
+        <li>თქვენი ყველა განცხადება ან მგზავრობა</li>
+        <li>ნივთის წაღების ყველა მოთხოვნა/შეთანხმება</li>
+        <li>თქვენი ყველა მიმოწერა და შეტყობინება</li>
+      </ul>
+      <p class="delete-modal__warning-text">
+        ეს მოქმედება შეუქცევადია და უკან დაბრუნება შეუძლებელი იქნება.
+      </p>
+
+      <div class="form-panel__actions delete-modal__actions">
+        <button class="btn-secondary" (click)="cancel()">გაუქმება</button>
+        <button class="btn-primary btn-danger" (click)="proceedToEmailConfirm()">
+          გავაგრძელო წაშლა
+        </button>
+      </div>
+    </div>
+
+    <!-- ნაბიჯი 2: ელფოსტით დადასტურება -->
+    <div *ngIf="step === 'confirmEmail'">
+      <h3>დადასტურებისთვის შეიყვანეთ თქვენი ელფოსტა</h3>
+      <p class="delete-modal__email-hint">{{ userEmail }}</p>
+
+      <div class="field">
+        <input
+          type="email"
+          class="field__input"
+          [(ngModel)]="emailInput"
+          [disabled]="isDeleting"
+          placeholder="შეიყვანეთ ელფოსტა დასადასტურებლად"
+          (keyup.enter)="submit()"
+        />
+        <span *ngIf="displayError" class="field__hint">{{ displayError }}</span>
+      </div>
+
+      <div class="form-panel__actions delete-modal__actions">
+        <button class="btn-secondary" (click)="backToWarning()" [disabled]="isDeleting">
+          უკან
+        </button>
+        <button
+          class="btn-primary btn-danger"
+          (click)="submit()"
+          [disabled]="isDeleting || !emailInput">
+          {{ isDeleting ? 'იშლება…' : '🗑️ საბოლოოდ წაშლა' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

@@ -2,16 +2,12 @@
   <app-navbar></app-navbar>
   <div style="margin-top: 90px;"></div>
 </header>
-
 <app-toast-notifications></app-toast-notifications>
-
-<main [class.native-app-padding]="isNativeApp">
+<main [class.native-app-padding]="isNativeApp" appPullToRefresh>
   <router-outlet></router-outlet>
 </main>
-
 <!-- ამოღებულია *ngIf, რომ აპლიკაციაშიც გამოჩნდეს -->
 <footer>
   <app-footer></app-footer>
 </footer>
-
 <app-bottom-navbar *ngIf="isNativeApp"></app-bottom-navbar>

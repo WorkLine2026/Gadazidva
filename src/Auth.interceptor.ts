@@ -24,10 +24,6 @@ export class AuthInterceptor implements HttpInterceptor {
     const token = this.getAuthToken();
     const isPublic = this.publicUrls.some(url => request.url.includes(url));
 
-    console.log('🔍 Interceptor: token-ის შემოწმება');
-    console.log(`   Public: ${isPublic ? '✅' : '❌'}`);
-    console.log(`   Token: ${token ? '✅ აქვს' : '❌ არ აქვს'}`);
-    console.log(`   URL: ${request.url}`);
 
     if (!isPublic && token) {
       request = request.clone({
@@ -35,9 +31,9 @@ export class AuthInterceptor implements HttpInterceptor {
           Authorization: `Bearer ${token}`
         }
       });
-      console.log('✅ Authorization header დამატებული');
+      
     } else if (!isPublic) {
-      console.log('⚠️ Token არ იპოვნა localStorage-ში');
+      
     }
 
     return next.handle(request).pipe(

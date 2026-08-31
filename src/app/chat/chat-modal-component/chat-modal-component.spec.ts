@@ -1,17 +1,17 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { ChatModalComponent } from './chat-modal-component';
+import { ChatModalImprovedComponent } from './chat-modal-component';
 
-describe('ChatModalComponent', () => {
-  let component: ChatModalComponent;
-  let fixture: ComponentFixture<ChatModalComponent>;
+describe('ChatModalImprovedComponent', () => {
+  let component: ChatModalImprovedComponent;
+  let fixture: ComponentFixture<ChatModalImprovedComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ChatModalComponent],
+      imports: [ChatModalImprovedComponent],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(ChatModalComponent);
+    fixture = TestBed.createComponent(ChatModalImprovedComponent);
     component = fixture.componentInstance;
     await fixture.whenStable();
   });

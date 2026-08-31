@@ -54,13 +54,17 @@ export class LoginComponent implements OnInit {
         this.isLoading = false;
 
         if (res.success) {
-          // ❌ ტოკენ შენახვა თუ დაბრუნდა
           if (res.token) {
             this.smsService.setAuthToken(res.token);
           }
 
-          // 🎉 წარმატებული შესვლა - დაშბორდზე გამოსაგზავრი
-          this.router.navigate(['/profile']);
+          // ✅ როლის მიხედვით სწორ პროფილზე გადასვლა
+          const role = res.user?.role;
+          if (role === 'driver') {
+            this.router.navigate(['/driverProfile']);
+          } else {
+            this.router.navigate(['/senderProfile']);
+          }
         } else {
           this.errorMessage = res.message || 'შესვლა ვერ მოხერხდა, სცადეთ ხელახლა';
         }
@@ -70,7 +74,6 @@ export class LoginComponent implements OnInit {
       error: (err) => {
         this.isLoading = false;
 
-        // 🔴 განსხვავებული შეცდომების დამუშავება
         if (err.status === 401 || err.status === 400) {
           this.errorMessage = err.error?.message || 'ელფოსტა ან პაროლი არასწორია';
         } else if (err.status === 0) {

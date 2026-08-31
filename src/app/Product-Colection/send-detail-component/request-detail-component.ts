@@ -8,6 +8,7 @@ import { ParcelService, ParcelRequest, AcceptedShipping, DriverTrip } from '../.
 import { SmsVerificationService } from '../../services/smsverifikation.service';
 import { ChatModalImprovedComponent } from '../../chat/chat-modal-component/chat-modal-component';
 
+
 type RequestStatus = 'pending' | 'accepted' | 'in-transit' | 'delivered';
 
 interface UnifiedRequest {
@@ -23,7 +24,7 @@ interface UnifiedRequest {
 @Component({
   selector: 'app-request-detail',
   standalone: true,
-  imports: [CommonModule, FormsModule, ChatModalImprovedComponent],
+  imports: [CommonModule, FormsModule, ChatModalImprovedComponent], 
   templateUrl: './request-detail-component.html',
   styleUrls: ['./request-detail-component.scss']
 })
@@ -41,6 +42,13 @@ export class RequestDetailComponent implements OnInit, OnDestroy {
   // ✅ NEW: ფოტოების Lightbox მდგომარეობა
   lightboxOpen = false;
   lightboxIndex = 0;
+
+  // ✅ NEW: მიმდინარე request-ის id, pull-to-refresh-ს რომ იცოდეს რა ჩატვირთოს ხელახლა
+  private currentRequestId: string | null = null;
+
+  // 🚚 ნივთის წაღების მოთხოვნის მდგომარეობა
+  isSendingPickupRequest = false;
+  pickupRequestSent = false;
 
   unifiedRequest: UnifiedRequest = {
     originalRequest: null,
@@ -89,6 +97,38 @@ export class RequestDetailComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
+  /**
+   * ✅ Pull-to-refresh handler.
+   * იმეორებს იმავე request-ის ჩატვირთვას, რომელიც ამჟამად ეკრანზეა
+   * (currentRequestId, რომელიც loadUnifiedRequest-ში ინახება).
+   */
+  onRefresh(done: () => void): void {
+    if (!this.currentRequestId) {
+      done();
+      return;
+    }
+
+    this.parcelService.getParcelRequest(this.currentRequestId)
+      .pipe(
+        takeUntil(this.destroy$),
+        finalize(() => {
+          this.cdr.detectChanges();
+          done();
+        })
+      )
+      .subscribe({
+        next: (res) => {
+          if (res.success && res.data) {
+            this.unifiedRequest.originalRequest = res.data;
+            this.updateRequestStatus(res.data.status);
+          }
+        },
+        error: (err) => {
+          console.error('❌ Refresh-ის შეცდომა:', err);
+        }
+      });
+  }
+
   get recipientIdSafe(): string {
   const sender = this.unifiedRequest.originalRequest?.senderId as any;
   if (!sender) return '';
@@ -103,7 +143,6 @@ get isOwnRequest(): boolean {
   const recipientId = this.recipientIdSafe.toLowerCase();
   const currentId = String(this.currentUserId).trim().toLowerCase();
 
-  console.log('🔍 Checking Ownership:', { recipientId, currentId });
 
   return recipientId === currentId && recipientId !== '';
 }
@@ -111,7 +150,6 @@ get isOwnRequest(): boolean {
 
 
   openChat(): void {
-  console.log('💬 openChat clicked | isOwnRequest:', this.isOwnRequest, 'recipientId:', this.recipientIdSafe, 'currentUserId:', this.currentUserId);
 
   if (!this.isAuthenticated) {
     alert('⚠️ შეტყობინების გასაგზავნად გთხოვთ დალოგინდით');
@@ -129,6 +167,52 @@ get isOwnRequest(): boolean {
 
   closeChat(): void {
     this.isChatOpen = false;
+  }
+
+  // ============================================================
+  // 🚚 NEW: ნივთის წაღების მოთხოვნა
+  // ============================================================
+
+  requestPickup(): void {
+    if (!this.isAuthenticated) {
+      alert('⚠️ ნივთის წაღების მოთხოვნისთვის გთხოვთ დალოგინდით');
+      this.router.navigate(['/login']);
+      return;
+    }
+
+    if (this.isOwnRequest) {
+      alert('⚠️ საკუთარი განცხადების წაღებას ვერ ითხოვთ');
+      return;
+    }
+
+    const requestId = this.unifiedRequest.originalRequest?._id;
+    if (!requestId) return;
+
+    this.isSendingPickupRequest = true;
+    this.cdr.detectChanges();
+
+    this.parcelService.requestPickup(requestId)
+      .pipe(
+        takeUntil(this.destroy$),
+        finalize(() => {
+          this.isSendingPickupRequest = false;
+          this.cdr.detectChanges();
+        })
+      )
+      .subscribe({
+        next: (res) => {
+          if (res.success) {
+            this.pickupRequestSent = true;
+            alert('✅ მოთხოვნა გაგზავნილია — გამგზავნმა უნდა დაადასტუროს პროფილიდან');
+          } else {
+            alert('❌ ' + (res.message || 'მოთხოვნის გაგზავნა ვერ მოხერხდა'));
+          }
+        },
+        error: (err) => {
+          console.error('❌ ნივთის წაღების მოთხოვნის შეცდომა:', err);
+          alert('❌ ' + (err.error?.message || 'მოთხოვნის გაგზავნა ვერ მოხერხდა'));
+        }
+      });
   }
 
   // ============================================================
@@ -159,6 +243,7 @@ get isOwnRequest(): boolean {
   private loadUnifiedRequest(requestId: string): void {
     this.isLoading = true;
     this.errorMessage = '';
+    this.currentRequestId = requestId; // ✅ ვინახავთ refresh-ისთვის
 
     this.parcelService.getParcelRequest(requestId)
       .pipe(
@@ -197,7 +282,6 @@ get isOwnRequest(): boolean {
   }
 
   private loadAcceptedShippingAndTrip(requestId: string): void {
-    console.log('🔄 მიღებული შეკვეთის მონაცემი...', requestId);
   }
 
   updateStatus(newStatus: string): void {

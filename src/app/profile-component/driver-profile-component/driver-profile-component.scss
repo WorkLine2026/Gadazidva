@@ -1,0 +1,1286 @@
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap');
+
+// ---- Design tokens (Sass vars) ------------------------------------------------
+// ---- პალიტრა ოდნავ დარბილებულია (ნაკლები კონტრასტი/გაჯერება, უფრო რბილი ჩრდილები)
+$paper:         #F6F8FC;
+$paper-alt:     #EDF1F9;
+$card:          #FFFFFF;
+$ink:           #202B45;
+$ink-soft:      #56628A;
+$muted:         #838da0;
+$line:          #E2E7F1;
+
+$primary:       #3B6FE0;
+$primary-dark:  #2C57C4;
+$primary-soft:  #E9F0FD;
+
+$accent:        #F0873A;
+$accent-dark:   #DE7523;
+$accent-soft:   #FFF1E2;
+
+$teal:          #17998C;
+$teal-soft:     #E4F6F3;
+
+$red:           #DC3B5D;
+$red-soft:      #FCE7EC;
+
+$amber:         #D69A2D;
+$amber-soft:    #FCF2DD;
+
+$radius-lg: 22px;
+$radius-md: 16px;
+$radius-sm: 10px;
+
+$shadow-card:       0 8px 24px -14px rgba(32, 43, 69, 0.16);
+$shadow-card-hover: 0 16px 32px -16px rgba(32, 43, 69, 0.22);
+$transition: all 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+
+$font-display: 'Bricolage Grotesque', 'Inter', system-ui, sans-serif;
+$font-body:    'Inter', system-ui, -apple-system, sans-serif;
+$font-mono:    'JetBrains Mono', 'SFMono-Regular', monospace;
+
+// ---- ბრეიქფოინთები (დამატებულია --small-mobile ვიწრო ეკრანებისთვის) --------
+$bp-tablet:       900px;
+$bp-mobile:       600px;
+$bp-small-mobile: 400px;
+
+@mixin tablet-down       { @media (max-width: $bp-tablet) { @content; } }
+@mixin mobile-down       { @media (max-width: $bp-mobile) { @content; } }
+@mixin small-mobile-down { @media (max-width: $bp-small-mobile) { @content; } }
+
+@mixin card-surface($radius: $radius-lg) {
+  background: $card;
+  border: 1px solid $line;
+  border-radius: $radius;
+  box-shadow: $shadow-card;
+}
+
+@mixin dashed-tear($bg: $paper) {
+  position: relative;
+  height: 0;
+  border-top: 2px dashed $line;
+
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    top: -7px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: $bg;
+  }
+  &::before { left: -7px; }
+  &::after  { right: -7px; }
+}
+
+@mixin eyebrow($color: $primary) {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: $color;
+}
+
+@mixin pill-button($from, $to, $shadow-color: $from) {
+  background: linear-gradient(135deg, $from 0%, $to 100%);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  transition: $transition;
+
+  &:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px -8px rgba($shadow-color, 0.38);
+  }
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+  }
+}
+
+:host {
+  --paper: #{$paper};
+  --paper-alt: #{$paper-alt};
+  --card: #{$card};
+  --ink: #{$ink};
+  --ink-soft: #{$ink-soft};
+  --muted: #{$muted};
+  --line: #{$line};
+  --primary: #{$primary};
+  --primary-dark: #{$primary-dark};
+  --primary-soft: #{$primary-soft};
+  --accent: #{$accent};
+  --accent-soft: #{$accent-soft};
+  --teal: #{$teal};
+  --teal-soft: #{$teal-soft};
+  --red: #{$red};
+  --red-soft: #{$red-soft};
+  --amber: #{$amber};
+  --amber-soft: #{$amber-soft};
+  --radius-lg: #{$radius-lg};
+  --radius-md: #{$radius-md};
+  --radius-sm: #{$radius-sm};
+
+  display: block;
+
+  // ყველა ჩაშენებული ელემენტისთვის ერთიანი box-sizing — ავირიდოთ overflow
+  // ვიწრო ეკრანებზე padding/border-ის გამო.
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :host * {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* Page Shell */
+.profile-shell {
+  max-width: 1180px;
+  margin: 0 auto;
+  // clamp() საშუალებას გვაძლევს padding ეკრანის სიგანესთან ერთად
+  // გლუვად შემცირდეს, ნაცვლად ერთი მკვეთრი ნახტომისა breakpoint-ზე.
+  padding: clamp(16px, 3vw, 32px) clamp(12px, 4vw, 20px) 60px;
+  font-family: $font-body;
+  color: $ink;
+  overflow-x: hidden;
+
+  @include mobile-down {
+    padding: 16px 12px 36px;
+  }
+}
+
+/* Header */
+.route-header {
+  @include card-surface;
+  padding: 20px 24px 16px;
+  margin-bottom: 24px;
+
+  @include mobile-down {
+    padding: 16px 16px 14px;
+    margin-bottom: 18px;
+  }
+
+  &__path {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 14px;
+  }
+
+  &__row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 16px;
+
+    @include mobile-down {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 12px;
+    }
+  }
+
+  &__eyebrow {
+    @include eyebrow($primary);
+    margin-bottom: 4px;
+  }
+
+  &__title {
+    font-family: $font-display;
+    font-size: clamp(22px, 4vw, 28px);
+    font-weight: 700;
+    letter-spacing: -0.4px;
+    margin: 0;
+    color: $ink;
+  }
+
+  &__actions {
+    display: flex;
+    gap: 10px;
+    flex-shrink: 0;
+
+    @include mobile-down {
+      width: 100%;
+    }
+  }
+}
+
+.waypoint {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: $primary;
+  flex-shrink: 0;
+
+  &--end { background: $accent; }
+}
+
+.dash-line {
+  flex: 1;
+  height: 2px;
+  background-image: linear-gradient(to right, $line 0 8px, transparent 8px 14px);
+  background-size: 14px 2px;
+  background-repeat: repeat-x;
+}
+
+.btn-ghost {
+  background: $paper-alt;
+  border: 1px solid $line;
+  color: $ink-soft;
+  padding: 10px 16px;
+  border-radius: $radius-sm;
+  font-weight: 600;
+  font-size: 13.5px;
+  cursor: pointer;
+  transition: $transition;
+  white-space: nowrap;
+
+  &:hover {
+    background: $primary-soft;
+    color: $primary-dark;
+    border-color: $primary;
+  }
+
+  &--icon { padding: 10px 14px; }
+
+  @include mobile-down {
+    flex: 1;
+  }
+}
+
+/* Grid Layout */
+.profile-grid {
+  display: grid;
+  // 300–340px სიდბარი ეკრანის მიხედვით, არ არის ხისტად 320px –
+  // ეს ხსნის "შეკუმშვას" ტაბლეტის ზომებზე ტრანზიციამდე.
+  grid-template-columns: minmax(280px, 320px) minmax(0, 1fr);
+  gap: clamp(16px, 2.5vw, 26px);
+  align-items: start;
+
+  @include tablet-down {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Tag Card */
+.tag-card {
+  position: relative;
+  @include card-surface;
+  padding: 32px 22px 22px;
+  text-align: center;
+  transition: $transition;
+
+  // ჩატრიალება მხოლოდ იქ, სადაც საკმარისი სივრცეა — ვიწრო ეკრანზე
+  // ჰოვერის ეფექტი გამორთულია, რომ ბარათი overflow-ში არ წავიდეს.
+  &:hover {
+    box-shadow: $shadow-card-hover;
+
+    @media (min-width: #{$bp-mobile + 1}) {
+      transform: rotate(-0.5deg);
+    }
+  }
+
+  &__strap {
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 3px;
+    height: 22px;
+    background: $line;
+    border-radius: 2px;
+  }
+
+  &__grommet {
+    position: absolute;
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: $paper;
+    border: 3px solid $line;
+  }
+
+  &__top { padding-top: 6px; }
+
+  &__avatar {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 14px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, $teal 0%, $accent 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: $font-display;
+    font-size: 28px;
+    font-weight: 700;
+    color: #fff;
+    box-shadow: 0 8px 18px -6px rgba(23, 153, 140, 0.4), 0 0 0 5px $accent-soft;
+    border: 3px solid $card;
+    outline: 1px solid $line;
+  }
+
+  &__name {
+    font-family: $font-display;
+    font-size: 19px;
+    font-weight: 700;
+    color: $ink;
+    overflow-wrap: anywhere;
+  }
+
+  &__email {
+    font-size: 13px;
+    color: $muted;
+    margin: 3px 0 12px;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+  }
+
+  &__stamp {
+    display: inline-block;
+    padding: 5px 14px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    border: 1.5px dashed currentColor;
+  }
+
+  &__perforation {
+    margin: 20px -22px;
+    height: 0;
+    border-top: 2px dashed $line;
+    position: relative;
+
+    &::before,
+    &::after {
+      content: '';
+      position: absolute;
+      top: -8px;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: $paper;
+    }
+    &::before { left: -8px; }
+    &::after  { right: -8px; }
+  }
+
+  &__status {
+    background: $paper-alt;
+    border-radius: $radius-sm;
+    padding: 12px;
+    margin-bottom: 18px;
+  }
+
+  &__actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+
+  &__stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    border-top: 1px dashed $line;
+    padding-top: 16px;
+  }
+}
+
+.stamp {
+  &--driver { color: $teal; background: $teal-soft; }
+}
+
+.status-line {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 4px;
+  flex-wrap: wrap;
+  text-align: center;
+
+  &--ok   { color: $teal; .status-dot { background: $teal; } }
+  &--warn { color: $red;  .status-dot { background: $red; } }
+}
+
+.status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.status-phone {
+  font-size: 12px;
+  color: $muted;
+  font-family: $font-mono;
+}
+
+.btn-tag {
+  width: 100%;
+  padding: 12px;
+  border-radius: $radius-sm;
+  border: none;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: $transition;
+  position: relative;
+
+  &--outline {
+    background: $card;
+    color: $ink;
+    border: 1.5px solid $line;
+
+    &:hover {
+      border-color: $primary;
+      color: $primary-dark;
+    }
+  }
+
+  &--solid {
+    @include pill-button($teal, $teal);
+  }
+}
+
+.unread-badge {
+  background: #fff;
+  color: $accent;
+  font-size: 11px;
+  padding: 2px 7px;
+  border-radius: 10px;
+  font-weight: 800;
+  animation: badgePulse 1.8s ease-in-out infinite;
+}
+
+.notice-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.notice-card {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 14px 40px 14px 16px;
+  border-radius: 12px;
+  animation: fadeIn 0.25s ease both;
+
+  &--rejected {
+    background: rgba(220, 59, 93, 0.07);
+    border: 1px solid rgba(220, 59, 93, 0.22);
+  }
+
+  &__body {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    font-size: 14px;
+  }
+
+  &__close {
+    position: absolute;
+    top: 8px;
+    right: 10px;
+    background: none;
+    border: none;
+    font-size: 16px;
+    cursor: pointer;
+    color: $red;
+    opacity: 0.7;
+
+    &:hover { opacity: 1; }
+    &:disabled { opacity: 0.4; cursor: default; }
+  }
+}
+
+@keyframes badgePulse {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.12); }
+}
+
+.stat-chip {
+  background: $paper-alt;
+  padding: 12px;
+  border-radius: $radius-sm;
+
+  &--accent { background: $accent-soft; }
+
+  &__value {
+    font-family: $font-display;
+    font-size: 18px;
+    font-weight: 700;
+    color: $ink;
+  }
+
+  &__label {
+    font-size: 11px;
+    color: $muted;
+    font-weight: 600;
+  }
+}
+
+/* Manifest Card */
+.manifest-card {
+  margin-top: 18px;
+  @include card-surface;
+  padding: 18px;
+
+  &__title {
+    font-size: 12px;
+    font-weight: 700;
+    color: $muted;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+}
+
+.manifest-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 12px;
+
+  @include small-mobile-down {
+    grid-template-columns: 1fr;
+  }
+}
+
+.manifest-item {
+  min-width: 0;
+  background: $paper-alt;
+  padding: 10px 12px;
+  border-radius: $radius-sm;
+
+  &__label {
+    font-size: 11px;
+    color: $muted;
+  }
+
+  &__value {
+    font-size: 14px;
+    font-weight: 700;
+    margin-top: 2px;
+    color: $ink;
+    overflow-wrap: anywhere;
+  }
+}
+
+.plate-chip {
+  display: inline-block;
+  background: $ink;
+  color: #fff;
+  padding: 2px 8px 4px;
+  border-radius: 5px;
+  font-family: $font-mono;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  border-bottom: 2px solid $accent;
+}
+
+.skeleton-block {
+  padding: 22px;
+  text-align: center;
+  color: $muted;
+  font-style: italic;
+}
+
+/* Main Column */
+.profile-main-column {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(18px, 2.5vw, 24px);
+  // ეს ხაზი ხსნის მთავარ პრობლემას — ბარათების სვეტს შეუძლია
+  // grid-ში ჩაეტიოს bez overflow-ის გამოწვევის, თუნდაც შიგთავსი
+  // (მაგ. გრძელი ტექსტი) ცდილობდეს კონტეინერს გაწელოს.
+  min-width: 0;
+}
+
+.section-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 16px;
+  gap: 12px;
+  flex-wrap: wrap;
+
+  @include mobile-down {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  &__eyebrow {
+    @include eyebrow($accent);
+    margin-bottom: 2px;
+  }
+
+  h2 {
+    font-family: $font-display;
+    font-size: clamp(18px, 2.4vw, 20px);
+    font-weight: 700;
+    margin: 0;
+    color: $ink;
+  }
+}
+
+.btn-cta {
+  @include pill-button($accent, $accent-dark);
+  padding: 11px 18px;
+  border-radius: $radius-sm;
+  font-weight: 700;
+  font-size: 14px;
+  white-space: nowrap;
+
+  @include mobile-down {
+    width: 100%;
+  }
+}
+
+/* Form */
+.form-panel {
+  @include card-surface;
+  padding: clamp(20px, 3vw, 30px);
+
+  &__header {
+    margin-bottom: 22px;
+
+    h3 {
+      font-family: $font-display;
+      margin: 4px 0 4px 0;
+      font-size: 20px;
+      color: $ink;
+    }
+
+    p {
+      color: $muted;
+      margin: 0;
+      font-size: 14px;
+    }
+  }
+
+  &__eyebrow {
+    @include eyebrow($primary);
+  }
+
+  &__actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+
+    .btn-primary,
+    .btn-secondary {
+      flex: 1 1 140px;
+    }
+  }
+}
+
+.field-grid {
+  &--2 {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+
+    @include mobile-down {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  &__divider {
+    font-size: 13px;
+    font-weight: 700;
+    color: $primary;
+    margin: 22px 0 12px 0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding-top: 14px;
+    border-top: 1px dashed $line;
+  }
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+  min-width: 0;
+
+  &__label {
+    font-size: 13px;
+    font-weight: 600;
+    color: $ink-soft;
+  }
+
+  &__input {
+    width: 100%;
+    background: $paper-alt;
+    border: 1.5px solid $line;
+    border-radius: $radius-sm;
+    padding: 12px 14px;
+    color: $ink;
+    font-size: 14px;
+    font-family: $font-body;
+    outline: none;
+    transition: $transition;
+
+    &:focus {
+      border-color: $primary;
+      background: $card;
+      box-shadow: 0 0 0 3px $primary-soft;
+    }
+
+    &:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+  }
+
+  &__hint {
+    font-size: 12px;
+    color: $red;
+  }
+}
+
+.btn-primary,
+.btn-secondary {
+  padding: 12px 24px;
+  border-radius: $radius-sm;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  border: none;
+  transition: $transition;
+}
+
+.btn-primary {
+  @include pill-button($primary, $primary-dark);
+}
+
+.btn-secondary {
+  background: $paper-alt;
+  color: $ink;
+  border: 1.5px solid $line;
+
+  &:hover {
+    background: $card;
+    border-color: $muted;
+  }
+}
+
+.alert-error {
+  margin-top: 16px;
+  padding: 12px 14px;
+  background: $red-soft;
+  border: 1px solid rgba(220, 59, 93, 0.22);
+  border-radius: $radius-sm;
+  color: $red;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* ===== Stub Cards ===================================================== *
+ * მთავარი ცვლილება: predator იყო `minmax(300px, 1fr)`, რაც ბარათებს
+ * ფართო ეკრანზე (როცა მწკრივში მხოლოდ 1-2 ბარათია) აჭიმავდა მთელ
+ * სიგანეზე. ახლა ბარათს აქვს ზედა ზღვარი (`minmax(280px, 360px)`)
+ * და `justify-content: start`, ასე რომ ბარათები ყოველთვის ინარჩუნებენ
+ * თანაბარ, კომფორტულ სიგანეს და უბრალოდ ცარიელ სივრცეს ტოვებენ
+ * ბოლოში, ნაცვლად იმისა, რომ გაიწელონ.
+ * ========================================================================= */
+.stub-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 360px));
+  justify-content: start;
+  gap: 16px;
+
+  // მობილურზეც ბარათს აქვს ზედა ზღვარი და დაცენტრებულია — წინააღმდეგ
+  // შემთხვევაში 1fr-ს ბარათი ეკრანის სრულ სიგანეზე გაჭიმავს (რაც
+  // განსაკუთრებით ემჩნევა media/banner სურათზე).
+  @include mobile-down {
+    grid-template-columns: minmax(0, 1fr);
+    justify-content: stretch;
+    max-width: 380px;
+    margin: 0 auto;
+  }
+
+  @include small-mobile-down {
+    max-width: 100%;
+  }
+}
+
+.stub-card {
+  @include card-surface;
+  overflow: hidden;
+  transition: $transition;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  min-width: 0;
+  animation: cardAppear 0.4s ease-out forwards;
+  opacity: 0;
+
+  &:hover {
+    transform: translateY(-4px);
+    border-color: $primary;
+    box-shadow: $shadow-card-hover, 0 0 0 1px rgba(240, 135, 58, 0.1);
+
+    .stub-card__media img {
+      transform: scale(1.05);
+    }
+  }
+
+  &__media {
+    height: 140px;
+    width: 100%;
+    position: relative;
+    background: linear-gradient(160deg, $teal-soft 0%, $paper-alt 100%);
+    overflow: hidden;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+    }
+
+    &-placeholder {
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 42px;
+      opacity: 0.7;
+    }
+
+    &-count {
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+      background: rgba(32, 43, 69, 0.68);
+      color: #fff;
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+  }
+
+  &__route {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 16px 16px 6px;
+    min-width: 0;
+  }
+
+  &__body {
+    padding: 6px 16px 4px;
+    flex-grow: 1;
+    min-width: 0;
+  }
+
+  // 3-სვეტიანი info-გრიდი პატარა ეკრანზე 2-სვეტიანი ხდება, რომ
+  // ციფრები ერთმანეთს არ დაედოს ვიწრო ბარათზეც კი.
+  &__info {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+    background: $paper-alt;
+    padding: 12px 8px;
+    border-radius: 12px;
+    text-align: center;
+
+    @include small-mobile-down {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+
+      > :last-child:nth-child(odd) {
+        grid-column: 1 / -1;
+      }
+    }
+  }
+
+  &__earnings {
+    margin: 12px 0 4px;
+    padding: 10px 14px;
+    background: $teal-soft;
+    border-radius: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: $teal;
+    font-weight: 700;
+
+    &-value {
+      color: $accent-dark;
+      font-weight: 800;
+    }
+  }
+
+  &__tear {
+    @include dashed-tear($paper);
+    margin: 14px 0 0;
+  }
+
+  &__footer {
+    padding: 14px 16px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    background: $paper-alt;
+
+    &-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+  }
+
+  &__id {
+    font-family: $font-mono;
+    font-size: 12px;
+    color: $muted;
+    font-weight: 600;
+  }
+}
+
+.route-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+
+  &--from { background: $primary; }
+  &--to   { background: $accent; }
+}
+
+.route-name {
+  font-family: $font-display;
+  font-size: 14px;
+  font-weight: 700;
+  color: $ink;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.route-track {
+  flex: 1;
+  height: 2px;
+  min-width: 16px;
+  background-image: linear-gradient(
+    to right,
+    $primary 0 5px, transparent 5px 11px,
+    $accent 11px 16px, transparent 16px 22px
+  );
+  background-size: 22px 2px;
+  background-repeat: repeat-x;
+  background-position: 0 0;
+  animation: trackFlow 2.4s linear infinite;
+}
+
+@keyframes trackFlow {
+  to { background-position: -22px 0; }
+}
+
+.info-cell {
+  min-width: 0;
+
+  &__label {
+    font-size: 10.5px;
+    color: $muted;
+    font-weight: 600;
+    margin-bottom: 2px;
+  }
+
+  &__value {
+    font-size: 13px;
+    font-weight: 700;
+    color: $ink;
+    overflow-wrap: anywhere;
+  }
+
+  &--accent {
+    .info-cell__value {
+      color: $accent-dark;
+      font-weight: 800;
+    }
+    .info-cell__label {
+      color: $accent;
+    }
+  }
+}
+
+.btn-details {
+  background: $card;
+  border: 1.5px solid $primary-soft;
+  color: $primary-dark;
+  padding: 6px 14px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: $transition;
+  white-space: nowrap;
+
+  &:hover {
+    background: $primary;
+    border-color: $primary;
+    color: #fff;
+    transform: translateX(2px);
+  }
+}
+
+.btn-delete {
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid $red;
+  background: transparent;
+  color: $red;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  white-space: nowrap;
+
+  &:hover:not(:disabled) {
+    background: rgba(220, 59, 93, 0.08);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.empty-panel {
+  text-align: center;
+  padding: clamp(28px, 6vw, 44px) 20px;
+  background: $card;
+  border: 1.5px dashed $line;
+  border-radius: $radius-lg;
+
+  &__icon {
+    font-size: 34px;
+    margin-bottom: 10px;
+  }
+
+  &__title {
+    font-family: $font-display;
+    font-size: 16px;
+    font-weight: 700;
+    color: $ink;
+  }
+
+  &__sub {
+    font-size: 13px;
+    color: $muted;
+    margin-top: 4px;
+  }
+}
+
+@keyframes cardAppear {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Settings */
+.settings-block {
+  &__eyebrow {
+    @include eyebrow($muted);
+    letter-spacing: 0.8px;
+    margin-bottom: 10px;
+  }
+}
+
+.settings-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.settings-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 14px 16px;
+  background: $card;
+  border: 1px solid $line;
+  border-radius: $radius-md;
+  color: $ink;
+  cursor: pointer;
+  transition: $transition;
+  text-align: left;
+  gap: 12px;
+
+  &:hover {
+    border-color: $primary;
+
+    @media (min-width: #{$bp-mobile + 1}) {
+      transform: translateX(3px);
+    }
+  }
+
+  &__left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-width: 0;
+  }
+
+  &__icon { font-size: 18px; flex-shrink: 0; }
+
+  &__title {
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  &__sub {
+    font-size: 12px;
+    color: $muted;
+  }
+
+  &__arrow {
+    font-size: 18px;
+    color: $muted;
+    flex-shrink: 0;
+  }
+
+  &--danger:hover {
+    border-color: $red;
+
+    .settings-row__title {
+      color: $red;
+    }
+  }
+}
+
+/* Modals */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(32, 43, 69, 0.42);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+  animation: fadeIn 0.2s ease-out;
+
+  @include mobile-down {
+    padding: 12px;
+    align-items: flex-end;
+  }
+}
+
+.modal-panel {
+  background: $card;
+  border: 1px solid $line;
+  border-radius: $radius-lg;
+  width: 100%;
+  max-width: 600px;
+  max-height: 80vh;
+  position: relative;
+  overflow: auto;
+  box-shadow: 0 24px 48px -14px rgba(32, 43, 69, 0.3);
+  padding: 24px;
+
+  @include mobile-down {
+    max-height: 88vh;
+    padding: 18px;
+    border-radius: $radius-md $radius-md 0 0;
+  }
+}
+
+.modal-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  background: $paper-alt;
+  border: none;
+  color: $ink;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: $transition;
+
+  &:hover {
+    background: $red-soft;
+    color: $red;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.detail-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 4px;
+}
+
+.detail-item {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 4px;
+  border-bottom: 1px solid $line;
+  flex-wrap: wrap;
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  .label {
+    flex-shrink: 0;
+    font-size: 13px;
+    font-weight: 500;
+    color: $muted;
+  }
+
+  .value {
+    text-align: right;
+    font-size: 14px;
+    font-weight: 600;
+    color: $ink;
+    word-break: break-word;
+  }
+}

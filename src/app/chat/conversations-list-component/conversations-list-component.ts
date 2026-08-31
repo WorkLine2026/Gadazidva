@@ -1,8 +1,19 @@
-import { Component, Input, Output, EventEmitter, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import {
+  Component,
+  Input,
+  Output,
+  EventEmitter,
+  OnInit,
+  OnDestroy,
+  ChangeDetectorRef
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
-import { SocketNotificationService, Conversation } from '../../services/Socketnotification.service';
+import {
+  SocketNotificationService,
+  Conversation
+} from '../../services/Socketnotification.service';
 
 export type { Conversation };
 
@@ -14,6 +25,7 @@ export type { Conversation };
   styleUrls: ['./conversations-list-component.scss']
 })
 export class ConversationsListComponent implements OnInit, OnDestroy {
+
   @Input() currentUserId: string = '';
   @Output() conversationSelected = new EventEmitter<Conversation>();
 
@@ -31,43 +43,50 @@ export class ConversationsListComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    console.log('🚀 ConversationsListComponent ngOnInit - დაწყება');
+    // უსაფრთხო reconnect (თუ socket ჯერ არ არის მზად)
+    this.socketService.reconnect();
 
-    // ✅ საწყისი ჩატვირთვა backend-იდან
-    console.log('📡 loadConversationsFromServer() ჩემილი...');
+    // საუბრების ჩატვირთვა
     this.socketService.loadConversationsFromServer();
 
-    this.socketService.getConversations()
+    this.socketService
+      .getConversations()
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (conversations) => {
-          console.log('✅ getConversations() პასუხი:', conversations);
-          console.log('📊 რაოდენობა:', conversations.length);
           this.isLoading = false;
-          this.conversations = conversations;
+          this.conversations = conversations || [];
           this.applySearch();
-          this.cdr.detectChanges();
+          this.cdr.markForCheck();
+
+          // online სტატუსის მოთხოვნა
+          const ids = this.conversations
+            .map(c => c.userId)
+            .filter(Boolean);
+
+          if (ids.length > 0) {
+            this.socketService.requestOnlineStatus(ids);
+          }
         },
         error: (error) => {
           console.error('❌ getConversations() შეცდომა:', error);
           this.isLoading = false;
+          this.cdr.markForCheck();
         }
       });
 
-    this.socketService.getUnreadCount()
+    this.socketService
+      .getUnreadCount()
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (count) => {
-          console.log('🔔 getUnreadCount() პასუხი:', count);
           this.totalUnread = count;
-          this.cdr.detectChanges();
+          this.cdr.markForCheck();
         },
         error: (error) => {
           console.error('❌ getUnreadCount() შეცდომა:', error);
         }
       });
-
-    console.log('🏁 ConversationsListComponent ngOnInit - დასრულდა');
   }
 
   ngOnDestroy(): void {
@@ -75,9 +94,22 @@ export class ConversationsListComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
+  // ============================================================
+  // TRACKBY — ციმციმის მთავარი გამოსწორება
+  // ============================================================
+
+  trackByConversation(index: number, conv: Conversation): string {
+    // უნიკალური და სტაბილური გასაღები
+    return `${conv.conversationId}::${conv.userId}`;
+  }
+
+  // ============================================================
+  // SEARCH
+  // ============================================================
+
   searchConversations(event: Event): void {
     const input = event.target as HTMLInputElement;
-    this.searchQuery = input.value.toLowerCase();
+    this.searchQuery = (input.value || '').toLowerCase().trim();
     this.applySearch();
   }
 
@@ -86,15 +118,37 @@ export class ConversationsListComponent implements OnInit, OnDestroy {
       this.filteredConversations = [...this.conversations];
     } else {
       this.filteredConversations = this.conversations.filter(conv =>
-        conv.userName.toLowerCase().includes(this.searchQuery)
+        (conv.userName || '').toLowerCase().includes(this.searchQuery)
       );
     }
   }
 
+  // ============================================================
+  // OPEN CONVERSATION
+  // ============================================================
+
   openConversation(conversation: Conversation): void {
-    this.socketService.markConversationAsRead(conversation.conversationId, conversation.userId);
+    console.log('🖱️ conversation clicked:', conversation);
+
+    // ჯერ ვხსნით ჩატს
     this.conversationSelected.emit(conversation);
+
+    // წაკითხვად მონიშვნა ცალკე (არ დაბლოკოს გახსნა)
+    try {
+      if (conversation.conversationId && conversation.userId) {
+        this.socketService.markConversationAsRead(
+          conversation.conversationId,
+          conversation.userId
+        );
+      }
+    } catch (error) {
+      console.error('⚠️ საუბრის წაკითხვად მონიშვნა ვერ მოხერხდა:', error);
+    }
   }
+
+  // ============================================================
+  // HELPERS
+  // ============================================================
 
   getInitials(name: string): string {
     return (name || '')
@@ -106,11 +160,12 @@ export class ConversationsListComponent implements OnInit, OnDestroy {
       .slice(0, 2) || '?';
   }
 
-  formatTime(date?: Date): string {
+  formatTime(date?: Date | string): string {
     if (!date) return '';
 
     const now = new Date();
-    const diffMs = now.getTime() - new Date(date).getTime();
+    const msgDate = new Date(date);
+    const diffMs = now.getTime() - msgDate.getTime();
     const diffMins = Math.floor(diffMs / 60000);
     const diffHours = Math.floor(diffMins / 60);
     const diffDays = Math.floor(diffHours / 24);
@@ -120,6 +175,9 @@ export class ConversationsListComponent implements OnInit, OnDestroy {
     if (diffHours < 24) return `${diffHours}სთ`;
     if (diffDays < 7) return `${diffDays}დ`;
 
-    return new Date(date).toLocaleDateString('ka-GE', { month: 'short', day: 'numeric' });
+    return msgDate.toLocaleDateString('ka-GE', {
+      month: 'short',
+      day: 'numeric'
+    });
   }
 }

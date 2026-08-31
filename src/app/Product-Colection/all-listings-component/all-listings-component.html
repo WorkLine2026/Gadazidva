@@ -1,0 +1,181 @@
+<div class="listings-page">
+
+  <div class="page-head">
+    <h1>ყველა განცხადება</h1>
+    <p class="subtitle">გზავნილები და მგზავრობები ერთად — იპოვე შენთვის შესაფერისი მარშრუტი</p>
+  </div>
+
+  <div class="tabs">
+    <button type="button" class="tab" [class.active]="activeTab === 'all'" (click)="setTab('all')">
+      ყველა
+    </button>
+    <button type="button" class="tab" [class.active]="activeTab === 'requests'" (click)="setTab('requests')">
+      📦 გზავნილები
+      <span class="tab-count">{{ filteredRequests.length }}</span>
+    </button>
+    <button type="button" class="tab" [class.active]="activeTab === 'trips'" (click)="setTab('trips')">
+      🚗 მგზავრობები
+      <span class="tab-count">{{ filteredTrips.length }}</span>
+    </button>
+  </div>
+
+  <section class="filters">
+
+    <div class="filters-top">
+
+      <div class="search-box">
+        <svg class="search-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/>
+          <path d="M20 20L16.5 16.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <input
+          type="text"
+          [(ngModel)]="filters.search"
+          (ngModelChange)="applyFilters()"
+          placeholder="ძებნა აღწერით ან ქალაქით..." />
+      </div>
+
+      <button type="button" class="filters-toggle" [class.active]="filtersOpen" (click)="toggleFilters()">
+        ფილტრები
+        <span class="badge" *ngIf="activeFilterCount > 0">{{ activeFilterCount }}</span>
+        <svg class="chevron" [class.open]="filtersOpen" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+
+    </div>
+
+    <div class="filters-panel" *ngIf="filtersOpen">
+
+      <div class="filter-group route-group">
+        <label>მარშრუტი</label>
+        <div class="route-inputs">
+          <select [(ngModel)]="filters.fromCity" (ngModelChange)="applyFilters()">
+            <option value="">საიდან</option>
+            <option *ngFor="let city of cities" [value]="city">{{ city }}</option>
+          </select>
+
+          <button type="button" class="swap-btn" (click)="swapCities()" title="შეცვლა">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M7 16L3 12M3 12L7 8M3 12H21M17 8L21 12M21 12L17 16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+
+          <select [(ngModel)]="filters.toCity" (ngModelChange)="applyFilters()">
+            <option value="">სად</option>
+            <option *ngFor="let city of cities" [value]="city">{{ city }}</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="filter-group">
+        <label>თარიღი</label>
+        <div class="range-inputs">
+          <input type="date" [(ngModel)]="filters.dateFrom" (ngModelChange)="applyFilters()" />
+          <span class="dash">—</span>
+          <input type="date" [(ngModel)]="filters.dateTo" (ngModelChange)="applyFilters()" />
+        </div>
+      </div>
+
+      <div class="filter-group" *ngIf="activeTab !== 'trips'">
+        <label>წონა (კგ)</label>
+        <div class="range-inputs">
+          <input type="number" min="0" placeholder="დან" [(ngModel)]="filters.minWeight" (ngModelChange)="applyFilters()" />
+          <span class="dash">—</span>
+          <input type="number" min="0" placeholder="მდე" [(ngModel)]="filters.maxWeight" (ngModelChange)="applyFilters()" />
+        </div>
+      </div>
+
+      <div class="filter-group">
+        <label>{{ activeTab === 'trips' ? 'ფასი (₾/კგ)' : 'ღირებულება (₾)' }}</label>
+        <div class="range-inputs">
+          <input type="number" min="0" placeholder="დან" [(ngModel)]="filters.minPrice" (ngModelChange)="applyFilters()" />
+          <span class="dash">—</span>
+          <input type="number" min="0" placeholder="მდე" [(ngModel)]="filters.maxPrice" (ngModelChange)="applyFilters()" />
+        </div>
+      </div>
+
+      <div class="filter-group">
+        <label>დალაგება</label>
+        <select [(ngModel)]="filters.sort" (ngModelChange)="applyFilters()">
+          <option value="date-desc">უახლესი თარიღით</option>
+          <option value="date-asc">ძველი თარიღით</option>
+          <option value="price-asc">იაფი — ძვირი</option>
+          <option value="price-desc">ძვირი — იაფი</option>
+        </select>
+      </div>
+
+      <label class="checkbox-group">
+        <input type="checkbox" [(ngModel)]="filters.onlyWithPhotos" (ngModelChange)="applyFilters()" />
+        <span>მხოლოდ ფოტოებით</span>
+      </label>
+
+      <button type="button" class="reset-btn" (click)="resetFilters()" *ngIf="activeFilterCount > 0">
+        ფილტრების გასუფთავება
+      </button>
+
+    </div>
+
+  </section>
+
+
+  <div *ngIf="loadingRequests || loadingTrips" class="loading">
+    განცხადებები იტვირთება...
+  </div>
+
+
+  <div
+    *ngIf="!loadingRequests && !loadingTrips && filteredRequests.length === 0 && filteredTrips.length === 0"
+    class="empty">
+    <ng-container *ngIf="requests.length === 0 && trips.length === 0; else noMatch">
+      განცხადებები ვერ მოიძებნა
+    </ng-container>
+    <ng-template #noMatch>
+      <p>ამ ფილტრებით განცხადება ვერ მოიძებნა — სცადე პარამეტრების შეცვლა</p>
+      <button type="button" class="reset-btn inline" (click)="resetFilters()">გასუფთავება</button>
+    </ng-template>
+  </div>
+
+
+  <section class="listings-section" *ngIf="activeTab !== 'trips' && !loadingRequests && filteredRequests.length > 0">
+    <div class="section-header">
+      <h2>📦 გზავნილები</h2>
+      <span class="count">{{ filteredRequests.length }}</span>
+    </div>
+
+    <div class="listings-grid">
+      <div *ngFor="let req of filteredRequests" class="listing-card">
+        <div class="route">{{ req.from }} → {{ req.to }}</div>
+        <div class="details">
+          <span>წონა: {{ req.weight }} კგ</span>
+          <span>ღირებულება: {{ formatPrice(req.value) }}</span>
+          <span>თარიღი: {{ formatDate(req.shipDate) }}</span>
+        </div>
+        <p class="description" *ngIf="req.description">{{ req.description }}</p>
+        <a [routerLink]="['/request', req._id]" class="btn-details">დეტალურად</a>
+      </div>
+    </div>
+  </section>
+
+
+  <section class="listings-section" *ngIf="activeTab !== 'requests' && !loadingTrips && filteredTrips.length > 0">
+    <div class="section-header">
+      <h2>🚗 მგზავრობები</h2>
+      <span class="count">{{ filteredTrips.length }}</span>
+    </div>
+
+    <div class="listings-grid">
+      <div *ngFor="let trip of filteredTrips" class="listing-card">
+        <div class="route">{{ trip.from }} → {{ trip.to }}</div>
+        <div class="details">
+          <span>თარიღი: {{ formatDate(trip.departureDate) }}</span>
+          <span *ngIf="trip.pricePerKg">ფასი: {{ formatPrice(trip.pricePerKg) }}/კგ</span>
+          <span *ngIf="trip.availableSpace">ადგილი: {{ trip.availableSpace }} კგ</span>
+        </div>
+        <p class="description" *ngIf="trip.comments">{{ trip.comments }}</p>
+        <a [routerLink]="['/trip', trip._id]" class="btn-details">დეტალურად</a>
+      </div>
+    </div>
+  </section>
+
+</div>

@@ -12,7 +12,7 @@ import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { Subscription } from 'rxjs';
-import { SmsVerificationService, UserProfile } from '../services/smsverifikation.service';
+import { SmsVerificationService, UserProfile } from '../../services/smsverifikation.service';
 
 @Component({
   selector: 'app-navbar',
@@ -138,10 +138,15 @@ navigateToAllListings(): void {
     this.closeMenu();
     this.router.navigate(['/pickup']);
   }
-
-  navigateToProfile(): void {
+navigateToProfile(): void {
     this.closeMenu();
-    this.router.navigate(['/profile']);
+
+    // ✅ როლის მიხედვით სწორ პროფილზე გადასვლა
+    if (this.currentUser?.role === 'driver') {
+      this.router.navigate(['/driverProfile']);
+    } else {
+      this.router.navigate(['/senderProfile']);
+    }
   }
 
   navigateHome(): void {

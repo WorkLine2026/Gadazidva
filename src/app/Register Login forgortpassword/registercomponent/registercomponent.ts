@@ -449,6 +449,8 @@ export class RegisterComponent implements OnInit, OnDestroy {
     this.isLoading = true;
     this.cdr.detectChanges();
 
+    const role = this.activeRole; // ✅ route-ის ასარჩევად ვინახავთ reset-მდე
+
     this.clearCooldownTimer();
     this.revokeLicensePreview();
     this.registerForm.reset();
@@ -457,7 +459,12 @@ export class RegisterComponent implements OnInit, OnDestroy {
     this.licenseFileName = null;
     this.currentStep = 'form';
 
-    this.router.navigate(['/profile']);
+    // ✅ როლის მიხედვით სწორ პროფილზე გადასვლა
+    if (role === 'driver') {
+      this.router.navigate(['/driverProfile']);
+    } else {
+      this.router.navigate(['/senderProfile']);
+    }
   }
 
   private markFormGroupTouched(formGroup: FormGroup): void {

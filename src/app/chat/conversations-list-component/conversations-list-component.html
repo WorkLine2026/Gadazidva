@@ -30,13 +30,13 @@
       <div class="empty-subtext">დაიწყეთ ახალი საუბარი</div>
     </div>
 
-    <!-- განხილვების კარტები -->
+    <!-- განხილვების კარტები — trackBy დამატებულია -->
     <div
-      *ngFor="let conv of filteredConversations"
+      *ngFor="let conv of filteredConversations; trackBy: trackByConversation"
       class="conversation-item"
       [class.unread]="conv.unreadCount > 0"
       (click)="openConversation(conv)">
-
+      
       <!-- ავატარი + სტატუსი -->
       <div class="conversation-avatar">
         <div class="avatar-circle">

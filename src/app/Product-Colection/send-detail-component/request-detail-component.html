@@ -1,5 +1,4 @@
-<div class="request-detail-container">
-  <!-- Header / უკან ღილაკი -->
+
   <div class="detail-header">
     <button class="back-button" (click)="goBack()" aria-label="უკან">
       ← უკან
@@ -148,13 +147,22 @@
         </div>
       </div>
 
-      <!-- ⚙️ კონტაქტის / ჩატის მოქმედებები -->
+      <!-- ⚙️ კონტაქტის / ჩატის / წაღების მოქმედებები -->
       <div class="action-card" *ngIf="isAuthenticated && !isOwnRequest">
         <h3>⚙️ კომუნიკაცია</h3>
         <p style="color: #64748b; margin-bottom: 16px;">
           განცხადების მიმდინარე სტატუსი: <strong>{{ getStatusLabel(originalRequest.status) }}</strong>
         </p>
         <div class="status-buttons">
+          <!-- 🚚 ნივთის წაღების მოთხოვნა -->
+          <button
+            *ngIf="originalRequest.status === 'pending'"
+            class="btn-status btn-status--primary"
+            (click)="requestPickup()"
+            [disabled]="isSendingPickupRequest || pickupRequestSent">
+            {{ pickupRequestSent ? '✅ მოთხოვნა გაგზავნილია' : (isSendingPickupRequest ? 'იგზავნება…' : '🚚 ნივთის წაღება') }}
+          </button>
+
           <button *ngIf="!isOwnRequest"
             class="btn-status"
             (click)="openChat()">
@@ -229,7 +237,7 @@
       </div>
     </div>
   </div>
-</div>
+
 
 <!-- 💬 Socket.IO Chat Modal (დარწმუნდით, რომ selector ემთხვევა import-ს) -->
 <app-chat-modal

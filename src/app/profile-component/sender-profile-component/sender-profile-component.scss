@@ -1,52 +1,52 @@
-/* ==========================================================================
-   0. FONTS & TOKENS
-   ========================================================================== */
 @import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap');
 
-// ---- Design tokens (Sass vars, compiled — no runtime cost) --------------
-$paper:         #F5F8FC;
-$paper-alt:     #EAF0FA;
+// ---- Design tokens (Sass vars) ------------------------------------------------
+// ---- პალიტრა ოდნავ დარბილებულია (ნაკლები კონტრასტი/გაჯერება, უფრო რბილი ჩრდილები)
+$paper:         #F6F8FC;
+$paper-alt:     #EDF1F9;
 $card:          #FFFFFF;
-$ink:           #16213E;
-$ink-soft:      #4B5876;
-$muted:         #7C879D;
-$line:          #DCE3EF;
+$ink:           #202B45;
+$ink-soft:      #56628A;
+$muted:         #838da0;
+$line:          #E2E7F1;
 
-$primary:       #2563EB;
-$primary-dark:  #1D4FC4;
-$primary-soft:  #E5EDFD;
+$primary:       #3B6FE0;
+$primary-dark:  #2C57C4;
+$primary-soft:  #E9F0FD;
 
-$accent:        #F97316;
-$accent-dark:   #EA6A0A;
-$accent-soft:   #FFEEDD;
+$accent:        #F0873A;
+$accent-dark:   #DE7523;
+$accent-soft:   #FFF1E2;
 
-$teal:          #0D9488;
-$teal-soft:     #DFF5F1;
+$teal:          #17998C;
+$teal-soft:     #E4F6F3;
 
-$red:           #E11D48;
-$red-soft:      #FCE4EA;
+$red:           #DC3B5D;
+$red-soft:      #FCE7EC;
 
-$amber:         #D97706;
-$amber-soft:    #FEF3DA;
+$amber:         #D69A2D;
+$amber-soft:    #FCF2DD;
 
-$radius-lg: 26px;
+$radius-lg: 22px;
 $radius-md: 16px;
 $radius-sm: 10px;
 
-$shadow-card:       0 10px 30px -12px rgba(22, 33, 62, 0.14);
-$shadow-card-hover: 0 18px 34px -14px rgba(22, 33, 62, 0.22);
+$shadow-card:       0 8px 24px -14px rgba(32, 43, 69, 0.16);
+$shadow-card-hover: 0 16px 32px -16px rgba(32, 43, 69, 0.22);
 $transition: all 0.28s cubic-bezier(0.4, 0, 0.2, 1);
 
 $font-display: 'Bricolage Grotesque', 'Inter', system-ui, sans-serif;
 $font-body:    'Inter', system-ui, -apple-system, sans-serif;
 $font-mono:    'JetBrains Mono', 'SFMono-Regular', monospace;
 
-// ---- Breakpoints & helpers ------------------------------------------------
-$bp-tablet: 900px;
-$bp-mobile: 600px;
+// ---- ბრეიქფოინთები (დამატებულია --small-mobile ვიწრო ეკრანებისთვის) --------
+$bp-tablet:       900px;
+$bp-mobile:       600px;
+$bp-small-mobile: 400px;
 
-@mixin tablet-down { @media (max-width: $bp-tablet) { @content; } }
-@mixin mobile-down { @media (max-width: $bp-mobile) { @content; } }
+@mixin tablet-down       { @media (max-width: $bp-tablet) { @content; } }
+@mixin mobile-down       { @media (max-width: $bp-mobile) { @content; } }
+@mixin small-mobile-down { @media (max-width: $bp-small-mobile) { @content; } }
 
 @mixin card-surface($radius: $radius-lg) {
   background: $card;
@@ -92,7 +92,7 @@ $bp-mobile: 600px;
 
   &:hover:not(:disabled) {
     transform: translateY(-2px);
-    box-shadow: 0 10px 20px -6px rgba($shadow-color, 0.4);
+    box-shadow: 0 10px 20px -8px rgba($shadow-color, 0.38);
   }
   &:disabled {
     opacity: 0.6;
@@ -101,8 +101,6 @@ $bp-mobile: 600px;
   }
 }
 
-// CSS custom properties — exposed on :host so templates / child components
-// (e.g. app-chat-modal) can still read them at runtime.
 :host {
   --paper: #{$paper};
   --paper-alt: #{$paper-alt};
@@ -127,6 +125,12 @@ $bp-mobile: 600px;
   --radius-sm: #{$radius-sm};
 
   display: block;
+
+  // ყველა ჩაშენებული ელემენტისთვის ერთიანი box-sizing — ავირიდოთ overflow
+  // ვიწრო ეკრანებზე padding/border-ის გამო.
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -137,36 +141,32 @@ $bp-mobile: 600px;
   }
 }
 
-/* ==========================================================================
-   1. PAGE SHELL
-   ========================================================================== */
-.profile-page {
-  min-height: 100vh;
-  background:
-    radial-gradient(at 8% 0%, rgba(37, 99, 235, 0.07) 0px, transparent 45%),
-    radial-gradient(at 100% 12%, rgba(249, 115, 22, 0.06) 0px, transparent 40%),
-    $paper;
-  color: $ink;
-  padding: 32px 20px 60px;
-  font-family: $font-body;
-
-  @include mobile-down {
-    padding: 20px 12px 40px;
-  }
-}
-
+/* Page Shell */
 .profile-shell {
   max-width: 1180px;
   margin: 0 auto;
+  // clamp() საშუალებას გვაძლევს padding ეკრანის სიგანესთან ერთად
+  // გლუვად შემცირდეს, ნაცვლად ერთი მკვეთრი ნახტომისა breakpoint-ზე.
+  padding: clamp(16px, 3vw, 32px) clamp(12px, 4vw, 20px) 60px;
+  font-family: $font-body;
+  color: $ink;
+  overflow-x: hidden;
+
+  @include mobile-down {
+    padding: 16px 12px 36px;
+  }
 }
 
-/* ==========================================================================
-   2. HEADER — dotted "route" strip
-   ========================================================================== */
+/* Header */
 .route-header {
   @include card-surface;
-  padding: 22px 26px 18px;
-  margin-bottom: 26px;
+  padding: 20px 24px 16px;
+  margin-bottom: 24px;
+
+  @include mobile-down {
+    padding: 16px 16px 14px;
+    margin-bottom: 18px;
+  }
 
   &__path {
     display: flex;
@@ -183,7 +183,7 @@ $bp-mobile: 600px;
 
     @include mobile-down {
       flex-direction: column;
-      align-items: flex-start;
+      align-items: stretch;
       gap: 12px;
     }
   }
@@ -195,9 +195,9 @@ $bp-mobile: 600px;
 
   &__title {
     font-family: $font-display;
-    font-size: 30px;
+    font-size: clamp(22px, 4vw, 28px);
     font-weight: 700;
-    letter-spacing: -0.5px;
+    letter-spacing: -0.4px;
     margin: 0;
     color: $ink;
   }
@@ -205,6 +205,7 @@ $bp-mobile: 600px;
   &__actions {
     display: flex;
     gap: 10px;
+    flex-shrink: 0;
 
     @include mobile-down {
       width: 100%;
@@ -234,12 +235,13 @@ $bp-mobile: 600px;
   background: $paper-alt;
   border: 1px solid $line;
   color: $ink-soft;
-  padding: 10px 18px;
+  padding: 10px 16px;
   border-radius: $radius-sm;
   font-weight: 600;
-  font-size: 14px;
+  font-size: 13.5px;
   cursor: pointer;
   transition: $transition;
+  white-space: nowrap;
 
   &:hover {
     background: $primary-soft;
@@ -254,13 +256,13 @@ $bp-mobile: 600px;
   }
 }
 
-/* ==========================================================================
-   3. TWO-COLUMN GRID
-   ========================================================================== */
+/* Grid Layout */
 .profile-grid {
   display: grid;
-  grid-template-columns: 320px 1fr;
-  gap: 26px;
+  // 300–340px სიდბარი ეკრანის მიხედვით, არ არის ხისტად 320px –
+  // ეს ხსნის "შეკუმშვას" ტაბლეტის ზომებზე ტრანზიციამდე.
+  grid-template-columns: minmax(280px, 320px) minmax(0, 1fr);
+  gap: clamp(16px, 2.5vw, 26px);
   align-items: start;
 
   @include tablet-down {
@@ -268,19 +270,22 @@ $bp-mobile: 600px;
   }
 }
 
-/* ==========================================================================
-   4. TAG CARD — signature: a hanging luggage / parcel tag
-   ========================================================================== */
+/* Tag Card */
 .tag-card {
   position: relative;
   @include card-surface;
-  padding: 36px 24px 24px;
+  padding: 32px 22px 22px;
   text-align: center;
   transition: $transition;
 
+  // ჩატრიალება მხოლოდ იქ, სადაც საკმარისი სივრცეა — ვიწრო ეკრანზე
+  // ჰოვერის ეფექტი გამორთულია, რომ ბარათი overflow-ში არ წავიდეს.
   &:hover {
-    transform: rotate(-0.6deg);
     box-shadow: $shadow-card-hover;
+
+    @media (min-width: #{$bp-mobile + 1}) {
+      transform: rotate(-0.5deg);
+    }
   }
 
   &__strap {
@@ -292,23 +297,6 @@ $bp-mobile: 600px;
     height: 22px;
     background: $line;
     border-radius: 2px;
-
-    &--tied {
-      background: linear-gradient(to bottom, $accent 0%, $accent-dark 100%);
-      box-shadow: 0 0 0 4px $accent-soft;
-
-      &::before {
-        content: '';
-        position: absolute;
-        top: -3px;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 9px;
-        height: 9px;
-        border-radius: 50%;
-        background: $accent;
-      }
-    }
   }
 
   &__grommet {
@@ -326,35 +314,37 @@ $bp-mobile: 600px;
   &__top { padding-top: 6px; }
 
   &__avatar {
-    width: 84px;
-    height: 84px;
+    width: 80px;
+    height: 80px;
     margin: 0 auto 14px;
     border-radius: 50%;
-    background: linear-gradient(135deg, $primary 0%, $primary-dark 100%);
+    background: linear-gradient(135deg, $teal 0%, $accent 100%);
     display: flex;
     align-items: center;
     justify-content: center;
     font-family: $font-display;
-    font-size: 30px;
+    font-size: 28px;
     font-weight: 700;
     color: #fff;
-    box-shadow: 0 10px 22px -6px rgba(37, 99, 235, 0.5), 0 0 0 5px $accent-soft;
+    box-shadow: 0 8px 18px -6px rgba(23, 153, 140, 0.4), 0 0 0 5px $accent-soft;
     border: 3px solid $card;
     outline: 1px solid $line;
   }
 
   &__name {
     font-family: $font-display;
-    font-size: 20px;
+    font-size: 19px;
     font-weight: 700;
     color: $ink;
+    overflow-wrap: anywhere;
   }
 
   &__email {
     font-size: 13px;
     color: $muted;
     margin: 3px 0 12px;
-    word-break: break-all;
+    word-break: break-word;
+    overflow-wrap: anywhere;
   }
 
   &__stamp {
@@ -369,7 +359,7 @@ $bp-mobile: 600px;
   }
 
   &__perforation {
-    margin: 20px -24px;
+    margin: 20px -22px;
     height: 0;
     border-top: 2px dashed $line;
     position: relative;
@@ -413,7 +403,7 @@ $bp-mobile: 600px;
 
 .stamp {
   &--driver { color: $teal; background: $teal-soft; }
-  &--sender { color: $primary; background: $primary-soft; }
+  &--sender { color: $primary-dark; background: $primary-soft; }
 }
 
 .status-line {
@@ -424,6 +414,8 @@ $bp-mobile: 600px;
   font-size: 13px;
   font-weight: 700;
   margin-bottom: 4px;
+  flex-wrap: wrap;
+  text-align: center;
 
   &--ok   { color: $teal; .status-dot { background: $teal; } }
   &--warn { color: $red;  .status-dot { background: $red; } }
@@ -433,6 +425,7 @@ $bp-mobile: 600px;
   width: 7px;
   height: 7px;
   border-radius: 50%;
+  flex-shrink: 0;
 }
 
 .status-phone {
@@ -468,11 +461,7 @@ $bp-mobile: 600px;
   }
 
   &--solid {
-    @include pill-button($primary, $primary-dark);
-  }
-
-  &--accent {
-    @include pill-button($accent, $accent-dark);
+    @include pill-button($teal, $teal);
   }
 }
 
@@ -484,6 +473,50 @@ $bp-mobile: 600px;
   border-radius: 10px;
   font-weight: 800;
   animation: badgePulse 1.8s ease-in-out infinite;
+}
+
+.notice-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.notice-card {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 14px 40px 14px 16px;
+  border-radius: 12px;
+  animation: fadeIn 0.25s ease both;
+
+  &--rejected {
+    background: rgba(220, 59, 93, 0.07);
+    border: 1px solid rgba(220, 59, 93, 0.22);
+  }
+
+  &__body {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    font-size: 14px;
+  }
+
+  &__close {
+    position: absolute;
+    top: 8px;
+    right: 10px;
+    background: none;
+    border: none;
+    font-size: 16px;
+    cursor: pointer;
+    color: $red;
+    opacity: 0.7;
+
+    &:hover { opacity: 1; }
+    &:disabled { opacity: 0.4; cursor: default; }
+  }
 }
 
 @keyframes badgePulse {
@@ -500,7 +533,7 @@ $bp-mobile: 600px;
 
   &__value {
     font-family: $font-display;
-    font-size: 19px;
+    font-size: 18px;
     font-weight: 700;
     color: $ink;
   }
@@ -512,11 +545,11 @@ $bp-mobile: 600px;
   }
 }
 
-/* ---- Vehicle manifest card ---- */
+/* Manifest Card */
 .manifest-card {
   margin-top: 18px;
   @include card-surface;
-  padding: 20px;
+  padding: 18px;
 
   &__title {
     font-size: 12px;
@@ -530,11 +563,16 @@ $bp-mobile: 600px;
 .manifest-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  gap: 10px;
   margin-top: 12px;
+
+  @include small-mobile-down {
+    grid-template-columns: 1fr;
+  }
 }
 
 .manifest-item {
+  min-width: 0;
   background: $paper-alt;
   padding: 10px 12px;
   border-radius: $radius-sm;
@@ -549,10 +587,12 @@ $bp-mobile: 600px;
     font-weight: 700;
     margin-top: 2px;
     color: $ink;
+    overflow-wrap: anywhere;
   }
 }
 
 .plate-chip {
+  display: inline-block;
   background: $ink;
   color: #fff;
   padding: 2px 8px 4px;
@@ -570,13 +610,15 @@ $bp-mobile: 600px;
   font-style: italic;
 }
 
-/* ==========================================================================
-   5. MAIN COLUMN — form panel
-   ========================================================================== */
+/* Main Column */
 .profile-main-column {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: clamp(18px, 2.5vw, 24px);
+  // ეს ხაზი ხსნის მთავარ პრობლემას — ბარათების სვეტს შეუძლია
+  // grid-ში ჩაეტიოს bez overflow-ის გამოწვევის, თუნდაც შიგთავსი
+  // (მაგ. გრძელი ტექსტი) ცდილობდეს კონტეინერს გაწელოს.
+  min-width: 0;
 }
 
 .section-head {
@@ -585,10 +627,11 @@ $bp-mobile: 600px;
   align-items: flex-end;
   margin-bottom: 16px;
   gap: 12px;
+  flex-wrap: wrap;
 
   @include mobile-down {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: stretch;
   }
 
   &__eyebrow {
@@ -598,7 +641,7 @@ $bp-mobile: 600px;
 
   h2 {
     font-family: $font-display;
-    font-size: 21px;
+    font-size: clamp(18px, 2.4vw, 20px);
     font-weight: 700;
     margin: 0;
     color: $ink;
@@ -618,9 +661,10 @@ $bp-mobile: 600px;
   }
 }
 
+/* Form */
 .form-panel {
   @include card-surface;
-  padding: 30px;
+  padding: clamp(20px, 3vw, 30px);
 
   &__header {
     margin-bottom: 22px;
@@ -628,7 +672,7 @@ $bp-mobile: 600px;
     h3 {
       font-family: $font-display;
       margin: 4px 0 4px 0;
-      font-size: 21px;
+      font-size: 20px;
       color: $ink;
     }
 
@@ -647,13 +691,19 @@ $bp-mobile: 600px;
     display: flex;
     gap: 12px;
     margin-top: 12px;
+    flex-wrap: wrap;
+
+    .btn-primary,
+    .btn-secondary {
+      flex: 1 1 140px;
+    }
   }
 }
 
 .field-grid {
   &--2 {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 16px;
 
     @include mobile-down {
@@ -678,6 +728,7 @@ $bp-mobile: 600px;
   flex-direction: column;
   gap: 6px;
   margin-bottom: 16px;
+  min-width: 0;
 
   &__label {
     font-size: 13px;
@@ -686,6 +737,7 @@ $bp-mobile: 600px;
   }
 
   &__input {
+    width: 100%;
     background: $paper-alt;
     border: 1.5px solid $line;
     border-radius: $radius-sm;
@@ -716,7 +768,7 @@ $bp-mobile: 600px;
 
 .btn-primary,
 .btn-secondary {
-  padding: 12px 26px;
+  padding: 12px 24px;
   border-radius: $radius-sm;
   font-weight: 700;
   font-size: 14px;
@@ -744,23 +796,39 @@ $bp-mobile: 600px;
   margin-top: 16px;
   padding: 12px 14px;
   background: $red-soft;
-  border: 1px solid rgba(225, 29, 72, 0.25);
+  border: 1px solid rgba(220, 59, 93, 0.22);
   border-radius: $radius-sm;
   color: $red;
   font-size: 14px;
   font-weight: 600;
 }
 
-/* ==========================================================================
-   6. STUB CARDS — trips & requests, styled like boarding-pass / waybill stubs
-   ========================================================================== */
+/* ===== Stub Cards ===================================================== *
+ * მთავარი ცვლილება: predator იყო `minmax(300px, 1fr)`, რაც ბარათებს
+ * ფართო ეკრანზე (როცა მწკრივში მხოლოდ 1-2 ბარათია) აჭიმავდა მთელ
+ * სიგანეზე. ახლა ბარათს აქვს ზედა ზღვარი (`minmax(280px, 360px)`)
+ * და `justify-content: start`, ასე რომ ბარათები ყოველთვის ინარჩუნებენ
+ * თანაბარ, კომფორტულ სიგანეს და უბრალოდ ცარიელ სივრცეს ტოვებენ
+ * ბოლოში, ნაცვლად იმისა, რომ გაიწელონ.
+ * ========================================================================= */
 .stub-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 18px;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 360px));
+  justify-content: start;
+  gap: 16px;
 
+  // მობილურზეც ბარათს აქვს ზედა ზღვარი და დაცენტრებულია — წინააღმდეგ
+  // შემთხვევაში 1fr-ს ბარათი ეკრანის სრულ სიგანეზე გაჭიმავს (რაც
+  // განსაკუთრებით ემჩნევა media/banner სურათზე).
   @include mobile-down {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
+    justify-content: stretch;
+    max-width: 380px;
+    margin: 0 auto;
+  }
+
+  @include small-mobile-down {
+    max-width: 100%;
   }
 }
 
@@ -771,24 +839,25 @@ $bp-mobile: 600px;
   display: flex;
   flex-direction: column;
   position: relative;
+  min-width: 0;
   animation: cardAppear 0.4s ease-out forwards;
   opacity: 0;
 
   &:hover {
-    transform: translateY(-5px);
+    transform: translateY(-4px);
     border-color: $primary;
-    box-shadow: $shadow-card-hover, 0 0 0 1px rgba(249, 115, 22, 0.12);
+    box-shadow: $shadow-card-hover, 0 0 0 1px rgba(240, 135, 58, 0.1);
 
     .stub-card__media img {
-      transform: scale(1.06);
+      transform: scale(1.05);
     }
   }
 
   &__media {
-    height: 148px;
+    height: 140px;
     width: 100%;
     position: relative;
-    background: linear-gradient(160deg, $primary-soft 0%, $paper-alt 100%);
+    background: linear-gradient(160deg, $teal-soft 0%, $paper-alt 100%);
     overflow: hidden;
 
     img {
@@ -803,7 +872,7 @@ $bp-mobile: 600px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 44px;
+      font-size: 42px;
       opacity: 0.7;
     }
 
@@ -811,7 +880,7 @@ $bp-mobile: 600px;
       position: absolute;
       bottom: 10px;
       right: 10px;
-      background: rgba(22, 33, 62, 0.7);
+      background: rgba(32, 43, 69, 0.68);
       color: #fff;
       padding: 3px 10px;
       border-radius: 12px;
@@ -820,53 +889,38 @@ $bp-mobile: 600px;
     }
   }
 
-  &__status {
-    position: absolute;
-    top: 12px;
-    left: 12px;
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 10.5px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    backdrop-filter: blur(4px);
-  }
-
-  &__ribbon {
-    position: absolute;
-    top: 14px;
-    right: -30px;
-    background: linear-gradient(135deg, $accent 0%, $accent-dark 100%);
-    color: #fff;
-    font-size: 10.5px;
-    font-weight: 800;
-    letter-spacing: 0.4px;
-    padding: 4px 34px;
-    transform: rotate(40deg);
-    box-shadow: 0 4px 10px -2px rgba(0, 0, 0, 0.25);
-  }
-
   &__route {
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 16px 18px 6px;
+    padding: 16px 16px 6px;
+    min-width: 0;
   }
 
   &__body {
-    padding: 6px 18px 4px;
+    padding: 6px 16px 4px;
     flex-grow: 1;
+    min-width: 0;
   }
 
+  // 3-სვეტიანი info-გრიდი პატარა ეკრანზე 2-სვეტიანი ხდება, რომ
+  // ციფრები ერთმანეთს არ დაედოს ვიწრო ბარათზეც კი.
   &__info {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 6px;
     background: $paper-alt;
     padding: 12px 8px;
     border-radius: 12px;
     text-align: center;
+
+    @include small-mobile-down {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+
+      > :last-child:nth-child(odd) {
+        grid-column: 1 / -1;
+      }
+    }
   }
 
   &__earnings {
@@ -877,33 +931,36 @@ $bp-mobile: 600px;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 8px;
     font-size: 12px;
     color: $teal;
     font-weight: 700;
 
     &-value {
-      color: #C2540A;
+      color: $accent-dark;
       font-weight: 800;
     }
   }
 
-  // the "tear-off" perforation between body and footer
   &__tear {
     @include dashed-tear($paper);
     margin: 14px 0 0;
   }
 
   &__footer {
-    padding: 14px 18px;
+    padding: 14px 16px;
     display: flex;
+    flex-wrap: wrap;
     justify-content: space-between;
     align-items: center;
+    gap: 10px;
     background: $paper-alt;
 
     &-actions {
       display: flex;
       gap: 8px;
       align-items: center;
+      flex-wrap: wrap;
     }
   }
 
@@ -912,25 +969,6 @@ $bp-mobile: 600px;
     font-size: 12px;
     color: $muted;
     font-weight: 600;
-  }
-}
-
-.status {
-  &--pending {
-    background: $amber-soft;
-    color: $amber;
-  }
-  &--active, &--approved, &--accepted {
-    background: $teal-soft;
-    color: $teal;
-  }
-  &--completed {
-    background: $primary-soft;
-    color: $primary-dark;
-  }
-  &--cancelled, &--rejected {
-    background: $red-soft;
-    color: $red;
   }
 }
 
@@ -946,12 +984,13 @@ $bp-mobile: 600px;
 
 .route-name {
   font-family: $font-display;
-  font-size: 14.5px;
+  font-size: 14px;
   font-weight: 700;
   color: $ink;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  min-width: 0;
 }
 
 .route-track {
@@ -974,6 +1013,8 @@ $bp-mobile: 600px;
 }
 
 .info-cell {
+  min-width: 0;
+
   &__label {
     font-size: 10.5px;
     color: $muted;
@@ -985,11 +1026,12 @@ $bp-mobile: 600px;
     font-size: 13px;
     font-weight: 700;
     color: $ink;
+    overflow-wrap: anywhere;
   }
 
   &--accent {
     .info-cell__value {
-      color: #C2540A;
+      color: $accent-dark;
       font-weight: 800;
     }
     .info-cell__label {
@@ -1008,6 +1050,7 @@ $bp-mobile: 600px;
   font-weight: 700;
   cursor: pointer;
   transition: $transition;
+  white-space: nowrap;
 
   &:hover {
     background: $primary;
@@ -1015,6 +1058,19 @@ $bp-mobile: 600px;
     color: #fff;
     transform: translateX(2px);
   }
+}
+
+// ტრიპ-მოთხოვნის სტატუსის ბეჯი — ფონის ფერი მოდის [style.background-color]-დან
+// TS-ში, აქ მხოლოდ ფორმა/ტიპოგრაფიაა განსაზღვრული.
+.status-badge {
+  display: inline-block;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #fff;
+  white-space: nowrap;
+  letter-spacing: 0.2px;
 }
 
 .btn-delete {
@@ -1026,9 +1082,10 @@ $bp-mobile: 600px;
   font-size: 0.85rem;
   cursor: pointer;
   transition: background 0.15s ease;
+  white-space: nowrap;
 
   &:hover:not(:disabled) {
-    background: rgba(225, 29, 72, 0.08);
+    background: rgba(220, 59, 93, 0.08);
   }
 
   &:disabled {
@@ -1037,16 +1094,15 @@ $bp-mobile: 600px;
   }
 }
 
-/* ---- Empty state ---- */
 .empty-panel {
   text-align: center;
-  padding: 44px 20px;
+  padding: clamp(28px, 6vw, 44px) 20px;
   background: $card;
   border: 1.5px dashed $line;
   border-radius: $radius-lg;
 
   &__icon {
-    font-size: 38px;
+    font-size: 34px;
     margin-bottom: 10px;
   }
 
@@ -1065,13 +1121,11 @@ $bp-mobile: 600px;
 }
 
 @keyframes cardAppear {
-  from { opacity: 0; transform: translateY(14px); }
+  from { opacity: 0; transform: translateY(12px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 
-/* ==========================================================================
-   7. SETTINGS
-   ========================================================================== */
+/* Settings */
 .settings-block {
   &__eyebrow {
     @include eyebrow($muted);
@@ -1091,7 +1145,7 @@ $bp-mobile: 600px;
   justify-content: space-between;
   align-items: center;
   width: 100%;
-  padding: 14px 18px;
+  padding: 14px 16px;
   background: $card;
   border: 1px solid $line;
   border-radius: $radius-md;
@@ -1099,19 +1153,24 @@ $bp-mobile: 600px;
   cursor: pointer;
   transition: $transition;
   text-align: left;
+  gap: 12px;
 
   &:hover {
     border-color: $primary;
-    transform: translateX(3px);
+
+    @media (min-width: #{$bp-mobile + 1}) {
+      transform: translateX(3px);
+    }
   }
 
   &__left {
     display: flex;
     align-items: center;
     gap: 14px;
+    min-width: 0;
   }
 
-  &__icon { font-size: 18px; }
+  &__icon { font-size: 18px; flex-shrink: 0; }
 
   &__title {
     font-size: 14px;
@@ -1126,6 +1185,7 @@ $bp-mobile: 600px;
   &__arrow {
     font-size: 18px;
     color: $muted;
+    flex-shrink: 0;
   }
 
   &--danger:hover {
@@ -1137,13 +1197,11 @@ $bp-mobile: 600px;
   }
 }
 
-/* ==========================================================================
-   8. MODALS
-   ========================================================================== */
+/* Modals */
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(22, 33, 62, 0.45);
+  background: rgba(32, 43, 69, 0.42);
   backdrop-filter: blur(6px);
   display: flex;
   align-items: center;
@@ -1151,6 +1209,11 @@ $bp-mobile: 600px;
   z-index: 1000;
   padding: 20px;
   animation: fadeIn 0.2s ease-out;
+
+  @include mobile-down {
+    padding: 12px;
+    align-items: flex-end;
+  }
 }
 
 .modal-panel {
@@ -1161,8 +1224,15 @@ $bp-mobile: 600px;
   max-width: 600px;
   max-height: 80vh;
   position: relative;
-  overflow: hidden;
-  box-shadow: 0 30px 60px -12px rgba(22, 33, 62, 0.35);
+  overflow: auto;
+  box-shadow: 0 24px 48px -14px rgba(32, 43, 69, 0.3);
+  padding: 24px;
+
+  @include mobile-down {
+    max-height: 88vh;
+    padding: 18px;
+    border-radius: $radius-md $radius-md 0 0;
+  }
 }
 
 .modal-close {
@@ -1191,4 +1261,40 @@ $bp-mobile: 600px;
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(10px); }
   to   { opacity: 1; transform: translateY(0); }
+}
+
+.detail-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 4px;
+}
+
+.detail-item {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 4px;
+  border-bottom: 1px solid $line;
+  flex-wrap: wrap;
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  .label {
+    flex-shrink: 0;
+    font-size: 13px;
+    font-weight: 500;
+    color: $muted;
+  }
+
+  .value {
+    text-align: right;
+    font-size: 14px;
+    font-weight: 600;
+    color: $ink;
+    word-break: break-word;
+  }
 }

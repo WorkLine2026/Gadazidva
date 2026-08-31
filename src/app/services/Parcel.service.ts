@@ -43,6 +43,8 @@ export interface ParcelRequest {
   createdAt?: string;
   senderName?: string;
   images?: string[];      // 👈 ატვირთული ფოტოების URL-ები (სერვერიდან დაბრუნებული)
+  acceptedDriverId?: string; // 👈 მძღოლი, ვისაც მიენდო ნივთის წაღება
+  acceptedOfferId?: string;  // 👈 დამტკიცებული PickupOffer-ის id
 }
 
 export interface AcceptedShipping {
@@ -92,6 +94,32 @@ export interface DriverStats {
   };
 }
 
+// ============ 🚚 PICKUP OFFERS (ნივთის წაღების მოთხოვნები) ============
+
+export interface PickupOfferPersonRef {
+  _id: string;
+  firstName: string;
+  lastName: string;
+  phone: string;
+  carModel?: string;
+  carPlate?: string;
+  driverLicenseNumber?: string;
+}
+
+export interface PickupOffer {
+  _id: string;
+  parcelId: string | ParcelRequest;
+  driverId: string | PickupOfferPersonRef;
+  senderId: string | PickupOfferPersonRef;
+  status: 'pending' | 'accepted' | 'rejected' | 'in-transit' | 'delivered' | 'cancelled';
+  driverConfirmedComplete: boolean;
+  senderConfirmedComplete: boolean;
+  createdAt: string;
+  updatedAt?: string;
+  respondedAt?: string;
+  completedAt?: string;
+}
+
 export interface ApiResponse<T> {
   success: boolean;
   message?: string;
@@ -118,6 +146,31 @@ export interface ShippingsResponse extends ApiResponse<AvailableShipping[]> {
 
 export interface RequestsResponse extends ApiResponse<ParcelRequest[]> {
   requests?: ParcelRequest[];
+}
+
+export interface OfferResponse extends ApiResponse<PickupOffer> {}
+
+export interface OffersListResponse extends ApiResponse<PickupOffer[]> {
+  offers?: PickupOffer[];
+}
+
+// ============ 📨 TRIP PICKUP REQUESTS (გამგზავნის მოთხოვნა კონკრეტულ მგზავრობაზე) ============
+
+export interface TripPickupRequest {
+  _id: string;
+  tripId: string | DriverTrip;
+  senderId: string | PickupOfferPersonRef;
+  driverId: string | PickupOfferPersonRef;
+  message?: string;
+  status: 'pending' | 'accepted' | 'rejected';
+  createdAt: string;
+  respondedAt?: string;
+}
+
+export interface TripPickupRequestResponse extends ApiResponse<TripPickupRequest> {}
+
+export interface TripPickupRequestsListResponse extends ApiResponse<TripPickupRequest[]> {
+  requests?: TripPickupRequest[];
 }
 
 @Injectable({
@@ -180,8 +233,7 @@ export class ParcelService {
    */
   private getAuthHeaders(): HttpHeaders {
     const token = this.smsService.getAuthToken();
-    console.log('🔍 ParcelService token-ის მოპოვება:', token ? '✅ აქვს' : '❌ არ აქვს');
-    
+
     if (!token) {
       throw new Error('ავტორიზაცია საჭიროა');
     }
@@ -573,6 +625,202 @@ export class ParcelService {
     }
   }
 
+  // ============ 🚚 PICKUP OFFERS (ნივთის წაღების მოთხოვნები) ============
+
+  /**
+   * მძღოლი ითხოვს კონკრეტული განცხადების (parcel) ნივთის წაღებას.
+   * იქმნება PickupOffer სტატუსით 'pending' და გამგზავნისთვის ჩნდება
+   * "შემოსული მოთხოვნების" სექციაში პროფილში.
+   */
+  requestPickup(parcelId: string): Observable<OfferResponse> {
+    try {
+      this.ensureAuthenticated();
+      return this.http.post<OfferResponse>(
+        `${this.apiUrl}/${parcelId}/pickup-offer`,
+        {},
+        { headers: this.getAuthHeaders() }
+      );
+    } catch (err) {
+      return throwError(() => err);
+    }
+  }
+
+  /**
+   * გამგზავნის შემოსული (pending) მოთხოვნები — ვის სურს მისი ნივთის წაღება.
+   */
+  getIncomingOffers(): Observable<OffersListResponse> {
+    try {
+      this.ensureAuthenticated();
+      return this.http.get<OffersListResponse>(
+        `${this.apiUrl}/pickup-offers/incoming`,
+        { headers: this.getAuthHeaders() }
+      );
+    } catch (err) {
+      return throwError(() => err);
+    }
+  }
+
+  /**
+   * კონკრეტული შეთავაზების სრული დეტალები (მძღოლის/გამგზავნის მონაცემები).
+   */
+  getOfferDetails(offerId: string): Observable<OfferResponse> {
+    try {
+      this.ensureAuthenticated();
+      return this.http.get<OfferResponse>(
+        `${this.apiUrl}/pickup-offers/${offerId}`,
+        { headers: this.getAuthHeaders() }
+      );
+    } catch (err) {
+      return throwError(() => err);
+    }
+  }
+
+  /**
+   * გამგზავნის პასუხი მოთხოვნაზე — დათანხმება ან უარყოფა.
+   * დათანხმებისას შეთავაზების სტატუსი 'in-transit'-ზე გადადის.
+   */
+  respondToOffer(offerId: string, accept: boolean): Observable<OfferResponse> {
+    try {
+      this.ensureAuthenticated();
+      return this.http.put<OfferResponse>(
+        `${this.apiUrl}/pickup-offers/${offerId}/respond`,
+        { accept },
+        { headers: this.getAuthHeaders() }
+      );
+    } catch (err) {
+      return throwError(() => err);
+    }
+  }
+
+  /**
+   * მძღოლი აღნიშნავს, რომ მიწოდება დასრულებულია — მოლოდინშია გამგზავნის დადასტურება.
+   */
+  markPickupCompleteByDriver(offerId: string): Observable<OfferResponse> {
+    try {
+      this.ensureAuthenticated();
+      return this.http.put<OfferResponse>(
+        `${this.apiUrl}/pickup-offers/${offerId}/complete-by-driver`,
+        {},
+        { headers: this.getAuthHeaders() }
+      );
+    } catch (err) {
+      return throwError(() => err);
+    }
+  }
+
+  /**
+   * გამგზავნი ადასტურებს მიწოდების დასრულებას — შეთავაზება ხდება 'delivered'.
+   */
+  confirmPickupCompleteBySender(offerId: string): Observable<OfferResponse> {
+    try {
+      this.ensureAuthenticated();
+      return this.http.put<OfferResponse>(
+        `${this.apiUrl}/pickup-offers/${offerId}/complete-by-sender`,
+        {},
+        { headers: this.getAuthHeaders() }
+      );
+    } catch (err) {
+      return throwError(() => err);
+    }
+  }
+
+  /**
+   * მიმდინარე (accepted/in-transit) მიწოდებები — ორივე როლისთვის (სენდერი და დრაივერი).
+   */
+  getMyInProgressOffers(): Observable<OffersListResponse> {
+    try {
+      this.ensureAuthenticated();
+      return this.http.get<OffersListResponse>(
+        `${this.apiUrl}/pickup-offers/my-in-progress`,
+        { headers: this.getAuthHeaders() }
+      );
+    } catch (err) {
+      return throwError(() => err);
+    }
+  }
+
+  /**
+   * "ჩემი გაგზავნილი ნივთები" — გამგზავნის დასრულებული (delivered) მიწოდებები.
+   */
+  getMySentCompleted(): Observable<OffersListResponse> {
+    try {
+      this.ensureAuthenticated();
+      return this.http.get<OffersListResponse>(
+        `${this.apiUrl}/pickup-offers/my-sent-completed`,
+        { headers: this.getAuthHeaders() }
+      );
+    } catch (err) {
+      return throwError(() => err);
+    }
+  }
+
+  /**
+   * "ჩემი წაღებული ნივთები" — მძღოლის დასრულებული (delivered) მიწოდებები.
+   */
+  getMyPickedUpCompleted(): Observable<OffersListResponse> {
+    try {
+      this.ensureAuthenticated();
+      return this.http.get<OffersListResponse>(
+        `${this.apiUrl}/pickup-offers/my-picked-up-completed`,
+        { headers: this.getAuthHeaders() }
+      );
+    } catch (err) {
+      return throwError(() => err);
+    }
+  }
+
+  // ============ 📨 TRIP PICKUP REQUESTS (გამგზავნის მოთხოვნა კონკრეტულ მგზავრობაზე) ============
+
+  /**
+   * გამგზავნი ითხოვს კონკრეტულ მგზავრობაზე (trip) თავისი ნივთის ჩატვირთვას.
+   * იქმნება TripPickupRequest სტატუსით 'pending' და მძღოლს მიუვა
+   * socket შეტყობინება ("📨 ნივთის შეკვეთის გაგზავნა" ღილაკიდან).
+   */
+  sendTripPickupRequest(tripId: string, message?: string): Observable<TripPickupRequestResponse> {
+    try {
+      this.ensureAuthenticated();
+      return this.http.post<TripPickupRequestResponse>(
+        `${this.driverUrl}/${tripId}/pickup-request`,
+        { message },
+        { headers: this.getAuthHeaders() }
+      );
+    } catch (err) {
+      return throwError(() => err);
+    }
+  }
+
+  /**
+   * მძღოლის შემოსული (pending) მოთხოვნები — ვის სურს ამ მგზავრობით სარგებლობა.
+   */
+  getIncomingTripRequests(): Observable<TripPickupRequestsListResponse> {
+    try {
+      this.ensureAuthenticated();
+      return this.http.get<TripPickupRequestsListResponse>(
+        `${this.driverUrl}/pickup-requests/incoming`,
+        { headers: this.getAuthHeaders() }
+      );
+    } catch (err) {
+      return throwError(() => err);
+    }
+  }
+
+  /**
+   * მძღოლის პასუხი მოთხოვნაზე — დათანხმება ან უარყოფა.
+   * ორივე შემთხვევაში გამგზავნს უკან მიუვა socket შეტყობინება.
+   */
+  respondToTripPickupRequest(requestId: string, accept: boolean): Observable<TripPickupRequestResponse> {
+    try {
+      this.ensureAuthenticated();
+      return this.http.put<TripPickupRequestResponse>(
+        `${this.driverUrl}/pickup-requests/${requestId}/respond`,
+        { accept },
+        { headers: this.getAuthHeaders() }
+      );
+    } catch (err) {
+      return throwError(() => err);
+    }
+  }
+
   // ============ VALIDATION HELPERS ============
 
   isValidRoute(from: string, to: string): boolean {
@@ -622,4 +870,58 @@ export class ParcelService {
     if (!price || isNaN(price)) return '—';
     return `${price.toLocaleString('ka-GE')} ₾`;
   }
+
+
+    getMyTripPickupRequests(): Observable<TripPickupRequestsListResponse> {
+    try {
+      this.ensureAuthenticated();
+      return this.http.get<TripPickupRequestsListResponse>(
+        `${this.driverUrl}/pickup-requests/my-sent`,
+        { headers: this.getAuthHeaders() }
+      );
+    } catch (err) {
+      return throwError(() => err);
+    }
+  }
+
+    deleteMyTripPickupRequest(requestId: string): Observable<ApiResponse<null>> {
+    try {
+      this.ensureAuthenticated();
+      return this.http.delete<ApiResponse<null>>(
+        `${this.driverUrl}/pickup-requests/${requestId}`,
+        { headers: this.getAuthHeaders() }
+      );
+    } catch (err) {
+      return throwError(() => err);
+    }
+  }
+
+  getMyOutgoingPickupOffers(): Observable<OffersListResponse> {
+    try {
+      this.ensureAuthenticated();
+      return this.http.get<OffersListResponse>(
+        `${this.apiUrl}/pickup-offers/my-sent`,
+        { headers: this.getAuthHeaders() }
+      );
+    } catch (err) {
+      return throwError(() => err);
+    }
+  }
+
+  /**
+   * ✅ NEW: უარყოფილი pickup-offer-ის წაშლა (მძღოლს ან სენდერს)
+   */
+  deletePickupOffer(offerId: string): Observable<ApiResponse<null>> {
+    try {
+      this.ensureAuthenticated();
+      return this.http.delete<ApiResponse<null>>(
+        `${this.apiUrl}/pickup-offers/${offerId}`,
+        { headers: this.getAuthHeaders() }
+      );
+    } catch (err) {
+      return throwError(() => err);
+    }
+  }
+
+
 }

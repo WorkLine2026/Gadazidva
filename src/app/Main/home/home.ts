@@ -4,8 +4,8 @@ import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
-import { ParcelService, ParcelRequest, DriverTrip } from '../services/Parcel.service';
-import { PullToRefreshDirective } from '../android-components/directives/pull-to-refresh.directive';
+import { ParcelService, ParcelRequest, DriverTrip } from '../../services/Parcel.service';
+
 
 interface Step {
   id: number;
@@ -21,7 +21,7 @@ interface Badge {
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, FormsModule, PullToRefreshDirective],
+  imports: [CommonModule, FormsModule, ],
   templateUrl: './home.html',
   styleUrls: ['./home.scss'],
 })
@@ -104,7 +104,6 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.parcelService.tripCreated()
       .pipe(takeUntil(this.destroy$))
       .subscribe(() => {
-        console.log('🔄 ახალი განცხადება დაემატა, რელოდ...');
         this.loadRecentRequests();
         this.loadRecentTrips();
       });
@@ -272,10 +271,6 @@ export class HomeComponent implements OnInit, OnDestroy {
     track.scrollBy({ left: direction * cardWidth * 2, behavior: 'smooth' });
   }
 
- onRefresh(done: () => void): void {
-  this.loadRecentRequests();
-  this.loadRecentTrips();
-  setTimeout(() => done(), 800); // მარტივი — 800ms-ის შემდეგ indicator იმალება
-}
+ 
 
 }

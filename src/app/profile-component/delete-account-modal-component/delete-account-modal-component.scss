@@ -1,0 +1,273 @@
+/* ==========================================================================
+   DELETE ACCOUNT MODAL — თვითკმარი სტილები (არ ეყრდნობა profile-component-ის
+   scoped CSS-ს, რადგან ეს ცალკე standalone კომპონენტია)
+   ========================================================================== */
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Inter:wght@400;500;600;700;800&display=swap');
+
+// ---- იგივე დიზაინის ტოკენები, რაც profile-component.scss-შია ------------
+$paper-alt:     #EAF0FA;
+$card:          #FFFFFF;
+$ink:           #16213E;
+$ink-soft:      #4B5876;
+$muted:         #7C879D;
+$line:          #DCE3EF;
+
+$primary:       #2563EB;
+$primary-dark:  #1D4FC4;
+$primary-soft:  #E5EDFD;
+
+$red:           #E11D48;
+$red-dark:      #B4123C;
+$red-soft:      #FCE4EA;
+
+$radius-lg: 26px;
+$radius-md: 16px;
+$radius-sm: 10px;
+
+$shadow-modal: 0 30px 60px -12px rgba(22, 33, 62, 0.35);
+$transition: all 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+
+$font-display: 'Bricolage Grotesque', 'Inter', system-ui, sans-serif;
+$font-body:    'Inter', system-ui, -apple-system, sans-serif;
+
+@mixin pill-button($from, $to, $shadow-color: $from) {
+  background: linear-gradient(135deg, $from 0%, $to 100%);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  transition: $transition;
+
+  &:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px -6px rgba($shadow-color, 0.4);
+  }
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+  }
+}
+
+:host {
+  display: block;
+  font-family: $font-body;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :host * {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* ---- Backdrop & panel ---- */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(22, 33, 62, 0.45);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.modal-panel {
+  background: $card;
+  border: 1px solid $line;
+  border-radius: $radius-lg;
+  width: 100%;
+  max-width: 460px;
+  max-height: 80vh;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: $shadow-modal;
+  padding: 32px 28px 28px;
+}
+
+.modal-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  background: $paper-alt;
+  border: none;
+  color: $ink;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: $transition;
+
+  &:hover:not(:disabled) {
+    background: $red-soft;
+    color: $red;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ---- Typography ---- */
+h3 {
+  font-family: $font-display;
+  font-size: 20px;
+  font-weight: 700;
+  color: $ink;
+  margin: 0 0 4px;
+  padding-right: 24px;
+}
+
+/* ---- Step 1: warning content ---- */
+.delete-modal__intro {
+  margin: 14px 0 10px;
+  line-height: 1.6;
+  font-size: 14px;
+  color: $ink-soft;
+}
+
+.delete-modal__list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  li {
+    position: relative;
+    padding: 10px 14px 10px 34px;
+    background: $red-soft;
+    border-radius: $radius-sm;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: $red-dark;
+
+    &::before {
+      content: '';
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: $red;
+    }
+  }
+}
+
+.delete-modal__warning-text {
+  margin: 4px 0 4px;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: $ink;
+  background: $paper-alt;
+  border-radius: $radius-sm;
+  padding: 12px 14px;
+  border-left: 3px solid $red;
+}
+
+/* ---- Step 2: email confirmation ---- */
+.delete-modal__email-hint {
+  margin: 8px 0 16px;
+  font-size: 13px;
+  color: $muted;
+  font-weight: 600;
+  word-break: break-all;
+}
+
+/* ---- Shared field styles (self-contained copy) ---- */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 4px;
+
+  &__input {
+    background: $paper-alt;
+    border: 1.5px solid $line;
+    border-radius: $radius-sm;
+    padding: 12px 14px;
+    color: $ink;
+    font-size: 14px;
+    font-family: $font-body;
+    outline: none;
+    transition: $transition;
+    width: 100%;
+    box-sizing: border-box;
+
+    &:focus {
+      border-color: $primary;
+      background: $card;
+      box-shadow: 0 0 0 3px $primary-soft;
+    }
+
+    &:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+  }
+
+  &__hint {
+    font-size: 12px;
+    color: $red;
+    font-weight: 600;
+  }
+}
+
+/* ---- Actions ---- */
+.delete-modal__actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.form-panel__actions {
+  display: flex;
+  gap: 12px;
+}
+
+.btn-primary,
+.btn-secondary {
+  flex: 1;
+  padding: 12px 20px;
+  border-radius: $radius-sm;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  border: none;
+  transition: $transition;
+}
+
+.btn-secondary {
+  background: $paper-alt;
+  color: $ink;
+  border: 1.5px solid $line;
+
+  &:hover:not(:disabled) {
+    background: $card;
+    border-color: $muted;
+  }
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+}
+
+.btn-danger {
+  @include pill-button($red, $red-dark);
+}

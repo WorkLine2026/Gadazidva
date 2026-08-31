@@ -133,9 +133,12 @@
         💬 შეტყობინების მიწერა
       </button>
 
-      <button (click)="sendEmail()" [disabled]="!hasEmail()">
-        📧 იმეილის გაგზავნა
-      </button>
+ <button
+  class="btn-primary"
+  (click)="sendPickupRequest()"
+  [disabled]="isSendingPickupRequest || pickupRequestSent">
+  {{ pickupRequestSent ? '✅ მოთხოვნა გაგზავნილია' : (isSendingPickupRequest ? 'იგზავნება…' : '📨 ნივთის შეკვეთის გაგზავნა') }}
+</button>
 
       <button (click)="call()" [disabled]="!hasPhone()">
         📞 დარეკვა

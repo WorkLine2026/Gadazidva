@@ -42,12 +42,11 @@ export class AdminDashboardComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    console.log('🟢 AdminDashboard ngOnInit გაეშვა');
+    
     this.loadDashboardData();
   }
 
   private loadDashboardData(): void {
-    console.log('🟢 loadDashboardData გაეშვა, request იგზავნება...');
     this.isLoading = true;
     this.errorMessage = '';
     this.cdr.markForCheck();

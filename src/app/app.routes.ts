@@ -1,70 +1,60 @@
 import { Routes } from '@angular/router';
-import { HomeComponent } from './home//home';
-import { NavbarComponent } from './navbar/navbar';
-import { FooterComponent} from './footer/footer';
-import { HowToWorkComponent } from './howtowork/howtowork';
-import {  RulesComponent } from './rules/rules';
+import { HomeComponent } from './Main/home/home';
+import { NavbarComponent } from './Main/navbar/navbar';
+import { FooterComponent } from './Main/footer/footer';
+import { HowToWorkComponent } from './Main/howtowork/howtowork';
+import { RulesComponent } from './Main/rules/rules';
 import { LoginComponent } from './Register Login forgortpassword/login-component/login-component';
 import { RegisterComponent } from './Register Login forgortpassword/registercomponent/registercomponent';
 import { ForgotPasswordComponent } from './Register Login forgortpassword/forgot-password/forgot-password';
-import { ProfileComponent } from '../app/profile-component/profile-component';
-import { SendParcelComponent } from '../app/profile-component/send-parcel-component/send-parcel-component';
-import { PickupParcelComponent } from '../app/profile-component/pickup-parcel-component/pickup-parcel-component';
-import { RequestDetailComponent } from './profile-component/send-detail-component/request-detail-component';
-import { TripDetailComponent } from './profile-component/trip-detail-component/trip-detail-component';
+import { SendParcelComponent } from '../app/Product-Colection/send-parcel-component/send-parcel-component';
+import { PickupParcelComponent } from '../app/Product-Colection/pickup-parcel-component/pickup-parcel-component';
+import { RequestDetailComponent } from './Product-Colection/send-detail-component/request-detail-component';
+import { TripDetailComponent } from './Product-Colection/trip-detail-component/trip-detail-component';
 import { adminRoutes } from './admin-panel/Admin.routes';
-import { AllListingsComponent } from './profile-component/all-listings-component/all-listings-component';
+import { AllListingsComponent } from './Product-Colection/all-listings-component/all-listings-component';
+
+// ძველი (ვებ)
+import { SenderProfileComponent } from './profile-component/sender-profile-component/sender-profile-component';
+import { DriverProfileComponent } from './profile-component/driver-profile-component/driver-profile-component';
+
+// ახალი Android სტილის
+import { SenderProfileAndroidComponent } from './android-components/sender-profile-android-component/sender-profile-android-component';
+import { DriverProfileAndroidComponent } from './android-components/driver-profile-android-component/driver-profile-android-component';
+
+// სმარტ პროფილი (როლის მიხედვით)
+import { ProfileRedirectComponent } from './android-components/profile-redirect/profile-redirect';
 
 export const routes: Routes = [
-    
-    {
-        path: '', component: HomeComponent
-    },
-    {
-        path: 'home', component: HomeComponent
-    },
-    {
-        path: 'howtowork', component: HowToWorkComponent
-    },
-    {
-        path: 'navbar', component: NavbarComponent
-    },
-    {
-        path: 'footer', component: FooterComponent
-    },
-    {
-        path: 'rules', component: RulesComponent
-    },
-    {
-        path: 'login', component: LoginComponent
-    },
-    {
-        path: 'register', component: RegisterComponent
-    },
-    {
-        path: 'forgot-password', component: ForgotPasswordComponent
-    },
-    {
-        path: 'profile', component: ProfileComponent
-    },
-    {
-        path: 'send', component: SendParcelComponent
-    },
-     {
-        path: 'pickup', component: PickupParcelComponent
-     },
+  { path: '', component: HomeComponent },
+  { path: 'home', component: HomeComponent },
+  { path: 'howtowork', component: HowToWorkComponent },
+  { path: 'navbar', component: NavbarComponent },
+  { path: 'footer', component: FooterComponent },
+  { path: 'rules', component: RulesComponent },
+  { path: 'login', component: LoginComponent },
+  { path: 'register', component: RegisterComponent },
+  { path: 'forgot-password', component: ForgotPasswordComponent },
 
-    { path: 'request/:id',
-        component: RequestDetailComponent
-    },
-    { path: 'trip/:id',
-        component: TripDetailComponent
-    },
-    ...adminRoutes,
-    {
-       path:"listing", component:AllListingsComponent
-    },
-    {
-        path: '**', redirectTo: 'home'
-    }
+  // ===== პროფილები =====
+  // ვებისთვის (ძველი)
+  { path: 'senderProfile', component: SenderProfileComponent },
+  { path: 'driverProfile', component: DriverProfileComponent },
+
+  // Android / Native-ისთვის (ახალი)
+  { path: 'senderProfile-android', component: SenderProfileAndroidComponent },
+  { path: 'driverProfile-android', component: DriverProfileAndroidComponent },
+
+  // სმარტ როუთი — Bottom Navbar-იდან მოდის აქ
+  { path: 'profile', component: ProfileRedirectComponent },
+
+  // ===== დანარჩენი =====
+  { path: 'send', component: SendParcelComponent },
+  { path: 'pickup', component: PickupParcelComponent },
+  { path: 'request/:id', component: RequestDetailComponent },
+  { path: 'trip/:id', component: TripDetailComponent },
+  ...adminRoutes,
+  { path: 'listing', component: AllListingsComponent },
+
+  { path: '**', redirectTo: 'home' }
 ];

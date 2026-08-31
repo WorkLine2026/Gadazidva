@@ -100,11 +100,9 @@ export class ForgotPasswordComponent implements OnInit, OnDestroy {
     this.phoneErrorMessage = null;
 
     const phone = this.phoneForm.value.phone;
-    console.log('Sending password recovery SMS code to: +995' + phone);
 
     this.smsService.sendPasswordRecoveryCode(phone).subscribe({
       next: (res: SendPasswordCodeResponse) => {
-        console.log('Password recovery SMS sent successfully:', res);
         this.isLoading = false;
         this.phoneStep = 2;
         this.startResendTimer();
@@ -132,11 +130,8 @@ export class ForgotPasswordComponent implements OnInit, OnDestroy {
     const phone = this.phoneForm.value.phone;
     const code = this.codeForm.value.code;
 
-    console.log('Verifying password recovery code:', { phone: '+995' + phone, code });
-
     this.smsService.verifyPasswordRecoveryCode(phone, code).subscribe({
       next: (res: VerifyPasswordCodeResponse) => {
-        console.log('Password recovery code verified successfully:', res);
         
         if (res.resetToken) {
           this.smsService.setResetToken(res.resetToken);
@@ -160,11 +155,8 @@ export class ForgotPasswordComponent implements OnInit, OnDestroy {
     this.phoneErrorMessage = null;
     const phone = this.phoneForm.value.phone;
 
-    console.log('Resending password recovery code to: +995' + phone);
-
     this.smsService.sendPasswordRecoveryCode(phone).subscribe({
       next: (res: SendPasswordCodeResponse) => {
-        console.log('Code resent successfully:', res);
         this.showResendBtn = false;
         this.startResendTimer();
       },
@@ -207,11 +199,9 @@ export class ForgotPasswordComponent implements OnInit, OnDestroy {
     const phone = this.phoneForm.value.phone;
     const newPassword = this.newPasswordForm.value.password;
 
-    console.log('Resetting password for phone: +995' + phone);
 
     this.smsService.resetPassword(phone, newPassword).subscribe({
       next: (res: ResetPasswordResponse) => {
-        console.log('Password reset successfully:', res);
         this.isLoading = false;
         
         setTimeout(() => {
