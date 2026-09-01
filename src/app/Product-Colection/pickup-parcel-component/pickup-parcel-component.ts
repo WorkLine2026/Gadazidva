@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { ParcelService, DriverTrip } from '../../services/Parcel.service';
 import { SmsVerificationService } from '../../services/smsverifikation.service';
+import { Location } from '@angular/common';
 
 type PickupStep = 'trip-plan' | 'success';
 
@@ -84,7 +85,8 @@ export class PickupParcelComponent implements OnInit {
     private parcelService: ParcelService,
     private smsService: SmsVerificationService,
     private cdr: ChangeDetectorRef,
-    private elementRef: ElementRef
+    private elementRef: ElementRef,
+    private location: Location
   ) {}
 
   ngOnInit(): void {
@@ -325,14 +327,15 @@ export class PickupParcelComponent implements OnInit {
     return date.toLocaleDateString('ka-GE') + ' ' + date.toLocaleTimeString('ka-GE', { hour: '2-digit', minute: '2-digit' });
   }
 
-  goBack(): void {
-    if (this.currentStep === 'trip-plan') {
-      this.router.navigate(['/profile']);
-    } else if (this.currentStep === 'success') {
-      this.currentStep = 'trip-plan';
-    }
-    this.cdr.detectChanges();
+goBack(): void {
+  if (this.currentStep === 'trip-plan') {
+    this.location.back();
+  } else if (this.currentStep === 'success') {
+    this.currentStep = 'trip-plan';
   }
+
+  this.cdr.detectChanges();
+}
 
   returnToProfile(): void {
     this.router.navigate(['/profile']);

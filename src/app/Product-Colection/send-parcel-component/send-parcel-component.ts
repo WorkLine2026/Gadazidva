@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { ParcelService, ParcelRequest } from '../../services/Parcel.service';
 import { SmsVerificationService } from '../../services/smsverifikation.service';
+import { Location } from '@angular/common';
 
 type SendStep = 'details' | 'confirmation' | 'success';
 
@@ -335,15 +336,16 @@ export class SendParcelComponent implements OnInit {
 
   // ============ UTILITIES ============
 
-  goBack(): void {
-    if (this.currentStep === 'details') {
-      this.router.navigate(['/profile']);
-    } else if (this.currentStep === 'confirmation') {
-      this.currentStep = 'details';
-      this.errorMessage = null;
-    }
-    this.cdr.detectChanges();
+goBack(): void {
+  if (this.currentStep === 'details') {
+    window.history.back();
+  } else if (this.currentStep === 'confirmation') {
+    this.currentStep = 'details';
+    this.errorMessage = null;
   }
+
+  this.cdr.detectChanges();
+}
 
   // ✅ განახლებული: finishAndReturn() - state-ით ProfileComponent-ზე
   finishAndReturn(): void {

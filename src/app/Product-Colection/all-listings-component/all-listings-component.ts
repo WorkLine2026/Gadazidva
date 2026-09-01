@@ -270,4 +270,7 @@ export class AllListingsComponent implements OnInit {
   formatPrice(price?: number): string {
     return this.parcelService.formatPrice(price ?? 0);
   }
+  goBack(): void {
+  window.history.back();
+}
 }

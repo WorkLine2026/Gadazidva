@@ -365,9 +365,9 @@ get isOwnRequest(): boolean {
     }
   }
 
-  goBack(): void {
-    this.router.navigate(['/']);
-  }
+ goBack(): void {
+  window.history.back();
+}
 
   private updateRequestStatus(status: string | undefined): void {
     this.unifiedRequest.isPending = status === 'pending';
