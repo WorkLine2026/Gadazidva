@@ -3,7 +3,10 @@ import {
   OnInit,
   OnDestroy,
   ChangeDetectorRef,
-  ViewEncapsulation
+  ViewEncapsulation,
+  ViewChild,
+  ElementRef,
+  Renderer2
 } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -85,6 +88,18 @@ export class DriverProfileAndroidComponent implements OnInit, OnDestroy {
   isDeletingAccount = false;
   deleteAccountError: string | null = null;
 
+  // ===== CHAT MODAL PORTAL =====
+  // ჩატის fullscreen მოდალის root ელემენტი — გახსნისას გადააქვს document.body-ში,
+  // რომ არ ეყრდნობოდეს არცერთ მშობელ ელემენტს (მაგ. transform-ის მქონე route-wrapper-ს),
+  // რომელსაც შეუძლია position:fixed-ის containing block შეცვალოს და მოდალი ეკრანის
+  // თავზე/არასწორ ადგილას გამოაჩინოს.
+  @ViewChild('chatModalRoot') chatModalRoot?: ElementRef<HTMLElement>;
+  private chatModalOriginalParent: Node | null = null;
+  private chatModalOriginalNextSibling: Node | null = null;
+  private chatModalMovedToBody = false;
+  private injectedPortalStyles: HTMLStyleElement[] = [];
+  private bodyOverflowBeforeLock: string | null = null;
+
   private destroy$ = new Subject<void>();
   private lastHandledNotification: any = null;
 
@@ -94,7 +109,9 @@ export class DriverProfileAndroidComponent implements OnInit, OnDestroy {
     private smsService: SmsVerificationService,
     private parcelService: ParcelService,
     private socketService: SocketNotificationService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private renderer: Renderer2,
+    private hostEl: ElementRef<HTMLElement>
   ) {}
 
   ngOnInit(): void {
@@ -137,6 +154,7 @@ export class DriverProfileAndroidComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.restoreChatModalFromBody();
     this.destroy$.next();
     this.destroy$.complete();
   }
@@ -530,11 +548,78 @@ export class DriverProfileAndroidComponent implements OnInit, OnDestroy {
     this.showChatModal = true;
     this.showConversations = false;
     this.cdr.detectChanges();
+
+    // ჩატის მოდალი ახლახან *ngIf-მა შექმნა DOM-ში — ერთი tick-ის მოცდის
+    // შემდეგ ვიღებთ მის root ელემენტს და გადავაქვს document.body-ში,
+    // რომ ის სრულ ეკრანზე, ზუსტად თავიდან იხსნებოდეს, დამოუკიდებლად
+    // იმისგან, თუ როგორ არის პოზიციონირებული მშობელი კონტეინერები.
+    setTimeout(() => this.moveChatModalToBody(), 0);
   }
 
   closeChatModal(): void {
+    this.restoreChatModalFromBody();
     this.showChatModal = false;
     this.selectedConversation = null;
+  }
+
+  private moveChatModalToBody(): void {
+    const el = this.chatModalRoot?.nativeElement;
+    if (!el || this.chatModalMovedToBody) return;
+
+    // ShadowDom-ს იყენებს ეს კომპონენტი — ჩატის მოდალის სტილები არსებობს
+    // მხოლოდ ამ კომპონენტის shadowRoot-ში. ელემენტის body-ში გატანამდე
+    // იმავე <style> ტეგებს ვაკლონირებთ <head>-ში, რომ სტილი არ დაიკარგოს.
+    this.injectPortalStyles();
+
+    this.chatModalOriginalParent = el.parentNode;
+    this.chatModalOriginalNextSibling = el.nextSibling;
+
+    this.renderer.appendChild(document.body, el);
+    this.chatModalMovedToBody = true;
+
+    // scroll lock — ფონის გვერდი აღარ იძვრება ჩატის ღიად ყოფნისას
+    this.bodyOverflowBeforeLock = document.body.style.overflow || '';
+    this.renderer.setStyle(document.body, 'overflow', 'hidden');
+  }
+
+  private restoreChatModalFromBody(): void {
+    if (!this.chatModalMovedToBody) return;
+    const el = this.chatModalRoot?.nativeElement;
+
+    if (el && this.chatModalOriginalParent) {
+      if (this.chatModalOriginalNextSibling) {
+        this.renderer.insertBefore(this.chatModalOriginalParent, el, this.chatModalOriginalNextSibling);
+      } else {
+        this.renderer.appendChild(this.chatModalOriginalParent, el);
+      }
+    }
+
+    this.renderer.setStyle(document.body, 'overflow', this.bodyOverflowBeforeLock ?? '');
+    this.bodyOverflowBeforeLock = null;
+
+    this.removePortalStyles();
+
+    this.chatModalMovedToBody = false;
+    this.chatModalOriginalParent = null;
+    this.chatModalOriginalNextSibling = null;
+  }
+
+  private injectPortalStyles(): void {
+    const shadowRoot = this.hostEl.nativeElement.shadowRoot;
+    if (!shadowRoot) return;
+
+    const styleEls = shadowRoot.querySelectorAll('style');
+    styleEls.forEach(styleEl => {
+      const clone = styleEl.cloneNode(true) as HTMLStyleElement;
+      clone.setAttribute('data-chat-modal-portal-style', '');
+      document.head.appendChild(clone);
+      this.injectedPortalStyles.push(clone);
+    });
+  }
+
+  private removePortalStyles(): void {
+    this.injectedPortalStyles.forEach(styleEl => styleEl.remove());
+    this.injectedPortalStyles = [];
   }
 
   logout(): void {

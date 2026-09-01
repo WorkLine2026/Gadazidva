@@ -142,16 +142,20 @@
         </form>
       </div>
 
-      <!-- ✅ NEW: 📨 ჩემი გაგზავნილი trip-მოთხოვნები -->
-      <div *ngIf="!isEditing && outgoingTripRequests.length > 0">
+      <!-- ✅ 📨 ჩემი გაგზავნილი trip-მოთხოვნები -->
+      <div *ngIf="!isEditing && outgoingTripRequests.length > 0" class="accordion-section">
         <div class="section-head">
           <div>
             <span class="section-head__eyebrow">ჩემი მოთხოვნები</span>
             <h2>📨 გაგზავნილი მოთხოვნები მძღოლის მგზავრობებზე</h2>
           </div>
+          <button class="btn-toggle" (click)="toggleSection('outgoingTripRequests')">
+            {{ isSectionOpen('outgoingTripRequests') ? '▲ დამალვა' : '▼ ნახვა' }}
+            <span class="btn-toggle__count">{{ outgoingTripRequests.length }}</span>
+          </button>
         </div>
 
-        <div class="stub-grid">
+        <div class="stub-grid" *ngIf="isSectionOpen('outgoingTripRequests')">
           <div
             class="stub-card"
             *ngFor="let req of outgoingTripRequests; let i = index"
@@ -172,7 +176,7 @@
 
             <div class="stub-card__tear" aria-hidden="true"></div>
 
-              <div class="stub-card__footer">
+            <div class="stub-card__footer">
               <div class="stub-card__id">{{ formatDateTime(req.createdAt) }}</div>
               <div class="stub-card__footer-actions">
                 <span
@@ -191,21 +195,24 @@
               </div>
             </div>
 
-
           </div>
         </div>
       </div>
 
       <!-- ========== 📥 შემოსული მოთხოვნები ========== -->
-      <div *ngIf="!isEditing && incomingOffers.length > 0">
+      <div *ngIf="!isEditing && incomingOffers.length > 0" class="accordion-section">
         <div class="section-head">
           <div>
             <span class="section-head__eyebrow">ახალი მოთხოვნები</span>
             <h2>📥 თქვენი ნივთის წაღების მსურველები</h2>
           </div>
+          <button class="btn-toggle" (click)="toggleSection('incomingOffers')">
+            {{ isSectionOpen('incomingOffers') ? '▲ დამალვა' : '▼ ნახვა' }}
+            <span class="btn-toggle__count">{{ incomingOffers.length }}</span>
+          </button>
         </div>
 
-        <div class="stub-grid">
+        <div class="stub-grid" *ngIf="isSectionOpen('incomingOffers')">
           <div
             class="stub-card"
             *ngFor="let offer of incomingOffers; let i = index"
@@ -237,15 +244,19 @@
       </div>
 
       <!-- ========== 🚚 მიმდინარე მიწოდებები ========== -->
-      <div *ngIf="!isEditing && inProgressOffers.length > 0">
+      <div *ngIf="!isEditing && inProgressOffers.length > 0" class="accordion-section">
         <div class="section-head">
           <div>
             <span class="section-head__eyebrow">აქტიური</span>
             <h2>🚚 მიმდინარე მიწოდებები</h2>
           </div>
+          <button class="btn-toggle" (click)="toggleSection('inProgressOffers')">
+            {{ isSectionOpen('inProgressOffers') ? '▲ დამალვა' : '▼ ნახვა' }}
+            <span class="btn-toggle__count">{{ inProgressOffers.length }}</span>
+          </button>
         </div>
 
-        <div class="stub-grid">
+        <div class="stub-grid" *ngIf="isSectionOpen('inProgressOffers')">
           <div
             class="stub-card"
             *ngFor="let offer of inProgressOffers; let i = index"
@@ -281,15 +292,19 @@
       </div>
 
       <!-- ========== 📦 ჩემი გაგზავნილი ნივთები ========== -->
-      <div *ngIf="!isEditing && sentCompleted.length > 0">
+      <div *ngIf="!isEditing && sentCompleted.length > 0" class="accordion-section">
         <div class="section-head">
           <div>
             <span class="section-head__eyebrow">ისტორია</span>
             <h2>📦 ჩემი გაგზავნილი ნივთები</h2>
           </div>
+          <button class="btn-toggle" (click)="toggleSection('sentCompleted')">
+            {{ isSectionOpen('sentCompleted') ? '▲ დამალვა' : '▼ ნახვა' }}
+            <span class="btn-toggle__count">{{ sentCompleted.length }}</span>
+          </button>
         </div>
 
-        <div class="stub-grid">
+        <div class="stub-grid" *ngIf="isSectionOpen('sentCompleted')">
           <div
             class="stub-card"
             *ngFor="let offer of sentCompleted; let i = index"
@@ -317,80 +332,88 @@
       </div>
 
       <!-- ========== გამომგზავნის განცხადებები ========== -->
-      <div *ngIf="!isEditing">
+      <div *ngIf="!isEditing" class="accordion-section">
         <div class="section-head">
           <div>
             <span class="section-head__eyebrow">ამანათების ისტორია</span>
             <h2>📦 ჩემი განცხადებები</h2>
           </div>
-          <button class="btn-cta" (click)="openSendItemFlow()">+ ახალი განცხადება</button>
+          <div class="section-head__buttons">
+            <button class="btn-cta" (click)="openSendItemFlow()">+ ახალი განცხადება</button>
+            <button class="btn-toggle" (click)="toggleSection('userRequests')">
+              {{ isSectionOpen('userRequests') ? '▲ დამალვა' : '▼ ნახვა' }}
+              <span class="btn-toggle__count" *ngIf="userRequests.length > 0">{{ userRequests.length }}</span>
+            </button>
+          </div>
         </div>
 
-        <div *ngIf="isLoadingRequests" class="skeleton-block">განცხადებები იტვირთება…</div>
+        <ng-container *ngIf="isSectionOpen('userRequests')">
+          <div *ngIf="isLoadingRequests" class="skeleton-block">განცხადებები იტვირთება…</div>
 
-        <div *ngIf="!isLoadingRequests && userRequests.length === 0" class="empty-panel">
-          <div class="empty-panel__icon">📭</div>
-          <div class="empty-panel__title">განცხადება ჯერ არ გაქვთ</div>
-          <div class="empty-panel__sub">გამოაგზავნეთ პირველი ამანათი ერთ წუთში</div>
-        </div>
+          <div *ngIf="!isLoadingRequests && userRequests.length === 0" class="empty-panel">
+            <div class="empty-panel__icon">📭</div>
+            <div class="empty-panel__title">განცხადება ჯერ არ გაქვთ</div>
+            <div class="empty-panel__sub">გამოაგზავნეთ პირველი ამანათი ერთ წუთში</div>
+          </div>
 
-        <div class="stub-grid" *ngIf="!isLoadingRequests && userRequests.length > 0">
-          <div class="stub-card" *ngFor="let request of userRequests; let i = index" [style.animation-delay.ms]="i * 60">
+          <div class="stub-grid" *ngIf="!isLoadingRequests && userRequests.length > 0">
+            <div class="stub-card" *ngFor="let request of userRequests; let i = index" [style.animation-delay.ms]="i * 60">
 
-            <div class="stub-card__media">
-              <img
-                *ngIf="request.images && request.images.length > 0"
-                [src]="request.images[0]"
-                [alt]="request.from + ' → ' + request.to"
-                loading="lazy" />
-              <div class="stub-card__media-placeholder" *ngIf="!request.images || request.images.length === 0">📦</div>
-              <span class="stub-card__media-count" *ngIf="request.images && request.images.length > 1">
-                +{{ request.images.length - 1 }}
-              </span>
-            </div>
+              <div class="stub-card__media">
+                <img
+                  *ngIf="request.images && request.images.length > 0"
+                  [src]="request.images[0]"
+                  [alt]="request.from + ' → ' + request.to"
+                  loading="lazy" />
+                <div class="stub-card__media-placeholder" *ngIf="!request.images || request.images.length === 0">📦</div>
+                <span class="stub-card__media-count" *ngIf="request.images && request.images.length > 1">
+                  +{{ request.images.length - 1 }}
+                </span>
+              </div>
 
-            <div class="stub-card__route">
-              <span class="route-dot route-dot--from"></span>
-              <span class="route-name">{{ request.from }}</span>
-              <span class="route-track" aria-hidden="true"></span>
-              <span class="route-name">{{ request.to }}</span>
-              <span class="route-dot route-dot--to"></span>
-            </div>
+              <div class="stub-card__route">
+                <span class="route-dot route-dot--from"></span>
+                <span class="route-name">{{ request.from }}</span>
+                <span class="route-track" aria-hidden="true"></span>
+                <span class="route-name">{{ request.to }}</span>
+                <span class="route-dot route-dot--to"></span>
+              </div>
 
-            <div class="stub-card__body">
-              <div class="stub-card__info">
-                <div class="info-cell">
-                  <div class="info-cell__label">წონა</div>
-                  <div class="info-cell__value">{{ request.weight }} კგ</div>
-                </div>
-                <div class="info-cell">
-                  <div class="info-cell__label">ღირებულება</div>
-                  <div class="info-cell__value">{{ request.value }} ₾</div>
-                </div>
-                <div class="info-cell">
-                  <div class="info-cell__label">თარიღი</div>
-                  <div class="info-cell__value">{{ formatDate(request.createdAt) }}</div>
+              <div class="stub-card__body">
+                <div class="stub-card__info">
+                  <div class="info-cell">
+                    <div class="info-cell__label">წონა</div>
+                    <div class="info-cell__value">{{ request.weight }} კგ</div>
+                  </div>
+                  <div class="info-cell">
+                    <div class="info-cell__label">ღირებულება</div>
+                    <div class="info-cell__value">{{ request.value }} ₾</div>
+                  </div>
+                  <div class="info-cell">
+                    <div class="info-cell__label">თარიღი</div>
+                    <div class="info-cell__value">{{ formatDate(request.createdAt) }}</div>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <div class="stub-card__tear" aria-hidden="true"></div>
+              <div class="stub-card__tear" aria-hidden="true"></div>
 
-            <div class="stub-card__footer">
-              <div class="stub-card__id">№ {{ request._id.slice(0, 8) }}</div>
-              <div class="stub-card__footer-actions">
-                <button
-                  *ngIf="canDeleteRequest(request)"
-                  class="btn-delete"
-                  (click)="deleteRequest(request._id)"
-                  [disabled]="deletingRequestId === request._id">
-                  {{ deletingRequestId === request._id ? 'იშლება…' : '🗑️ წაშლა' }}
-                </button>
-                <button class="btn-details" (click)="viewRequestDetails(request._id)">დეტალები →</button>
+              <div class="stub-card__footer">
+                <div class="stub-card__id">№ {{ request._id.slice(0, 8) }}</div>
+                <div class="stub-card__footer-actions">
+                  <button
+                    *ngIf="canDeleteRequest(request)"
+                    class="btn-delete"
+                    (click)="deleteRequest(request._id)"
+                    [disabled]="deletingRequestId === request._id">
+                    {{ deletingRequestId === request._id ? 'იშლება…' : '🗑️ წაშლა' }}
+                  </button>
+                  <button class="btn-details" (click)="viewRequestDetails(request._id)">დეტალები →</button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        </ng-container>
       </div>
 
       <!-- ========== პარამეტრები ========== -->
@@ -436,7 +459,6 @@
   </div>
 </div>
 
-<!-- ⬇️ ეს აკლდა -->
 <app-chat-modal
   *ngIf="showChatModal && selectedConversation"
   [requestId]="selectedConversation.conversationId"

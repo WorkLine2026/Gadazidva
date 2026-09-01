@@ -68,13 +68,7 @@ export class AndroidLoginComponent implements OnInit {
               [role === 'driver' ? '/driverProfile-android' : '/senderProfile-android'],
               { replaceUrl: true }
             );
-          } else {
-            // Web
-            this.router.navigate(
-              [role === 'driver' ? '/driverProfile' : '/senderProfile'],
-              { replaceUrl: true }
-            );
-          }
+          } 
         } else {
           this.errorMessage = res.message || 'შესვლა ვერ მოხერხდა, სცადეთ ხელახლა';
         }

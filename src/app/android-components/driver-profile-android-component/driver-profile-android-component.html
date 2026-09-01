@@ -343,8 +343,8 @@
     </div>
   </div>
 
-  <!-- Chat — Full Screen (არა bottom sheet) -->
-  <div class="modal-backdrop fullscreen" *ngIf="showChatModal && selectedConversation">
+  <!-- Chat — Full Screen (თავიდან იხსნება, გატანილია document.body-ში ngOnInit-ის შემდეგ) -->
+  <div #chatModalRoot class="modal-backdrop fullscreen" *ngIf="showChatModal && selectedConversation">
     <div class="chat-fullscreen-wrapper">
       <app-chat-modal
         [requestId]="selectedConversation.conversationId"

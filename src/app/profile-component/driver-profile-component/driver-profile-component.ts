@@ -68,6 +68,9 @@ export class DriverProfileComponent implements OnInit, OnDestroy {
   errorMessage: string | null = null;
   showMenu = false;
 
+  // ✅ თითოეული სექციის გახსნა/დახურვის მდგომარეობა (accordion)
+  openSections: { [key: string]: boolean } = {};
+
   driverTrips: DriverTrip[] = [];
   isLoadingTrips = false;
   deletingTripId: string | null = null;
@@ -154,6 +157,15 @@ export class DriverProfileComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  // ✅ სექციის გახსნა/დახურვა (accordion)
+  toggleSection(key: string): void {
+    this.openSections[key] = !this.openSections[key];
+  }
+
+  isSectionOpen(key: string): boolean {
+    return !!this.openSections[key];
   }
 
   private loadUserData(): void {

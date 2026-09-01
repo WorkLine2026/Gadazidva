@@ -1,24 +1,28 @@
 // ============================================
-// CONVERSATIONS LIST — "CARGO TICKET" SYSTEM
-// Same token language as the profile card and
-// chat modal: ink navy structure, cargo-orange
-// for unread/action, route-teal for online.
+// CHAT MODAL — RESPONSIVE / FIXED VERSION
 // ============================================
 
 @use "sass:color";
 
-// ========== BOX-SIZING RESET ==========
-// კომპონენტის შიგნით ყველა ელემენტს border/padding
-// ერთვის width-ში — არა ემატება, რომ 100%-იანი
-// ველები parent-ს არ გადასცდნენ.
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@400;500;600;700;800;900&display=swap');
 
-.conversations-container * {
+// ============================================
+// GLOBAL BOX SIZING
+// ============================================
+
+.chat-modal-backdrop,
+.chat-modal-backdrop *,
+.chat-modal,
+.chat-modal * {
   box-sizing: border-box;
 }
 
-// ========== DESIGN TOKENS ==========
+// ============================================
+// DESIGN TOKENS
+// ============================================
+
 $ink: #101B33;
-$ink-soft: #24314F;
+
 $paper: #FBF7F0;
 $paper-card: #FFFFFF;
 
@@ -27,107 +31,331 @@ $cargo-dark: #DB4712;
 $cargo-light: #FFE4D5;
 
 $route: #0F8A7A;
-$route-dark: #0B6B5F;
-$route-light: #DCF3EF;
 
 $color-bg: $paper;
 $color-bg-light: #F3EEE3;
 $color-border: #E7E0D0;
+
 $color-text-primary: $ink;
 $color-text-secondary: #4B5165;
 $color-text-tertiary: #7C8093;
 
-$font-family: 'Noto Sans Georgian', 'Segoe UI', system-ui, -apple-system, sans-serif;
+$font-family:
+  'Noto Sans Georgian',
+  'Segoe UI',
+  system-ui,
+  -apple-system,
+  BlinkMacSystemFont,
+  sans-serif;
 
-$shadow-cargo: 0 6px 16px rgba(255, 90, 31, 0.24);
+$shadow-cargo:
+  0 10px 26px rgba(255, 90, 31, 0.28);
 
-$transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+$transition-fast:
+  0.15s cubic-bezier(0.4, 0, 0.2, 1);
 
-// ========== CONTAINER ==========
+// ============================================
+// BACKDROP
+// ============================================
 
-.conversations-container {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  background: $paper-card;
-  font-family: $font-family;
-  overflow: hidden;
+.chat-modal-backdrop {
+  position: fixed;
+  inset: 0;
+
+  width: 100vw;
+  height: 200px;
+
+  background: rgba(16, 27, 51, 0.48);
+
+  z-index: 9998;
+
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+
+  // FIX: prevents the page behind the modal from rubber-band
+  // scrolling on iOS Safari when swiping over the backdrop.
+  overscroll-behavior: contain;
+  touch-action: none;
+
+  animation: backdropFadeIn 0.18s ease-out;
 }
 
-// ========== HEADER ==========
+// ============================================
+// CHAT MODAL
+// ============================================
 
-.conversations-header {
+.chat-modal {
+  position: fixed;
+
+  /*
+   * მთავარი ფიქსი:
+   * ჩატი აღარ არის დამოკიდებული parent-ის
+   * height-ზე ან flex layout-ზე.
+   */
+
+  top: 50%;
+  left: 50%;
+
+  transform: translate(-50%, -50%);
+
+  width: min(560px, calc(100vw - 32px));
+
+  height: min(760px, calc(100dvh - 32px));
+
+  min-height: 0;
+  max-height: calc(100dvh - 32px);
+
+  display: flex;
+  flex-direction: column;
+
+  background: $paper-card;
+
+  font-family: $font-family;
+
+  overflow: hidden;
+
+  border-radius: 20px;
+
+  box-shadow:
+    0 24px 70px rgba(16, 27, 51, 0.28),
+    0 8px 24px rgba(16, 27, 51, 0.14);
+
+  z-index: 9999;
+
+  animation: chatModalOpen 0.2s ease-out;
+
+  /*
+   * ძალიან მნიშვნელოვანია პატარა ეკრანებზე
+   */
+  isolation: isolate;
+}
+
+// ============================================
+// HEADER
+// ============================================
+
+.chat-header {
+  position: relative;
+
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 20px;
-  background: $ink;
-  flex-shrink: 0;
 
-  h2 {
-    font-size: 16px;
-    font-weight: 800;
-    color: #ffffff;
-    margin: 0;
+  gap: 12px;
+
+  padding:
+    14px
+    18px;
+
+  min-height: 72px;
+
+  background: $ink;
+
+  flex: 0 0 auto;
+
+  overflow: hidden;
+
+  &::before {
+    content: '';
+
+    position: absolute;
+    inset: 0;
+
+    background-image:
+      radial-gradient(
+        circle,
+        rgba(255, 255, 255, 0.06) 1.5px,
+        transparent 2px
+      );
+
+    background-size: 20px 20px;
+
+    pointer-events: none;
   }
 }
 
-.unread-badge {
-  display: inline-flex;
+// ============================================
+// USER HEADER
+// ============================================
+
+.chat-user {
+  position: relative;
+
+  z-index: 1;
+
+  display: flex;
+  align-items: center;
+
+  gap: 12px;
+
+  min-width: 0;
+
+  flex: 1;
+}
+
+.avatar {
+  flex: 0 0 auto;
+
+  width: 42px;
+  height: 42px;
+
+  border-radius: 12px;
+
+  background: $paper-card;
+
+  color: $cargo-dark;
+
+  display: flex;
   align-items: center;
   justify-content: center;
-  min-width: 24px;
-  height: 24px;
-  padding: 0 8px;
-  background: $cargo;
-  color: #ffffff;
-  border-radius: 12px;
-  font-size: 12px;
+
   font-weight: 800;
-  box-shadow: $shadow-cargo;
+  font-size: 15px;
+
+  border: 3px solid rgba(255, 255, 255, 0.12);
 }
 
-// ========== SEARCH ==========
+.chat-user-info {
+  min-width: 0;
 
-.search-box {
-  padding: 12px 16px;
-  background: $paper-card;
-  border-bottom: 1.5px dashed $color-border;
-  flex-shrink: 0;
-}
-
-.search-input {
-  width: 100%;
-  padding: 10px 14px;
-  border: 1.5px solid $color-border;
-  border-radius: 12px;
-  background: $color-bg-light;
-  font-size: 16px; // ბრაუზერის auto-zoom-ს კრძალავს ფოკუსზე Android-ზე
-  font-family: inherit;
-  color: $color-text-primary;
-  transition: all $transition-fast;
-
-  &:focus {
-    outline: none;
-    border-color: $cargo;
-    background: $paper-card;
-    box-shadow: 0 0 0 3px rgba($cargo, 0.12);
-  }
-
-  &::placeholder {
-    color: $color-text-tertiary;
-  }
-}
-
-// ========== LIST ==========
-
-.conversations-list {
   flex: 1;
+
+  h3 {
+    margin: 0;
+
+    font-size: 15px;
+    font-weight: 800;
+
+    color: #ffffff;
+
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+// ============================================
+// ONLINE / OFFLINE
+// ============================================
+
+.status-text {
+  display: flex;
+  align-items: center;
+
+  gap: 6px;
+
+  margin: 3px 0 0;
+
+  font-size: 12px;
+  font-weight: 600;
+
+  color: rgba(255, 255, 255, 0.55);
+
+  .status-dot {
+    position: static;
+
+    width: 7px;
+    height: 7px;
+
+    flex: 0 0 auto;
+
+    border-radius: 50%;
+
+    background: currentColor;
+
+    border: none;
+  }
+
+  &.is-online {
+    color: #58D6BE;
+  }
+
+  &.is-offline {
+    color: rgba(255, 255, 255, 0.4);
+  }
+}
+
+// ============================================
+// CLOSE BUTTON
+// ============================================
+
+.close-btn {
+  position: relative;
+
+  z-index: 2;
+
+  flex: 0 0 auto;
+
+  width: 38px;
+  height: 38px;
+
+  border: none;
+  border-radius: 11px;
+
+  background: rgba(255, 255, 255, 0.08);
+
+  color: rgba(255, 255, 255, 0.78);
+
+  font-size: 16px;
+
+  cursor: pointer;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  transition:
+    background-color $transition-fast,
+    color $transition-fast,
+    transform $transition-fast;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.14);
+    color: #ffffff;
+  }
+
+  &:active {
+    transform: scale(0.94);
+
+    background: rgba(255, 255, 255, 0.18);
+
+    color: #ffffff;
+  }
+}
+
+// ============================================
+// MESSAGES AREA
+// ============================================
+
+.messages-container {
+  flex: 1 1 0;
+
+  min-height: 0;
+
+  width: 100%;
+
   overflow-y: auto;
+  overflow-x: hidden;
+
   -webkit-overflow-scrolling: touch;
+
+  overscroll-behavior: contain;
+
+  padding: 18px;
+
   display: flex;
   flex-direction: column;
+
+  gap: 6px;
+
   background: $color-bg;
+
+  /*
+   * scroll ყოველთვის აქ ხდება,
+   * არა მთელ modal-ზე.
+   */
+
+  scrollbar-width: thin;
 
   &::-webkit-scrollbar {
     width: 6px;
@@ -135,157 +363,769 @@ $transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
 
   &::-webkit-scrollbar-thumb {
     background: $color-border;
+
     border-radius: 10px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
   }
 }
 
-// ========== EMPTY STATE ==========
+// ============================================
+// DATE SEPARATOR
+// ============================================
 
-.empty-state {
+.date-separator {
   display: flex;
-  flex-direction: column;
+
+  justify-content: center;
+
+  margin: 14px 0 10px;
+
+  flex: 0 0 auto;
+
+  span {
+    font-size: 11px;
+    font-weight: 700;
+
+    text-transform: uppercase;
+
+    letter-spacing: 0.4px;
+
+    color: $color-text-tertiary;
+
+    background: $paper-card;
+
+    border: 1px solid $color-border;
+
+    padding: 4px 12px;
+
+    border-radius: 20px;
+  }
+}
+
+// ============================================
+// MESSAGE ROW
+// ============================================
+
+.message-row {
+  display: flex;
+
+  justify-content: flex-start;
+
+  width: 100%;
+
+  margin-bottom: 2px;
+
+  flex: 0 0 auto;
+
+  &.my-message {
+    justify-content: flex-end;
+
+    .message-bubble {
+      background: $cargo;
+
+      color: #ffffff;
+
+      border-color: $cargo;
+
+      border-radius:
+        14px
+        14px
+        4px
+        14px;
+
+      box-shadow:
+        0 6px 16px rgba(255, 90, 31, 0.22);
+    }
+
+    .message-time {
+      color: rgba(255, 255, 255, 0.75);
+    }
+  }
+}
+
+// ============================================
+// MESSAGE BUBBLE
+// ============================================
+
+.message-bubble {
+  position: relative;
+
+  width: fit-content;
+
+  max-width: min(78%, 440px);
+
+  min-width: 0;
+
+  padding: 10px 14px;
+
+  background: $paper-card;
+
+  color: $color-text-primary;
+
+  border: 1.5px solid $color-border;
+
+  border-radius:
+    14px
+    14px
+    14px
+    4px;
+
+  font-size: 14px;
+
+  line-height: 1.45;
+
+  overflow-wrap: anywhere;
+
+  animation: messageSlide 0.18s ease-out;
+}
+
+.message-text {
+  word-break: break-word;
+
+  overflow-wrap: anywhere;
+
+  white-space: pre-wrap;
+}
+
+// ============================================
+// MESSAGE TIME
+// ============================================
+
+.message-time {
+  margin-top: 4px;
+
+  font-size: 10px;
+  font-weight: 600;
+
+  color: $color-text-tertiary;
+
+  text-align: right;
+
+  line-height: 1.2;
+}
+
+// ============================================
+// DELETE MESSAGE
+// ============================================
+
+.message-delete-btn {
+  position: absolute;
+
+  top: -10px;
+  right: -8px;
+
+  width: 24px;
+  height: 24px;
+
+  border-radius: 50%;
+
+  border: none;
+
+  background: #ef4444;
+
+  color: #ffffff;
+
+  font-size: 12px;
+
+  cursor: pointer;
+
+  display: flex;
   align-items: center;
   justify-content: center;
-  height: 100%;
-  padding: 40px 20px;
-  color: $color-text-tertiary;
-  text-align: center;
 
-  .empty-icon {
-    font-size: 40px;
-    margin-bottom: 14px;
-    opacity: 0.6;
+  z-index: 3;
+
+  // FIX: აჩვენე hit-area ვიზუალურ ზომაზე მეტი — მობილურზე თითით
+  // ადვილად მოხვედრისთვის, ისე რომ ვიზუალურად წრე იგივე ზომის დარჩეს.
+  &::after {
+    content: '';
+    position: absolute;
+    inset: -6px;
   }
 
-  .empty-text {
+  transition:
+    transform $transition-fast,
+    background-color $transition-fast;
+
+  &:hover {
+    transform: scale(1.08);
+  }
+
+  &:active {
+    transform: scale(0.92);
+  }
+
+  &.confirm-state {
+    background: #16a34a;
+  }
+}
+
+// ============================================
+// EMPTY STATE
+// ============================================
+
+.empty-state {
+  margin: auto;
+
+  text-align: center;
+
+  padding: 40px 20px;
+
+  color: $color-text-tertiary;
+
+  flex: 0 0 auto;
+
+  .empty-icon {
+    font-size: 36px;
+
+    margin-bottom: 10px;
+  }
+
+  .empty-title {
     font-size: 14px;
+
     font-weight: 700;
+
     color: $color-text-primary;
+
     margin-bottom: 4px;
   }
 
-  .empty-subtext {
+  .empty-sub {
     font-size: 12px;
   }
 }
 
-// ========== CONVERSATION ITEM ==========
+// ============================================
+// ERROR BANNER
+// ============================================
 
-.conversation-item {
+.chat-error-banner {
+  flex: 0 0 auto;
+
+  width: 100%;
+
+  padding: 8px 18px;
+
+  font-size: 12px;
+
+  font-weight: 600;
+
+  color: #ffffff;
+
+  background: #E0432A;
+
+  text-align: center;
+}
+
+// ============================================
+// TYPING INDICATOR
+// ============================================
+
+.typing-indicator {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 14px 18px;
+
+  gap: 8px;
+
+  flex: 0 0 auto;
+
+  padding: 6px 18px;
+
+  font-size: 12px;
+
+  color: $color-text-tertiary;
+
+  background: $color-bg;
+}
+
+.typing-dots {
+  display: inline-flex;
+
+  gap: 3px;
+
+  span {
+    width: 5px;
+    height: 5px;
+
+    border-radius: 50%;
+
+    background: $route;
+
+    animation: typingBounce 1.2s infinite;
+
+    &:nth-child(2) {
+      animation-delay: 0.15s;
+    }
+
+    &:nth-child(3) {
+      animation-delay: 0.3s;
+    }
+  }
+}
+
+// ============================================
+// INPUT AREA
+// ============================================
+
+.chat-input {
+  display: flex;
+
+  align-items: flex-end;
+
+  gap: 10px;
+
+  width: 100%;
+
+  flex: 0 0 auto;
+
+  padding:
+    10px
+    14px
+    calc(10px + env(safe-area-inset-bottom, 0px));
+
   background: $paper-card;
-  border-bottom: 1.5px dashed $color-border;
-  cursor: pointer;
-  transition: background-color $transition-fast, border-color $transition-fast;
 
-  &:hover {
-    background-color: $color-bg-light;
-  }
+  border-top: 1.5px dashed $color-border;
 
-  &.unread {
-    background-color: rgba($cargo, 0.04);
-    border-left: 3px solid $cargo;
-    padding-left: 15px;
+  textarea {
+    flex: 1 1 auto;
 
-    .conversation-name {
-      color: $ink;
-      font-weight: 800;
+    width: 0;
+
+    min-width: 0;
+
+    min-height: 44px;
+
+    max-height: 90px;
+
+    padding: 11px 14px;
+
+    border: 1.5px solid $color-border;
+
+    border-radius: 18px;
+
+    background: $color-bg-light;
+
+    font-family: $font-family;
+
+    font-size: 16px;
+
+    line-height: 1.4;
+
+    color: $color-text-primary;
+
+    outline: none;
+
+    resize: none;
+
+    overflow-y: auto;
+
+    transition:
+      border-color $transition-fast,
+      background-color $transition-fast,
+      box-shadow $transition-fast;
+
+    &:focus {
+      border-color: $cargo;
+
+      background: $paper-card;
+
+      box-shadow:
+        0 0 0 3px rgba(255, 90, 31, 0.12);
     }
 
-    .conversation-preview {
-      color: $color-text-primary;
-      font-weight: 600;
+    &::placeholder {
+      color: $color-text-tertiary;
     }
   }
 }
 
-.conversation-avatar {
-  position: relative;
-  flex-shrink: 0;
-}
+// ============================================
+// SEND BUTTON
+// ============================================
 
-.avatar-circle {
+.send-btn {
+  flex: 0 0 auto;
+
   width: 44px;
   height: 44px;
-  border-radius: 14px;
-  background: $ink;
-  color: $cargo-light;
+
+  border: none;
+
+  border-radius: 50%;
+
+  background:
+    linear-gradient(
+      135deg,
+      $cargo 0%,
+      $cargo-dark 100%
+    );
+
+  color: #ffffff;
+
+  font-size: 16px;
+
+  cursor: pointer;
+
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 800;
-  font-size: 14px;
-}
 
-.status-dot {
-  position: absolute;
-  bottom: -2px;
-  right: -2px;
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background-color: $color-border;
-  border: 2px solid $paper-card;
+  box-shadow: $shadow-cargo;
 
-  &.online {
-    background-color: $route;
+  transition:
+    transform $transition-fast,
+    opacity $transition-fast;
+
+  .send-icon {
+    transform: translateX(-1px);
+  }
+
+  &:hover:not(:disabled) {
+    transform: translateY(-1px);
+  }
+
+  &:active:not(:disabled) {
+    transform: scale(0.94);
+  }
+
+  &:disabled {
+    background: $color-bg-light;
+
+    color: $color-text-tertiary;
+
+    box-shadow: none;
+
+    cursor: not-allowed;
+
+    opacity: 0.8;
   }
 }
 
-.conversation-content {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
+// ============================================
+// ANIMATIONS
+// ============================================
+
+@keyframes backdropFadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
-.conversation-header-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  margin-bottom: 4px;
-  gap: 8px;
+@keyframes chatModalOpen {
+  from {
+    opacity: 0;
+
+    transform:
+      translate(-50%, -48%)
+      scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+
+    transform:
+      translate(-50%, -50%)
+      scale(1);
+  }
 }
 
-.conversation-name {
-  font-weight: 700;
-  color: $color-text-primary;
-  font-size: 14px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+@keyframes messageSlide {
+  from {
+    opacity: 0;
+
+    transform: translateY(6px);
+  }
+
+  to {
+    opacity: 1;
+
+    transform: translateY(0);
+  }
 }
 
-.conversation-time {
-  font-size: 11px;
-  font-weight: 600;
-  color: $color-text-tertiary;
-  flex-shrink: 0;
+@keyframes typingBounce {
+  0%,
+  60%,
+  100% {
+    opacity: 0.4;
+
+    transform: translateY(0);
+  }
+
+  30% {
+    opacity: 1;
+
+    transform: translateY(-4px);
+  }
 }
 
-.conversation-preview {
-  font-size: 13px;
-  color: $color-text-secondary;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+// ============================================
+// TABLET
+// ============================================
+
+@media (max-width: 768px) {
+
+  .chat-modal {
+    width: calc(100vw - 24px);
+
+    height: min(
+      760px,
+      calc(100dvh - 24px)
+    );
+
+    max-height: calc(100dvh - 24px);
+
+    border-radius: 18px;
+  }
+
+  .chat-header {
+    min-height: 68px;
+
+    padding: 12px 14px;
+  }
+
+  .messages-container {
+    padding: 14px;
+  }
+
+  .message-bubble {
+    max-width: 84%;
+  }
 }
 
-.unread-indicator {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 22px;
-  height: 22px;
-  padding: 0 6px;
-  background: $cargo;
-  color: #ffffff;
-  border-radius: 11px;
-  font-size: 11px;
-  font-weight: 800;
-  flex-shrink: 0;
-  box-shadow: $shadow-cargo;
+// ============================================
+// MOBILE
+// ============================================
+
+// ============================================
+// MOBILE
+// ============================================
+
+@media (max-width: 560px) {
+
+  .chat-modal-backdrop {
+    width: 100vw;
+    height: 100dvh;
+
+    background: rgba(16, 27, 51, 0.38);
+  }
+
+  // FIX: აღარ ხდება სრულეკრანიანი takeover.
+  // ჩატი რჩება კომპაქტური, ცენტრირებული float-modal,
+  // რომ header + მესიჯები + input ერთბაშად ჩანდეს ეკრანზე.
+  .chat-modal {
+    top: 50%;
+    left: 50%;
+
+    transform: translate(-50%, -50%);
+
+    width: calc(100vw - 20px);
+
+    height: min(560px, calc(100dvh - 40px));
+
+    max-width: none;
+    max-height: calc(100dvh - 40px);
+
+    min-height: 0;
+
+    border-radius: 18px;
+
+    box-shadow:
+      0 24px 70px rgba(16, 27, 51, 0.28),
+      0 8px 24px rgba(16, 27, 51, 0.14);
+
+    animation: chatModalOpen 0.2s ease-out;
+  }
+
+  .chat-header {
+    min-height: 64px;
+
+    padding: 10px 12px;
+  }
+
+  .avatar {
+    width: 40px;
+    height: 40px;
+
+    border-radius: 11px;
+  }
+
+  .chat-user {
+    gap: 10px;
+  }
+
+  .chat-user-info h3 {
+    font-size: 14px;
+  }
+
+  .status-text {
+    font-size: 11px;
+  }
+
+  .close-btn {
+    width: 36px;
+    height: 36px;
+  }
+
+  .messages-container {
+    padding: 12px;
+
+    gap: 5px;
+  }
+
+  .message-bubble {
+    max-width: 86%;
+
+    padding: 9px 12px;
+
+    font-size: 14px;
+  }
+
+  .chat-input {
+    padding:
+      8px
+      10px
+      calc(8px + env(safe-area-inset-bottom, 0px));
+
+    gap: 8px;
+  }
+
+  .chat-input textarea {
+    min-height: 42px;
+
+    max-height: 100px;
+
+    padding: 10px 12px;
+
+    border-radius: 17px;
+
+    font-size: 16px;
+  }
+
+  .send-btn {
+    width: 42px;
+    height: 42px;
+  }
+}
+
+// ============================================
+// VERY SMALL PHONES
+// ============================================
+
+@media (max-width: 380px) {
+
+  .chat-header {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  .messages-container {
+    padding: 10px;
+  }
+
+  .message-bubble {
+    max-width: 90%;
+
+    font-size: 13px;
+  }
+
+  .chat-input {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+}
+
+// ============================================
+// LANDSCAPE MOBILE
+// ============================================
+
+@media (max-height: 520px) and (orientation: landscape) {
+
+  .chat-modal {
+    height: 100dvh;
+
+    max-height: none;
+
+    border-radius: 0;
+  }
+
+  .chat-header {
+    min-height: 54px;
+
+    padding:
+      6px 12px;
+  }
+
+  .avatar {
+    width: 34px;
+    height: 34px;
+  }
+
+  .close-btn {
+    width: 34px;
+    height: 34px;
+  }
+
+  .chat-input {
+    padding:
+      6px 10px
+      calc(6px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .chat-input textarea {
+    min-height: 38px;
+
+    max-height: 70px;
+  }
+
+  .send-btn {
+    width: 38px;
+    height: 38px;
+  }
+}
+
+// ============================================
+// MOBILE OPEN ANIMATION
+// ============================================
+
+@keyframes mobileChatOpen {
+  from {
+    opacity: 0;
+
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+
+    transform: translateY(0);
+  }
+}
+
+// ============================================
+// REDUCED MOTION
+// ============================================
+
+@media (prefers-reduced-motion: reduce) {
+
+  .chat-modal,
+  .chat-modal-backdrop,
+  .message-bubble {
+    animation: none !important;
+  }
+
+  *,
+  *::before,
+  *::after {
+    transition: none !important;
+  }
 }

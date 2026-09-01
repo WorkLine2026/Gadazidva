@@ -82,7 +82,7 @@ export class SenderProfileComponent implements OnInit, OnDestroy {
   selectedOffer: PickupOffer | null = null;
   respondingOfferId: string | null = null;
   completingOfferId: string | null = null;
-
+  openSections: { [key: string]: boolean } = {};
   showDeleteAccountModal = false;
   isDeletingAccount = false;
   deleteAccountError: string | null = null;
@@ -99,6 +99,14 @@ export class SenderProfileComponent implements OnInit, OnDestroy {
     private cdr: ChangeDetectorRef
   ) {}
 
+
+  toggleSection(key: string): void {
+  this.openSections[key] = !this.openSections[key];
+}
+
+isSectionOpen(key: string): boolean {
+  return !!this.openSections[key];
+}
   ngOnInit(): void {
     if (!this.smsService.isAuthenticated()) {
       this.router.navigate(['/login']);

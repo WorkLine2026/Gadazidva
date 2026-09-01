@@ -45,6 +45,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
       this.smsService.isLoggedIn$.subscribe({
         next: (status) => {
           this.isLoggedIn = status;
+          console.log('🔍 [Navbar] isLoggedIn$ განახლდა:', status);
           this.cdr.detectChanges(); 
         }
       })
@@ -55,6 +56,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
       this.smsService.currentUser$.subscribe({
         next: (user) => {
           this.currentUser = user;
+          console.log('🔍 [Navbar] currentUser$ განახლდა:', user, '| role:', user?.role);
           this.cdr.detectChanges(); 
         }
       })
@@ -115,42 +117,49 @@ export class NavbarComponent implements OnInit, OnDestroy {
       this.closeMenu();
     }
   }
-navigateToAllListings(): void {
-  this.closeMenu();
-  this.router.navigate(['/listing']);
-}
+
+  navigateToAllListings(): void {
+    this.closeMenu();
+    console.log('🔍 [Navbar] navigateToAllListings → /listing');
+    this.router.navigate(['/listing']);
+  }
+
   navigateToLogin(): void {
     this.closeMenu();
+    console.log('🔍 [Navbar] navigateToLogin → /login');
     this.router.navigate(['/login']);
   }
 
   navigateToRegister(): void {
     this.closeMenu();
+    console.log('🔍 [Navbar] navigateToRegister → /register');
     this.router.navigate(['/register']);
   }
 
   navigateToDashboard(): void {
     this.closeMenu();
+    console.log('🔍 [Navbar] navigateToDashboard → /send');
     this.router.navigate(['/send']);
   }
 
   navigateToAddRide(): void {
     this.closeMenu();
+    console.log('🔍 [Navbar] navigateToAddRide → /pickup');
     this.router.navigate(['/pickup']);
   }
-navigateToProfile(): void {
+
+  navigateToProfile(): void {
     this.closeMenu();
 
     // ✅ როლის მიხედვით სწორ პროფილზე გადასვლა
-    if (this.currentUser?.role === 'driver') {
-      this.router.navigate(['/driverProfile']);
-    } else {
-      this.router.navigate(['/senderProfile']);
-    }
+    const target = this.currentUser?.role === 'driver' ? '/driverProfile' : '/senderProfile';
+    console.log('🔍 [Navbar] navigateToProfile | currentUser:', this.currentUser, '| role:', this.currentUser?.role, '| მიდის →', target);
+    this.router.navigate([target]);
   }
 
   navigateHome(): void {
     this.closeMenu();
+    console.log('🔍 [Navbar] navigateHome → /');
     this.router.navigate(['/']);
   }
 }

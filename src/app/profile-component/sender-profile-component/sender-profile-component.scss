@@ -101,6 +101,23 @@ $bp-small-mobile: 400px;
   }
 }
 
+// ---- გამოჩენის ანიმაცია (ერთიანი, ყველა ქარდისთვის) -------------------------
+@mixin reveal($duration: 0.5s, $delay: 0s) {
+  opacity: 0;
+  animation: cardAppear $duration cubic-bezier(0.22, 1, 0.36, 1) $delay both;
+}
+
+@keyframes cardAppear {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 :host {
   --paper: #{$paper};
   --paper-alt: #{$paper-alt};
@@ -126,8 +143,6 @@ $bp-small-mobile: 400px;
 
   display: block;
 
-  // ყველა ჩაშენებული ელემენტისთვის ერთიანი box-sizing — ავირიდოთ overflow
-  // ვიწრო ეკრანებზე padding/border-ის გამო.
   *, *::before, *::after {
     box-sizing: border-box;
   }
@@ -145,8 +160,6 @@ $bp-small-mobile: 400px;
 .profile-shell {
   max-width: 1180px;
   margin: 0 auto;
-  // clamp() საშუალებას გვაძლევს padding ეკრანის სიგანესთან ერთად
-  // გლუვად შემცირდეს, ნაცვლად ერთი მკვეთრი ნახტომისა breakpoint-ზე.
   padding: clamp(16px, 3vw, 32px) clamp(12px, 4vw, 20px) 60px;
   font-family: $font-body;
   color: $ink;
@@ -160,6 +173,7 @@ $bp-small-mobile: 400px;
 /* Header */
 .route-header {
   @include card-surface;
+  @include reveal(0.45s, 0s);
   padding: 20px 24px 16px;
   margin-bottom: 24px;
 
@@ -259,8 +273,6 @@ $bp-small-mobile: 400px;
 /* Grid Layout */
 .profile-grid {
   display: grid;
-  // 300–340px სიდბარი ეკრანის მიხედვით, არ არის ხისტად 320px –
-  // ეს ხსნის "შეკუმშვას" ტაბლეტის ზომებზე ტრანზიციამდე.
   grid-template-columns: minmax(280px, 320px) minmax(0, 1fr);
   gap: clamp(16px, 2.5vw, 26px);
   align-items: start;
@@ -274,12 +286,11 @@ $bp-small-mobile: 400px;
 .tag-card {
   position: relative;
   @include card-surface;
+  @include reveal(0.5s, 0.06s);
   padding: 32px 22px 22px;
   text-align: center;
   transition: $transition;
 
-  // ჩატრიალება მხოლოდ იქ, სადაც საკმარისი სივრცეა — ვიწრო ეკრანზე
-  // ჰოვერის ეფექტი გამორთულია, რომ ბარათი overflow-ში არ წავიდეს.
   &:hover {
     box-shadow: $shadow-card-hover;
 
@@ -528,8 +539,11 @@ $bp-small-mobile: 400px;
   background: $paper-alt;
   padding: 12px;
   border-radius: $radius-sm;
+  @include reveal(0.4s, 0.16s);
 
   &--accent { background: $accent-soft; }
+
+  &:nth-child(2) { animation-delay: 0.22s; }
 
   &__value {
     font-family: $font-display;
@@ -549,6 +563,7 @@ $bp-small-mobile: 400px;
 .manifest-card {
   margin-top: 18px;
   @include card-surface;
+  @include reveal(0.5s, 0.14s);
   padding: 18px;
 
   &__title {
@@ -559,7 +574,43 @@ $bp-small-mobile: 400px;
     letter-spacing: 0.5px;
   }
 }
+.btn-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: $card;
+  border: 1.5px solid $line;
+  color: $ink;
+  padding: 10px 16px;
+  border-radius: $radius-sm;
+  font-weight: 700;
+  font-size: 13.5px;
+  cursor: pointer;
+  transition: $transition;
+  white-space: nowrap;
 
+  &:hover {
+    border-color: $primary;
+    color: $primary-dark;
+    background: $primary-soft;
+  }
+
+  &__count {
+    background: $paper-alt;
+    color: $ink-soft;
+    font-size: 11px;
+    font-weight: 800;
+    padding: 2px 8px;
+    border-radius: 10px;
+    min-width: 20px;
+    text-align: center;
+  }
+
+  @include mobile-down {
+    width: 100%;
+    justify-content: center;
+  }
+}
 .manifest-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -576,6 +627,9 @@ $bp-small-mobile: 400px;
   background: $paper-alt;
   padding: 10px 12px;
   border-radius: $radius-sm;
+  @include reveal(0.4s, 0.2s);
+
+  &:nth-child(2) { animation-delay: 0.26s; }
 
   &__label {
     font-size: 11px;
@@ -615,9 +669,6 @@ $bp-small-mobile: 400px;
   display: flex;
   flex-direction: column;
   gap: clamp(18px, 2.5vw, 24px);
-  // ეს ხაზი ხსნის მთავარ პრობლემას — ბარათების სვეტს შეუძლია
-  // grid-ში ჩაეტიოს bez overflow-ის გამოწვევის, თუნდაც შიგთავსი
-  // (მაგ. გრძელი ტექსტი) ცდილობდეს კონტეინერს გაწელოს.
   min-width: 0;
 }
 
@@ -628,6 +679,7 @@ $bp-small-mobile: 400px;
   margin-bottom: 16px;
   gap: 12px;
   flex-wrap: wrap;
+  @include reveal(0.4s, 0.05s);
 
   @include mobile-down {
     flex-direction: column;
@@ -664,6 +716,7 @@ $bp-small-mobile: 400px;
 /* Form */
 .form-panel {
   @include card-surface;
+  @include reveal(0.4s, 0s);
   padding: clamp(20px, 3vw, 30px);
 
   &__header {
@@ -803,23 +856,13 @@ $bp-small-mobile: 400px;
   font-weight: 600;
 }
 
-/* ===== Stub Cards ===================================================== *
- * მთავარი ცვლილება: predator იყო `minmax(300px, 1fr)`, რაც ბარათებს
- * ფართო ეკრანზე (როცა მწკრივში მხოლოდ 1-2 ბარათია) აჭიმავდა მთელ
- * სიგანეზე. ახლა ბარათს აქვს ზედა ზღვარი (`minmax(280px, 360px)`)
- * და `justify-content: start`, ასე რომ ბარათები ყოველთვის ინარჩუნებენ
- * თანაბარ, კომფორტულ სიგანეს და უბრალოდ ცარიელ სივრცეს ტოვებენ
- * ბოლოში, ნაცვლად იმისა, რომ გაიწელონ.
- * ========================================================================= */
+/* ===== Stub Cards ===================================================== */
 .stub-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 360px));
   justify-content: start;
   gap: 16px;
 
-  // მობილურზეც ბარათს აქვს ზედა ზღვარი და დაცენტრებულია — წინააღმდეგ
-  // შემთხვევაში 1fr-ს ბარათი ეკრანის სრულ სიგანეზე გაჭიმავს (რაც
-  // განსაკუთრებით ემჩნევა media/banner სურათზე).
   @include mobile-down {
     grid-template-columns: minmax(0, 1fr);
     justify-content: stretch;
@@ -840,7 +883,7 @@ $bp-small-mobile: 400px;
   flex-direction: column;
   position: relative;
   min-width: 0;
-  animation: cardAppear 0.4s ease-out forwards;
+  animation: cardAppear 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards;
   opacity: 0;
 
   &:hover {
@@ -903,8 +946,6 @@ $bp-small-mobile: 400px;
     min-width: 0;
   }
 
-  // 3-სვეტიანი info-გრიდი პატარა ეკრანზე 2-სვეტიანი ხდება, რომ
-  // ციფრები ერთმანეთს არ დაედოს ვიწრო ბარათზეც კი.
   &__info {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1100,6 +1141,7 @@ $bp-small-mobile: 400px;
   background: $card;
   border: 1.5px dashed $line;
   border-radius: $radius-lg;
+  @include reveal(0.45s, 0.1s);
 
   &__icon {
     font-size: 34px;
@@ -1120,13 +1162,10 @@ $bp-small-mobile: 400px;
   }
 }
 
-@keyframes cardAppear {
-  from { opacity: 0; transform: translateY(12px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
 /* Settings */
 .settings-block {
+  @include reveal(0.4s, 0.08s);
+
   &__eyebrow {
     @include eyebrow($muted);
     letter-spacing: 0.8px;
@@ -1154,6 +1193,9 @@ $bp-small-mobile: 400px;
   transition: $transition;
   text-align: left;
   gap: 12px;
+  @include reveal(0.4s, 0.14s);
+
+  &:nth-child(2) { animation-delay: 0.2s; }
 
   &:hover {
     border-color: $primary;
@@ -1197,10 +1239,19 @@ $bp-small-mobile: 400px;
   }
 }
 
-/* Modals */
+/* ===== Modals =========================================================
+ * FIX: `100vh`-ს ნაცვლად `100dvh` ორივე ელემენტზე — მობილურ ბრაუზერებში
+ * `vh` მოიცავს ადრესბარის ფარულ სიმაღლესაც, რაც bottom-sheet მოდალს
+ * ეკრანს მიღმა/footer-თან აღებდა. ცენტრირებული განლაგება (align-items:
+ * center ყველგან) სტაბილურია ყველა ეკრანის ზომაზე. დამატებულია
+ * `overscroll-behavior: contain`, რომ შიდა სქროლმა ფონურ გვერდს
+ * არ გადასცეს სქროლი.
+ * ========================================================================= */
 .modal-backdrop {
   position: fixed;
   inset: 0;
+  height: 100vh;
+  height: 100dvh;
   background: rgba(32, 43, 69, 0.42);
   backdrop-filter: blur(6px);
   display: flex;
@@ -1212,7 +1263,7 @@ $bp-small-mobile: 400px;
 
   @include mobile-down {
     padding: 12px;
-    align-items: flex-end;
+    align-items: center;
   }
 }
 
@@ -1223,15 +1274,30 @@ $bp-small-mobile: 400px;
   width: 100%;
   max-width: 600px;
   max-height: 80vh;
+  max-height: 80dvh;
   position: relative;
   overflow: auto;
+  overscroll-behavior: contain;
   box-shadow: 0 24px 48px -14px rgba(32, 43, 69, 0.3);
   padding: 24px;
+  animation: modalPop 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
 
   @include mobile-down {
-    max-height: 88vh;
+    max-height: 80vh;
+    max-height: 80dvh;
     padding: 18px;
-    border-radius: $radius-md $radius-md 0 0;
+    border-radius: $radius-md;
+  }
+}
+
+@keyframes modalPop {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
   }
 }
 

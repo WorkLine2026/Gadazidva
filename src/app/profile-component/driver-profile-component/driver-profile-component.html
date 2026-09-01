@@ -195,16 +195,20 @@
         </form>
       </div>
 
-      <!-- ❌ სენდერის მიერ უარყოფილი შეთავაზებები (მძღოლმა გაგზავნა pickup-offer parcel-ზე) -->
-      <div *ngIf="!isEditing && rejectedPickupOffers.length > 0">
+      <!-- ❌ სენდერის მიერ უარყოფილი შეთავაზებები -->
+      <div *ngIf="!isEditing && rejectedPickupOffers.length > 0" class="accordion-section">
         <div class="section-head">
           <div>
             <span class="section-head__eyebrow">ისტორია</span>
             <h2>❌ სენდერის მიერ უარყოფილი შეთავაზებები</h2>
           </div>
+          <button class="btn-toggle" (click)="toggleSection('rejectedPickupOffers')">
+            {{ isSectionOpen('rejectedPickupOffers') ? '▲ დამალვა' : '▼ ნახვა' }}
+            <span class="btn-toggle__count">{{ rejectedPickupOffers.length }}</span>
+          </button>
         </div>
 
-        <div class="stub-grid">
+        <div class="stub-grid" *ngIf="isSectionOpen('rejectedPickupOffers')">
           <div
             class="stub-card"
             *ngFor="let offer of rejectedPickupOffers; let i = index"
@@ -238,16 +242,20 @@
         </div>
       </div>
 
-      <!-- ❌ თქვენს მიერ უარყოფილი trip-request-ები (წასაშლელად) -->
-      <div *ngIf="!isEditing && rejectedTripRequests.length > 0">
+      <!-- ❌ თქვენს მიერ უარყოფილი trip-request-ები -->
+      <div *ngIf="!isEditing && rejectedTripRequests.length > 0" class="accordion-section">
         <div class="section-head">
           <div>
             <span class="section-head__eyebrow">ისტორია</span>
             <h2>❌ თქვენს მიერ უარყოფილი მოთხოვნები</h2>
           </div>
+          <button class="btn-toggle" (click)="toggleSection('rejectedTripRequests')">
+            {{ isSectionOpen('rejectedTripRequests') ? '▲ დამალვა' : '▼ ნახვა' }}
+            <span class="btn-toggle__count">{{ rejectedTripRequests.length }}</span>
+          </button>
         </div>
 
-        <div class="stub-grid">
+        <div class="stub-grid" *ngIf="isSectionOpen('rejectedTripRequests')">
           <div
             class="stub-card"
             *ngFor="let req of rejectedTripRequests; let i = index"
@@ -283,15 +291,19 @@
       </div>
 
       <!-- 📨 თქვენს მგზავრობებზე გაგზავნილი მოთხოვნები (pending) -->
-      <div *ngIf="!isEditing && incomingTripRequests.length > 0">
+      <div *ngIf="!isEditing && incomingTripRequests.length > 0" class="accordion-section">
         <div class="section-head">
           <div>
             <span class="section-head__eyebrow">ახალი მოთხოვნები</span>
             <h2>📨 თქვენს მგზავრობებზე გაგზავნილი მოთხოვნები</h2>
           </div>
+          <button class="btn-toggle" (click)="toggleSection('incomingTripRequests')">
+            {{ isSectionOpen('incomingTripRequests') ? '▲ დამალვა' : '▼ ნახვა' }}
+            <span class="btn-toggle__count">{{ incomingTripRequests.length }}</span>
+          </button>
         </div>
 
-        <div class="stub-grid">
+        <div class="stub-grid" *ngIf="isSectionOpen('incomingTripRequests')">
           <div
             class="stub-card"
             *ngFor="let req of incomingTripRequests; let i = index"
@@ -327,15 +339,19 @@
       </div>
 
       <!-- ========== 📥 შემოსული მოთხოვნები ========== -->
-      <div *ngIf="!isEditing && incomingOffers.length > 0">
+      <div *ngIf="!isEditing && incomingOffers.length > 0" class="accordion-section">
         <div class="section-head">
           <div>
             <span class="section-head__eyebrow">ახალი მოთხოვნები</span>
             <h2>📥 თქვენი ნივთის წაღების მსურველები</h2>
           </div>
+          <button class="btn-toggle" (click)="toggleSection('incomingOffers')">
+            {{ isSectionOpen('incomingOffers') ? '▲ დამალვა' : '▼ ნახვა' }}
+            <span class="btn-toggle__count">{{ incomingOffers.length }}</span>
+          </button>
         </div>
 
-        <div class="stub-grid">
+        <div class="stub-grid" *ngIf="isSectionOpen('incomingOffers')">
           <div
             class="stub-card"
             *ngFor="let offer of incomingOffers; let i = index"
@@ -367,15 +383,19 @@
       </div>
 
       <!-- ========== 🚚 მიმდინარე მიწოდებები ========== -->
-      <div *ngIf="!isEditing && inProgressOffers.length > 0">
+      <div *ngIf="!isEditing && inProgressOffers.length > 0" class="accordion-section">
         <div class="section-head">
           <div>
             <span class="section-head__eyebrow">აქტიური</span>
             <h2>🚚 მიმდინარე მიწოდებები</h2>
           </div>
+          <button class="btn-toggle" (click)="toggleSection('inProgressOffers')">
+            {{ isSectionOpen('inProgressOffers') ? '▲ დამალვა' : '▼ ნახვა' }}
+            <span class="btn-toggle__count">{{ inProgressOffers.length }}</span>
+          </button>
         </div>
 
-        <div class="stub-grid">
+        <div class="stub-grid" *ngIf="isSectionOpen('inProgressOffers')">
           <div
             class="stub-card"
             *ngFor="let offer of inProgressOffers; let i = index"
@@ -415,15 +435,19 @@
       </div>
 
       <!-- ========== 🚚 ჩემი წაღებული ნივთები ========== -->
-      <div *ngIf="!isEditing && pickedUpCompleted.length > 0">
+      <div *ngIf="!isEditing && pickedUpCompleted.length > 0" class="accordion-section">
         <div class="section-head">
           <div>
             <span class="section-head__eyebrow">ისტორია</span>
             <h2>🚚 ჩემი წაღებული ნივთები</h2>
           </div>
+          <button class="btn-toggle" (click)="toggleSection('pickedUpCompleted')">
+            {{ isSectionOpen('pickedUpCompleted') ? '▲ დამალვა' : '▼ ნახვა' }}
+            <span class="btn-toggle__count">{{ pickedUpCompleted.length }}</span>
+          </button>
         </div>
 
-        <div class="stub-grid">
+        <div class="stub-grid" *ngIf="isSectionOpen('pickedUpCompleted')">
           <div
             class="stub-card"
             *ngFor="let offer of pickedUpCompleted; let i = index"
@@ -451,85 +475,93 @@
       </div>
 
       <!-- ========== მძღოლის მგზავრობები ========== -->
-      <div *ngIf="!isEditing">
+      <div *ngIf="!isEditing" class="accordion-section">
         <div class="section-head">
           <div>
             <span class="section-head__eyebrow">ტვირთის მარშრუტები</span>
             <h2>🚗 ჩემი მგზავრობები</h2>
           </div>
-          <button class="btn-cta" (click)="openPickupFlow()">+ ახალი მგზავრობა</button>
+          <div class="section-head__buttons">
+            <button class="btn-cta" (click)="openPickupFlow()">+ ახალი მგზავრობა</button>
+            <button class="btn-toggle" (click)="toggleSection('driverTrips')">
+              {{ isSectionOpen('driverTrips') ? '▲ დამალვა' : '▼ ნახვა' }}
+              <span class="btn-toggle__count" *ngIf="driverTrips.length > 0">{{ driverTrips.length }}</span>
+            </button>
+          </div>
         </div>
 
-        <div *ngIf="isLoadingTrips" class="skeleton-block">მგზავრობები იტვირთება…</div>
+        <ng-container *ngIf="isSectionOpen('driverTrips')">
+          <div *ngIf="isLoadingTrips" class="skeleton-block">მგზავრობები იტვირთება…</div>
 
-        <div *ngIf="!isLoadingTrips && driverTrips.length === 0" class="empty-panel">
-          <div class="empty-panel__icon">🛣️</div>
-          <div class="empty-panel__title">მგზავრობა ჯერ არ გაქვთ</div>
-          <div class="empty-panel__sub">დაგეგმეთ პირველი მარშრუტი და დაიწყეთ შემოსავლის მიღება</div>
-        </div>
+          <div *ngIf="!isLoadingTrips && driverTrips.length === 0" class="empty-panel">
+            <div class="empty-panel__icon">🛣️</div>
+            <div class="empty-panel__title">მგზავრობა ჯერ არ გაქვთ</div>
+            <div class="empty-panel__sub">დაგეგმეთ პირველი მარშრუტი და დაიწყეთ შემოსავლის მიღება</div>
+          </div>
 
-        <div class="stub-grid" *ngIf="!isLoadingTrips && driverTrips.length > 0">
-          <div class="stub-card" *ngFor="let trip of driverTrips; let i = index" [style.animation-delay.ms]="i * 60">
+          <div class="stub-grid" *ngIf="!isLoadingTrips && driverTrips.length > 0">
+            <div class="stub-card" *ngFor="let trip of driverTrips; let i = index" [style.animation-delay.ms]="i * 60">
 
-            <div class="stub-card__media">
-              <img
-                *ngIf="trip.images && trip.images.length > 0"
-                [src]="trip.images[0]"
-                [alt]="trip.from + ' → ' + trip.to"
-                loading="lazy" />
-              <div class="stub-card__media-placeholder" *ngIf="!trip.images || trip.images.length === 0">🚗</div>
-              <span class="stub-card__media-count" *ngIf="trip.images && trip.images.length > 1">
-                +{{ trip.images.length - 1 }}
-              </span>
-            </div>
+              <div class="stub-card__media">
+                <img
+                  *ngIf="trip.images && trip.images.length > 0"
+                  [src]="trip.images[0]"
+                  [alt]="trip.from + ' → ' + trip.to"
+                  loading="lazy" />
+                <div class="stub-card__media-placeholder" *ngIf="!trip.images || trip.images.length === 0">🚗</div>
+                <span class="stub-card__media-count" *ngIf="trip.images && trip.images.length > 1">
+                  +{{ trip.images.length - 1 }}
+                </span>
+              </div>
 
-            <div class="stub-card__route">
-              <span class="route-dot route-dot--from"></span>
-              <span class="route-name">{{ trip.from }}</span>
-              <span class="route-track" aria-hidden="true"></span>
-              <span class="route-name">{{ trip.to }}</span>
-              <span class="route-dot route-dot--to"></span>
-            </div>
+              <div class="stub-card__route">
+                <span class="route-dot route-dot--from"></span>
+                <span class="route-name">{{ trip.from }}</span>
+                <span class="route-track" aria-hidden="true"></span>
+                <span class="route-name">{{ trip.to }}</span>
+                <span class="route-dot route-dot--to"></span>
+              </div>
 
-            <div class="stub-card__body">
-              <div class="stub-card__info">
-                <div class="info-cell">
-                  <div class="info-cell__label">გამგზავრება</div>
-                  <div class="info-cell__value">{{ formatDateTime(trip.departureDate) }}</div>
+              <div class="stub-card__body">
+                <div class="stub-card__info">
+                  <div class="info-cell">
+                    <div class="info-cell__label">გამგზავრება</div>
+                    <div class="info-cell__value">{{ formatDateTime(trip.departureDate) }}</div>
+                  </div>
+                  <div class="info-cell">
+                    <div class="info-cell__label">თავისუფალი წონა</div>
+                    <div class="info-cell__value">{{ trip.availableSpace }} კგ</div>
+                  </div>
+                  <div class="info-cell">
+                    <div class="info-cell__label">ფასი</div>
+                    <div class="info-cell__value">{{ trip.pricePerKg }} ₾/კგ</div>
+                  </div>
                 </div>
-                <div class="info-cell">
-                  <div class="info-cell__label">თავისუფალი წონა</div>
-                  <div class="info-cell__value">{{ trip.availableSpace }} კგ</div>
-                </div>
-                <div class="info-cell">
-                  <div class="info-cell__label">ფასი</div>
-                  <div class="info-cell__value">{{ trip.pricePerKg }} ₾/კგ</div>
+
+                <div *ngIf="trip.acceptedShippings && trip.acceptedShippings.length > 0" class="stub-card__earnings">
+                  <span>✓ მიღებული {{ trip.acceptedShippings.length }} შეკვეთა</span>
+                  <span class="stub-card__earnings-value">{{ getTripEarnings(trip) }}</span>
                 </div>
               </div>
 
-              <div *ngIf="trip.acceptedShippings && trip.acceptedShippings.length > 0" class="stub-card__earnings">
-                <span>✓ მიღებული {{ trip.acceptedShippings.length }} შეკვეთა</span>
-                <span class="stub-card__earnings-value">{{ getTripEarnings(trip) }}</span>
-              </div>
-            </div>
+              <div class="stub-card__tear" aria-hidden="true"></div>
 
-            <div class="stub-card__tear" aria-hidden="true"></div>
-
-            <div class="stub-card__footer">
-              <div class="stub-card__id">№ {{ trip._id.slice(0, 8) }}</div>
-              <div class="stub-card__footer-actions">
-                <button
-                  *ngIf="canDeleteTrip(trip)"
-                  class="btn-delete"
-                  (click)="deleteTrip(trip._id)"
-                  [disabled]="deletingTripId === trip._id">
-                  {{ deletingTripId === trip._id ? 'იშლება…' : '🗑️ წაშლა' }}
-                </button>
-                <button class="btn-details" (click)="viewTripDetails(trip._id)">დეტალები →</button>
+              <div class="stub-card__footer">
+                <div class="stub-card__id">№ {{ trip._id.slice(0, 8) }}</div>
+                <div class="stub-card__footer-actions">
+                  <button
+                    *ngIf="canDeleteTrip(trip)"
+                    class="btn-delete"
+                    (click)="deleteTrip(trip._id)"
+                    [disabled]="deletingTripId === trip._id">
+                    {{ deletingTripId === trip._id ? 'იშლება…' : '🗑️ წაშლა' }}
+                  </button>
+                  <button class="btn-details" (click)="viewTripDetails(trip._id)">დეტალები →</button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        </ng-container>
       </div>
 
       <!-- ========== პარამეტრები ========== -->
