@@ -1,5 +1,4 @@
 <div class="android-profile">
-
   <!-- ===== TOP APP BAR ===== -->
   <header class="top-app-bar">
     <button class="icon-btn" (click)="goBack()" aria-label="უკან">
@@ -23,7 +22,6 @@
   </div>
 
   <ng-container *ngIf="!isLoading">
-
     <!-- ===== HERO PROFILE CARD ===== -->
     <section class="hero-card">
       <div class="hero-card__avatar">
@@ -34,13 +32,11 @@
         <p class="hero-card__email">{{ email }}</p>
         <div class="hero-card__role">მძღოლი</div>
       </div>
-
       <div class="hero-card__status" [class.verified]="phoneVerified">
         <span class="dot"></span>
         {{ phoneVerified ? 'ტელეფონი დადასტურებულია' : 'ტელეფონი არ არის დადასტურებული' }}
       </div>
       <div class="hero-card__phone">{{ formatPhone(phone) }}</div>
-
       <div class="hero-card__actions">
         <button class="btn-filled" (click)="toggleEditMode()">
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
@@ -79,7 +75,6 @@
       <div class="surface-card__header">
         <h3>პროფილის რედაქტირება</h3>
       </div>
-
       <form [formGroup]="profileForm" class="edit-form">
         <div class="form-row">
           <div class="field">
@@ -93,20 +88,16 @@
             <span class="hint" *ngIf="isFieldInvalid('lastName')">გვარი აუცილებელია</span>
           </div>
         </div>
-
         <div class="field">
           <label>ელფოსტა</label>
           <input type="email" formControlName="email" [class.invalid]="isFieldInvalid('email')" />
           <span class="hint" *ngIf="isFieldInvalid('email')">სწორი ელფოსტა აუცილებელია</span>
         </div>
-
         <div class="field">
           <label>პირადი ნომერი</label>
           <input formControlName="personalNumber" [disabled]="true" />
         </div>
-
         <div class="divider">ავტომობილის დეტალები</div>
-
         <div class="form-row">
           <div class="field">
             <label>მოდელი</label>
@@ -118,26 +109,22 @@
             <span class="hint" *ngIf="isFieldInvalid('carPlate')">ფორმატი: AA-000-AA</span>
           </div>
         </div>
-
         <div class="field">
           <label>მართვის მოწმობის ნომერი</label>
           <input formControlName="driverLicenseNumber" [class.invalid]="isFieldInvalid('driverLicenseNumber')" />
         </div>
-
         <div class="form-actions">
           <button type="button" class="btn-filled" (click)="saveProfile()" [disabled]="isSaving">
             {{ isSaving ? 'ინახება…' : 'შენახვა' }}
           </button>
           <button type="button" class="btn-text" (click)="cancelEdit()">გაუქმება</button>
         </div>
-
         <div class="error-banner" *ngIf="errorMessage">{{ errorMessage }}</div>
       </form>
     </section>
 
     <!-- ===== SECTIONS (Offers, Trips, etc.) ===== -->
     <ng-container *ngIf="!isEditing">
-
       <!-- Incoming Trip Requests -->
       <section class="section" *ngIf="incomingTripRequests.length > 0">
         <div class="section-header">
@@ -273,15 +260,12 @@
           <h3>🚗 ჩემი მგზავრობები</h3>
           <button class="btn-filled btn-sm" (click)="openPickupFlow()">+ ახალი</button>
         </div>
-
         <div *ngIf="isLoadingTrips" class="loading-inline">მგზავრობები იტვირთება…</div>
-
         <div *ngIf="!isLoadingTrips && driverTrips.length === 0" class="empty-state">
           <div class="empty-icon">🛣️</div>
           <p>მგზავრობა ჯერ არ გაქვთ</p>
           <button class="btn-filled" (click)="openPickupFlow()">დაგეგმე პირველი რეისი</button>
         </div>
-
         <div class="card-list" *ngIf="!isLoadingTrips && driverTrips.length > 0">
           <div class="list-card trip-card" *ngFor="let trip of driverTrips">
             <div class="route">
@@ -342,12 +326,13 @@
           </button>
         </div>
       </section>
-
     </ng-container>
   </ng-container>
 
   <!-- ===== MODALS ===== -->
-  <div class="modal-backdrop" *ngIf="showConversations" (click)="toggleConversations()">
+
+  <!-- Conversations — Bottom Sheet -->
+  <div class="modal-backdrop sheet" *ngIf="showConversations" (click)="toggleConversations()">
     <div class="modal-sheet" (click)="$event.stopPropagation()">
       <div class="modal-handle"></div>
       <button class="modal-close" (click)="toggleConversations()">✕</button>
@@ -358,16 +343,21 @@
     </div>
   </div>
 
-  <app-chat-modal
-    *ngIf="showChatModal && selectedConversation"
-    [requestId]="selectedConversation.conversationId"
-    [recipientId]="selectedConversation.userId"
-    [recipientName]="selectedConversation.userName"
-    [currentUserId]="userId"
-    (close)="closeChatModal()">
-  </app-chat-modal>
+  <!-- Chat — Full Screen (არა bottom sheet) -->
+  <div class="modal-backdrop fullscreen" *ngIf="showChatModal && selectedConversation">
+    <div class="chat-fullscreen-wrapper">
+      <app-chat-modal
+        [requestId]="selectedConversation.conversationId"
+        [recipientId]="selectedConversation.userId"
+        [recipientName]="selectedConversation.userName"
+        [currentUserId]="userId"
+        (close)="closeChatModal()">
+      </app-chat-modal>
+    </div>
+  </div>
 
-  <div class="modal-backdrop" *ngIf="showOfferDetailModal" (click)="closeOfferDetails()">
+  <!-- Offer Detail — Bottom Sheet -->
+  <div class="modal-backdrop sheet" *ngIf="showOfferDetailModal" (click)="closeOfferDetails()">
     <div class="modal-sheet" (click)="$event.stopPropagation()">
       <div class="modal-handle"></div>
       <button class="modal-close" (click)="closeOfferDetails()">✕</button>
@@ -399,5 +389,4 @@
     (confirmDelete)="onDeleteAccountConfirmed()"
     (cancelled)="onDeleteAccountCancelled()">
   </app-delete-account-modal>
-
 </div>

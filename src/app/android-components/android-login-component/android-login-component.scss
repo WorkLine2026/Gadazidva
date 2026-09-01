@@ -1,0 +1,529 @@
+// ====================================
+// VARIABLES — "სწრაფი ტრანსპორტირება საქართველოში" პალიტრა
+// ====================================
+
+// ღამის ცის ლურჯი — სიჩქარისა და ტექნოლოგიის განცდა
+$deep-navy: #070b18;
+$night-blue: #0b1330;
+$route-blue: #12224f;
+
+$primary-blue: #2563eb;
+$primary-blue-dark: #1d4ed8;
+$primary-blue-light: #eff6ff;
+
+// მარშრუტისა და ამანათის აქცენტი — მოძრაობა, ენერგია
+$route-orange: #f97316;
+$route-orange-light: #ffedd5;
+
+// უსაფრთხოების/ნდობის აქცენტი — მსუბუქი ცისფერი, GPS/სკანერის შეგრძნება
+$signal-cyan: #38bdf8;
+
+$text-dark: #0f172a;
+$text-gray: #475569;
+$text-light: #94a3b8;
+
+$bg-white: #ffffff;
+$bg-light: #f8fafc;
+$border-light: #e2e8f0;
+
+$error-color: #ef4444;
+$error-bg: #fef2f2;
+
+$font-stack: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'BPG Nino Mtavruli', sans-serif;
+
+// მიწოდების მანქანისა და ამანათის მინი-ილუსტრაციები (inline SVG)
+$delivery-car: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 60'%3E%3Cpath d='M10 40 L16 40 L26 22 L48 22 L54 30 L74 30 L82 40 L110 40' fill='none' stroke='%23f97316' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/%3E%3Crect x='8' y='38' width='104' height='8' rx='4' fill='%23f97316'/%3E%3Ccircle cx='30' cy='48' r='9' fill='%23070b18' stroke='%23f97316' stroke-width='3'/%3E%3Ccircle cx='92' cy='48' r='9' fill='%23070b18' stroke='%23f97316' stroke-width='3'/%3E%3Crect x='52' y='26' width='18' height='4' rx='2' fill='%23070b18'/%3E%3C/svg%3E";
+
+$delivery-package: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 60'%3E%3Crect x='8' y='8' width='44' height='44' rx='6' fill='rgba(56,189,248,0.14)' stroke='%2338bdf8' stroke-width='4'/%3E%3Cline x1='30' y1='8' x2='30' y2='52' stroke='%2338bdf8' stroke-width='3'/%3E%3Cline x1='8' y1='30' x2='52' y2='30' stroke='%2338bdf8' stroke-width='3'/%3E%3C/svg%3E";
+
+// ====================================
+// MIXINS
+// ====================================
+
+@mixin transition-smooth {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@mixin reduced-motion {
+  @media (prefers-reduced-motion: reduce) {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+// ====================================
+// GLOBAL STYLES
+// ====================================
+
+:host {
+  display: block;
+  font-family: $font-stack;
+  color: $text-dark;
+  background-color: $bg-light;
+  -webkit-font-smoothing: antialiased;
+}
+
+// ====================================
+// HERO SECTION — მარშრუტის ფონი
+// ====================================
+// კონცეფცია: ბნელი ღამის ცის ფონზე ჩანს ამანათის მარშრუტის
+// წერტილოვანი ხაზები (დეშბორდის GPS ტრეკის მსგავსად), რომლებიც
+// ნელა მოძრაობენ — სიჩქარისა და უწყვეტი მიწოდების განცდა.
+// ცალკეული ნათებები განასახიერებენ მიწოდების წერტილებს (pin-ებს)
+// საქართველოს რუკაზე.
+
+.hero {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 20px;
+
+  background:
+    // "მიწოდების წერტილები" — ნარინჯისფერი და ცისფერი ნათებები
+    radial-gradient(circle at 14% 22%, rgba($route-orange, 0.22) 0%, transparent 32%),
+    radial-gradient(circle at 86% 18%, rgba($signal-cyan, 0.18) 0%, transparent 30%),
+    radial-gradient(circle at 78% 82%, rgba($route-orange, 0.16) 0%, transparent 28%),
+    radial-gradient(circle at 20% 85%, rgba($signal-cyan, 0.14) 0%, transparent 30%),
+    // ღრმა ღამის ცის ბაზა
+    radial-gradient(ellipse at top left, $route-blue 0%, $deep-navy 60%),
+    linear-gradient(160deg, $night-blue, $deep-navy 70%);
+
+  // მარშრუტის რუკის წერტილოვანი ბადე (road-network dot grid)
+  &::before {
+    content: '';
+    position: absolute;
+    inset: -20%;
+    background-image: radial-gradient(circle, rgba($signal-cyan, 0.16) 1px, transparent 1.4px);
+    background-size: 26px 26px;
+    animation: grid-drift 50s linear infinite;
+    @include reduced-motion;
+  }
+
+  // დიაგონალური, წყვეტილი მარშრუტის ხაზები — თითქოს ამანათი
+  // მუდმივად მოძრაობს ერთი წერტილიდან მეორეში
+  &::after {
+    content: '';
+    position: absolute;
+    inset: -30% -60%;
+    background-image:
+      repeating-linear-gradient(
+        115deg,
+        rgba($route-orange, 0.5) 0px,
+        rgba($route-orange, 0.5) 10px,
+        transparent 10px,
+        transparent 26px
+      ),
+      repeating-linear-gradient(
+        115deg,
+        rgba($signal-cyan, 0.28) 0px,
+        rgba($signal-cyan, 0.28) 6px,
+        transparent 6px,
+        transparent 22px
+      );
+    background-position: 0 18%, 0 62%;
+    background-size: 220% 2px, 220% 2px;
+    background-repeat: no-repeat;
+    opacity: 0.55;
+    animation: route-move 7s linear infinite;
+    @include reduced-motion;
+  }
+}
+
+@keyframes grid-drift {
+  0% { transform: translate(0, 0); }
+  100% { transform: translate(-26px, -26px); }
+}
+
+@keyframes route-move {
+  0% { background-position: 0% 18%, 0% 62%; }
+  100% { background-position: -220% 18%, -220% 62%; }
+}
+
+.hero-container {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 520px;
+  background: rgba($bg-white, 0.97);
+  backdrop-filter: blur(6px);
+  border-radius: 24px;
+  box-shadow:
+    0 30px 60px -12px rgba($deep-navy, 0.45),
+    0 10px 20px -8px rgba($deep-navy, 0.25);
+  border: 1px solid rgba($bg-white, 0.6);
+  // ხილული რჩება (overflow: hidden არაა), რომ მანქანა და ამანათი
+  // ბარათის ირგვლივ, ფონზე, თავისუფლად "იმოძრაონ"
+  overflow: visible;
+
+  // მიწოდების მანქანა — მარშრუტის ხაზის გასწვრივ მარცხნიდან მარჯვნივ მიდის
+  &::before {
+    content: '';
+    position: absolute;
+    top: -46px;
+    left: -30px;
+    width: 84px;
+    height: 42px;
+    background-image: url("#{$delivery-car}");
+    background-repeat: no-repeat;
+    background-size: contain;
+    pointer-events: none;
+    z-index: -1;
+    animation: car-drive 9s linear infinite;
+    @include reduced-motion;
+  }
+
+  // ამანათი — ბარათის ქვედა-მარჯვნივ ღიმილით "ცოცხლდება" და ბჟუტავს
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -34px;
+    right: -28px;
+    width: 44px;
+    height: 44px;
+    background-image: url("#{$delivery-package}");
+    background-repeat: no-repeat;
+    background-size: contain;
+    pointer-events: none;
+    z-index: -1;
+    animation: package-bounce 3.2s ease-in-out infinite, package-glow 3.2s ease-in-out infinite;
+    @include reduced-motion;
+  }
+}
+
+.hero-side {
+  padding: 50px 40px;
+  border-radius: inherit;
+  overflow: hidden;
+
+  @media (max-width: 480px) {
+    padding: 35px 24px;
+  }
+}
+
+.side-content {
+  width: 100%;
+}
+
+.side-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: $text-dark;
+  margin-bottom: 10px;
+  text-align: center;
+  letter-spacing: -0.5px;
+}
+
+.side-subtitle {
+  font-size: 0.95rem;
+  color: $text-gray;
+  text-align: center;
+  line-height: 1.5;
+  margin-bottom: 32px;
+}
+
+// ====================================
+// ILLUSTRATION
+// ====================================
+
+.illustration {
+  height: 120px;
+  margin-bottom: 32px;
+  @include flex-center;
+}
+
+.illustration-svg {
+  width: 100%;
+  height: 100%;
+  max-width: 160px;
+  animation: float 4s ease-in-out infinite;
+  @include reduced-motion;
+}
+
+// ====================================
+// ERROR MESSAGE
+// ====================================
+
+.error-message {
+  background: $error-bg;
+  border: 1px solid rgba($error-color, 0.2);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 24px;
+  font-size: 0.875rem;
+  color: $error-color;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  .error-icon {
+    background: $error-color;
+    color: white;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    @include flex-center;
+    font-size: 10px;
+  }
+}
+
+// ====================================
+// FORM ELEMENTS
+// ====================================
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.field-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: $text-dark;
+}
+
+.label-wrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 14px 16px;
+  border: 1.5px solid $border-light;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  font-family: inherit;
+  color: $text-dark;
+  background: $bg-white;
+  @include transition-smooth;
+
+  &::placeholder {
+    color: $text-light;
+  }
+
+  &:focus {
+    outline: none;
+    border-color: $primary-blue;
+    box-shadow: 0 0 0 4px rgba($primary-blue, 0.1);
+  }
+
+  &.input-error {
+    border-color: $error-color;
+    &:focus {
+      box-shadow: 0 0 0 4px rgba($error-color, 0.1);
+    }
+  }
+}
+
+.error-text {
+  font-size: 0.8rem;
+  color: $error-color;
+  font-weight: 500;
+  margin-top: 2px;
+}
+
+// ====================================
+// BUTTONS
+// ====================================
+
+.button {
+  padding: 14px 24px;
+  border: none;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  @include transition-smooth;
+  @include flex-center;
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  &-primary {
+    background: linear-gradient(135deg, $primary-blue, $primary-blue-dark);
+    color: $bg-white;
+    box-shadow: 0 8px 20px -6px rgba($primary-blue, 0.5);
+
+    &:hover:not(:disabled) {
+      background: $primary-blue-dark;
+      box-shadow: 0 10px 24px -6px rgba($primary-blue, 0.6);
+    }
+  }
+
+  &-link-inline {
+    background: transparent;
+    color: $primary-blue;
+    border: none;
+    padding: 0;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: inherit;
+    margin-left: 4px;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
+.button-link-sm {
+  background: transparent;
+  border: none;
+  color: $primary-blue;
+  font-size: 0.825rem;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+// Loading Spinner
+.loading-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.loading-spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: white;
+  animation: spin 0.8s linear infinite;
+  @include reduced-motion;
+}
+
+// ====================================
+// DIVIDER & SOCIALS
+// ====================================
+
+.divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 24px 0;
+  color: $text-light;
+  font-size: 0.85rem;
+
+  &::before, &::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid $border-light;
+  }
+
+  span {
+    padding: 0 12px;
+  }
+}
+
+.social-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.social-button {
+  padding: 12px 16px;
+  border: 1.5px solid $border-light;
+  border-radius: 12px;
+  background: $bg-white;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  color: $text-dark;
+  @include transition-smooth;
+  @include flex-center;
+
+  &:hover {
+    background: $bg-light;
+    border-color: $text-light;
+  }
+
+  &.fb-btn:hover {
+    color: #1877f2;
+    border-color: rgba(#1877f2, 0.3);
+    background: rgba(#1877f2, 0.03);
+  }
+
+  &.google-btn:hover {
+    color: #ea4335;
+    border-color: rgba(#ea4335, 0.3);
+    background: rgba(#ea4335, 0.03);
+  }
+}
+
+// ====================================
+// AUTH SWITCH
+// ====================================
+
+.auth-switch {
+  text-align: center;
+  margin-top: 32px;
+  font-size: 0.9rem;
+  color: $text-gray;
+}
+
+// ====================================
+// ANIMATIONS
+// ====================================
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+// Dark Mode Support
+@media (prefers-color-scheme: dark) {
+  .hero-container {
+    background: rgba(#1e293b, 0.96);
+    border-color: rgba(#334155, 0.6);
+  }
+  .side-title { color: #f8fafc; }
+  .side-subtitle { color: #94a3b8; }
+  .field-label { color: #f8fafc; }
+  .input {
+    background: #0f172a;
+    border-color: #334155;
+    color: #f8fafc;
+    &:focus { border-color: $primary-blue; }
+  }
+  .social-button {
+    background: #1e293b;
+    border-color: #334155;
+    color: #f8fafc;
+    &:hover { background: #334155; }
+  }
+  .divider { color: #64748b; }
+  .auth-switch { color: #94a3b8; }
+}

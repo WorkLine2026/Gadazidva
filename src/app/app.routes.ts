@@ -24,6 +24,7 @@ import { DriverProfileAndroidComponent } from './android-components/driver-profi
 
 // სმარტ პროფილი (როლის მიხედვით)
 import { ProfileRedirectComponent } from './android-components/profile-redirect/profile-redirect';
+import { AndroidLoginComponent } from './android-components/android-login-component/android-login-component';
 
 export const routes: Routes = [
   { path: '', component: HomeComponent },
@@ -35,17 +36,18 @@ export const routes: Routes = [
   { path: 'login', component: LoginComponent },
   { path: 'register', component: RegisterComponent },
   { path: 'forgot-password', component: ForgotPasswordComponent },
+  { path: 'android-login', component: AndroidLoginComponent },
 
   // ===== პროფილები =====
-  // ვებისთვის (ძველი)
+  // ვებისთვის
   { path: 'senderProfile', component: SenderProfileComponent },
   { path: 'driverProfile', component: DriverProfileComponent },
 
-  // Android / Native-ისთვის (ახალი)
+  // Android / Native
   { path: 'senderProfile-android', component: SenderProfileAndroidComponent },
   { path: 'driverProfile-android', component: DriverProfileAndroidComponent },
 
-  // სმარტ როუთი — Bottom Navbar-იდან მოდის აქ
+  // სმარტ როუთი — Bottom Navbar
   { path: 'profile', component: ProfileRedirectComponent },
 
   // ===== დანარჩენი =====

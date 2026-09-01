@@ -42,6 +42,8 @@ const PICKUP_NOTIFICATION_TYPES = [
 @Component({
   selector: 'app-sender-profile-android',
   standalone: true,
+  templateUrl: './sender-profile-android-component.html',
+  styleUrl: './sender-profile-android-component.scss',
   imports: [
     CommonModule,
     ReactiveFormsModule,

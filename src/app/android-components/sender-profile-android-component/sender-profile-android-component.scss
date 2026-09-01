@@ -1,5 +1,5 @@
 :host {
-  --primary: #0f9d58;           /* მწვანე — გამგზავნისთვის */
+  --primary: #0f9d58;
   --primary-container: #ceead6;
   --on-primary: #ffffff;
   --surface: #f8f9fa;
@@ -176,7 +176,6 @@
 
   &:active { background: #0b8043; }
   &:disabled { opacity: 0.6; cursor: not-allowed; }
-
   &.btn-sm { padding: 8px 16px; font-size: 0.85rem; }
 }
 
@@ -422,6 +421,7 @@
       font-size: 0.75rem;
       color: var(--on-surface-variant);
     }
+
     .value { font-weight: 500; font-size: 0.9rem; }
   }
 }
@@ -456,7 +456,9 @@
   margin-bottom: 12px;
 }
 
-@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
 
 /* ===== SETTINGS ===== */
 .settings-list {
@@ -489,14 +491,27 @@
   &.danger .title { color: var(--error); }
 }
 
-/* ===== MODALS (Bottom Sheet) ===== */
+/* ===== MODALS ===== */
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.4);
+  background: rgba(0, 0, 0, 0.45);
   z-index: 100;
   display: flex;
-  align-items: flex-end;
+
+  /* Bottom sheet (conversations, offer detail) */
+  &.sheet {
+    align-items: flex-end;
+    justify-content: center;
+  }
+
+  /* Full screen (chat) */
+  &.fullscreen {
+    align-items: stretch;
+    justify-content: stretch;
+    background: var(--surface-container);
+    z-index: 110;
+  }
 }
 
 .modal-sheet {
@@ -504,9 +519,10 @@
   max-height: 85dvh;
   background: var(--surface-container);
   border-radius: 28px 28px 0 0;
-  padding: 12px 20px 32px;
+  padding: 12px 20px calc(24px + env(safe-area-inset-bottom, 0px));
   overflow-y: auto;
   position: relative;
+  -webkit-overflow-scrolling: touch;
 }
 
 .modal-handle {
@@ -528,10 +544,52 @@
   border-radius: 50%;
   font-size: 1.1rem;
   cursor: pointer;
+  z-index: 2;
+}
+
+/* Chat — სრული ეკრანი */
+.chat-fullscreen-wrapper {
+  width: 100%;
+  height: 100%;
+  height: 100dvh;
+  max-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--surface-container);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+
+  ::ng-deep app-chat-modal,
+  ::ng-deep .chat-modal,
+  ::ng-deep .chat-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    max-height: 100%;
+    overflow: hidden;
+  }
+
+  ::ng-deep .messages-list,
+  ::ng-deep .chat-messages {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    min-height: 0;
+  }
+
+  ::ng-deep .chat-input-bar,
+  ::ng-deep .message-input-wrapper,
+  ::ng-deep .composer {
+    flex-shrink: 0;
+    padding-bottom: env(safe-area-inset-bottom, 8px);
+  }
 }
 
 .offer-detail {
-  h3 { margin: 0 0 20px; font-weight: 500; }
+  h3 {
+    margin: 0 0 20px;
+    font-weight: 500;
+  }
 
   .detail-rows {
     display: flex;
