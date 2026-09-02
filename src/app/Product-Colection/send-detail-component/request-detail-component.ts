@@ -150,7 +150,7 @@ get isOwnRequest(): boolean {
 
 
   openChat(): void {
-
+   
   if (!this.isAuthenticated) {
     alert('⚠️ შეტყობინების გასაგზავნად გთხოვთ დალოგინდით');
     this.router.navigate(['/login']);
@@ -163,6 +163,7 @@ get isOwnRequest(): boolean {
   }
 
   this.isChatOpen = true;
+  scrollTo({ top: 0, behavior: 'smooth' });
 }
 
   closeChat(): void {
