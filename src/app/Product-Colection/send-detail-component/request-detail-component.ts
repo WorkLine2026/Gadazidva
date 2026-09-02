@@ -163,7 +163,6 @@ get isOwnRequest(): boolean {
   }
 
   this.isChatOpen = true;
-  scrollTo({ top: 0, behavior: 'smooth' });
 }
 
   closeChat(): void {

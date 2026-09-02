@@ -866,16 +866,11 @@
      ========================================================= -->
 
 <app-chat-modal
+  class="mobile-chat-modal"
   *ngIf="isChatOpen && trip"
-
   [requestId]="trip._id || ''"
-
   [recipientId]="recipientIdSafe"
-
   [recipientName]="trip.driverName || 'მძღოლი'"
-
   [currentUserId]="currentUserId"
-
   (close)="closeChat()">
-
 </app-chat-modal>
