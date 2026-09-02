@@ -2804,4 +2804,224 @@ html {
 
   background:
     var(--orange);
+}/* =========================================================
+   📱 CHAT — MOBILE
+   ორივე კომპონენტზე მუშაობს
+   ========================================================= */
+
+@media (max-width: 767px) {
+
+  /* მთავარი Angular chat component */
+  app-chat-modal.mobile-chat-modal {
+    position: fixed !important;
+
+    inset: 0 !important;
+
+    width: 100vw !important;
+    height: 100dvh !important;
+
+    max-width: 100vw !important;
+    max-height: 100dvh !important;
+
+    margin: 0 !important;
+    padding: 0 !important;
+
+    display: block !important;
+
+    z-index: 999999 !important;
+
+    transform: none !important;
+
+    overflow: hidden !important;
+
+    box-sizing: border-box !important;
+  }
+
+
+  /* =====================================================
+     OVERLAY
+     ===================================================== */
+
+  app-chat-modal.mobile-chat-modal .chat-modal-overlay,
+  app-chat-modal.mobile-chat-modal .modal-overlay,
+  app-chat-modal.mobile-chat-modal .chat-overlay {
+
+    position: fixed !important;
+
+    inset: 0 !important;
+
+    width: 100vw !important;
+    height: 100dvh !important;
+
+    margin: 0 !important;
+    padding: 0 !important;
+
+    display: flex !important;
+
+    align-items: center !important;
+    justify-content: center !important;
+
+    box-sizing: border-box !important;
+
+    overflow: hidden !important;
+  }
+
+
+  /* =====================================================
+     თვითონ ჩატის ფანჯარა
+     ===================================================== */
+
+  app-chat-modal.mobile-chat-modal .chat-modal,
+  app-chat-modal.mobile-chat-modal .chat-container,
+  app-chat-modal.mobile-chat-modal .modal-content {
+
+    position: relative !important;
+
+    inset: auto !important;
+
+    width: 100% !important;
+    max-width: 100% !important;
+
+    min-width: 0 !important;
+
+    height: 100% !important;
+    max-height: 100% !important;
+
+    margin: 0 !important;
+
+    transform: none !important;
+
+    border-radius: 0 !important;
+
+    box-sizing: border-box !important;
+
+    overflow: hidden !important;
+  }
+
+
+  /* =====================================================
+     HEADER
+     ===================================================== */
+
+  app-chat-modal.mobile-chat-modal .chat-header {
+
+    position: relative !important;
+
+    top: auto !important;
+    left: auto !important;
+    right: auto !important;
+
+    width: 100% !important;
+
+    flex-shrink: 0 !important;
+
+    box-sizing: border-box !important;
+  }
+
+
+  /* =====================================================
+     BODY
+     ===================================================== */
+
+  app-chat-modal.mobile-chat-modal .chat-body {
+
+    width: 100% !important;
+
+    min-width: 0 !important;
+    min-height: 0 !important;
+
+    flex: 1 1 auto !important;
+
+    overflow: hidden !important;
+
+    box-sizing: border-box !important;
+  }
+
+
+  /* =====================================================
+     MESSAGES
+     ===================================================== */
+
+  app-chat-modal.mobile-chat-modal .messages,
+  app-chat-modal.mobile-chat-modal .chat-messages,
+  app-chat-modal.mobile-chat-modal .messages-container {
+
+    width: 100% !important;
+
+    min-width: 0 !important;
+    min-height: 0 !important;
+
+    flex: 1 1 auto !important;
+
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+
+    -webkit-overflow-scrolling: touch !important;
+
+    box-sizing: border-box !important;
+  }
+
+
+  /* =====================================================
+     FOOTER
+     ===================================================== */
+
+  app-chat-modal.mobile-chat-modal .chat-footer,
+  app-chat-modal.mobile-chat-modal .input-area {
+
+    position: relative !important;
+
+    left: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+
+    width: 100% !important;
+
+    flex-shrink: 0 !important;
+
+    box-sizing: border-box !important;
+  }
+
+
+  /* =====================================================
+     INPUT
+     ===================================================== */
+
+  app-chat-modal.mobile-chat-modal input,
+  app-chat-modal.mobile-chat-modal textarea {
+
+    max-width: 100% !important;
+
+    box-sizing: border-box !important;
+  }
+
+
+  /* =====================================================
+     BUTTONS
+     ===================================================== */
+
+  app-chat-modal.mobile-chat-modal button {
+    touch-action: manipulation !important;
+  }
+}
+
+
+/* =========================================================
+   💻 DESKTOP
+   ========================================================= */
+
+@media (min-width: 768px) {
+
+  app-chat-modal.mobile-chat-modal {
+    position: fixed !important;
+
+    inset: 0 !important;
+
+    width: 100vw !important;
+    height: 100vh !important;
+
+    z-index: 999999 !important;
+
+    transform: none !important;
+  }
 }
