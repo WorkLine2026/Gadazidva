@@ -77,6 +77,8 @@ export class RegisterComponent implements OnInit, OnDestroy {
   licensePreviewUrl: string | null = null;
   licenseFileError: string | null = null;
   isProcessingLicenseFile = false; // ✅ compression მიმდინარეობის indicator
+showConfirmPassword: any;
+showPassword: any;
 
   constructor(
     private fb: FormBuilder,
