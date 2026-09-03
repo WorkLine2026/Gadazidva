@@ -1,92 +1,259 @@
-<div class="chat-modal-backdrop" (click)="onOverlayClick()"></div>
+<div
+  class="chat-modal-backdrop"
+  (click)="onOverlayClick()">
+</div>
 
-<div class="chat-modal" (click)="$event.stopPropagation()">
-  <div class="chat-header">
+<div
+  class="chat-modal"
+  (click)="$event.stopPropagation()">
+
+  <!-- HEADER -->
+  <header class="chat-header">
+
     <div class="chat-user">
-      <div class="avatar">{{ getInitials(recipientName) }}</div>
+
+      <div class="avatar">
+        {{ getInitials(recipientName) }}
+      </div>
+
       <div class="chat-user-info">
-        <h3>{{ recipientName }}</h3>
-        <p class="status-text" [ngClass]="isOnline ? 'is-online' : 'is-offline'">
+        <h3>
+          {{ recipientName }}
+        </h3>
+
+        <p
+          class="status-text"
+          [ngClass]="isOnline ? 'is-online' : 'is-offline'">
+
           <span class="status-dot"></span>
+
           {{ isOnline ? 'ონლაინ' : 'ოფლაინ' }}
+
         </p>
       </div>
+
     </div>
 
-    <button class="close-btn" (click)="onOverlayClick()">✕</button>
-  </div>
+    <button
+      type="button"
+      class="close-btn"
+      (click)="onOverlayClick()"
+      aria-label="ჩატის დახურვა">
 
-  <div class="messages-container" #messagesContainer>
-    <div *ngIf="messages.length === 0" class="empty-state">
-      <div class="empty-icon">💬</div>
-      <div class="empty-title">ჯერ შეტყობინებები არ არის</div>
-      <div class="empty-sub">დაწერეთ პირველი შეტყობინება</div>
+      ✕
+
+    </button>
+
+  </header>
+
+
+  <!-- MESSAGES -->
+  <div
+    class="messages-container"
+    #messagesContainer>
+
+    <!-- EMPTY -->
+    <div
+      *ngIf="messages.length === 0"
+      class="empty-state">
+
+      <div class="empty-icon">
+        💬
+      </div>
+
+      <div class="empty-title">
+        ჯერ შეტყობინებები არ არის
+      </div>
+
+      <div class="empty-sub">
+        დაწერეთ პირველი შეტყობინება
+      </div>
+
     </div>
 
-    <ng-container *ngFor="let msg of messages; let i = index; trackBy: trackByIndex">
+
+    <!-- MESSAGE LIST -->
+    <ng-container
+      *ngFor="
+        let msg of messages;
+        let i = index;
+        trackBy: trackByIndex
+      ">
+
+      <!-- DATE -->
       <div
         class="date-separator"
-        *ngIf="i === 0 || isDifferentDay(messages[i - 1].timestamp, msg.timestamp)">
-        <span>{{ getDateSeparator(msg.timestamp) }}</span>
+        *ngIf="
+          i === 0 ||
+          isDifferentDay(
+            messages[i - 1].timestamp,
+            msg.timestamp
+          )
+        ">
+
+        <span>
+          {{ getDateSeparator(msg.timestamp) }}
+        </span>
+
       </div>
 
-      <div class="message-row" [class.my-message]="msg.senderId === currentUserId">
+
+      <!-- MESSAGE -->
+      <div
+        class="message-row"
+        [class.my-message]="msg.senderId === currentUserId">
+
         <div
           class="message-bubble"
-          [class.message-bubble--sending]="msg.status === 'sending'"
-          [class.message-bubble--failed]="msg.status === 'failed'">
-          <!-- ✅ წაშლის ღილაკი მხოლოდ საკუთარ მესიჯებზე -->
+          [class.message-bubble--sending]="
+            msg.status === 'sending'
+          "
+          [class.message-bubble--failed]="
+            msg.status === 'failed'
+          ">
+
+
+          <!-- DELETE -->
           <button
             *ngIf="canDelete(msg)"
+            type="button"
             class="message-delete-btn"
-            [class.confirm-state]="pendingDeleteId === msg._id"
+            [class.confirm-state]="
+              pendingDeleteId === msg._id
+            "
             (click)="requestDelete(msg)"
-            [title]="pendingDeleteId === msg._id ? 'დააჭირეთ დასადასტურებლად' : 'შეტყობინების წაშლა'">
-            <ng-container *ngIf="pendingDeleteId === msg._id; else trashIcon">✓</ng-container>
-            <ng-template #trashIcon>🗑</ng-template>
+            [title]="
+              pendingDeleteId === msg._id
+                ? 'დააჭირეთ დასადასტურებლად'
+                : 'შეტყობინების წაშლა'
+            ">
+
+            <ng-container
+              *ngIf="
+                pendingDeleteId === msg._id;
+                else trashIcon
+              ">
+
+              ✓
+
+            </ng-container>
+
+            <ng-template #trashIcon>
+              🗑
+            </ng-template>
+
           </button>
 
-          <div class="message-text">{{ msg.message }}</div>
+
+          <!-- TEXT -->
+          <div class="message-text">
+            {{ msg.message }}
+          </div>
+
+
+          <!-- TIME -->
           <div class="message-time">
+
             {{ formatTime(msg.timestamp) }}
 
-            <!-- ✅ NEW: გაგზავნის სტატუსი მხოლოდ საკუთარ მესიჯებზე -->
-            <ng-container *ngIf="msg.senderId === currentUserId">
-              <span *ngIf="msg.status === 'sending'" class="message-status-icon" title="იგზავნება...">🕓</span>
+
+            <!-- SENDING -->
+            <ng-container
+              *ngIf="
+                msg.senderId === currentUserId
+              ">
+
+              <span
+                *ngIf="msg.status === 'sending'"
+                class="message-status-icon"
+                title="იგზავნება...">
+
+                🕓
+
+              </span>
+
+
+              <!-- FAILED -->
               <span
                 *ngIf="msg.status === 'failed'"
-                class="message-status-icon message-status-failed"
+                class="
+                  message-status-icon
+                  message-status-failed
+                "
                 title="ვერ გაიგზავნა — დააჭირეთ ხელახლა გასაგზავნად"
-                (click)="retryMessage(msg)">⚠️</span>
+                (click)="retryMessage(msg)">
+
+                ⚠️
+
+              </span>
+
             </ng-container>
+
           </div>
+
         </div>
+
       </div>
+
     </ng-container>
+
   </div>
 
-  <!-- ✅ NEW: წაშლის შეცდომის ბანერი -->
-  <div class="chat-error-banner" *ngIf="deleteError">{{ deleteError }}</div>
 
-  <div class="typing-indicator" *ngIf="isTyping">
-    <span class="typing-dots"><span></span><span></span><span></span></span>
+  <!-- ERROR -->
+  <div
+    class="chat-error-banner"
+    *ngIf="deleteError">
+
+    {{ deleteError }}
+
+  </div>
+
+
+  <!-- TYPING -->
+  <div
+    class="typing-indicator"
+    *ngIf="isTyping">
+
+    <span class="typing-dots">
+
+      <span></span>
+      <span></span>
+      <span></span>
+
+    </span>
+
     წერას იწყებს...
+
   </div>
 
-  <div class="chat-input">
+
+  <!-- INPUT -->
+  <footer class="chat-input">
+
     <textarea
       [(ngModel)]="newMessage"
       (input)="onTyping()"
       (blur)="onStopTyping()"
       (keydown.enter)="sendMessage(); $event.preventDefault()"
-      placeholder="შეიყვანეთ შეტყობინება...">
+      placeholder="შეიყვანეთ შეტყობინება..."
+      rows="1">
     </textarea>
 
+
     <button
+      type="button"
       class="send-btn"
       (click)="sendMessage()"
-      [disabled]="!newMessage.trim()">
-      <span class="send-icon">➤</span>
+      [disabled]="!newMessage.trim()"
+      aria-label="გაგზავნა">
+
+      <span class="send-icon">
+        ➤
+      </span>
+
     </button>
-  </div>
+
+  </footer>
+
 </div>
