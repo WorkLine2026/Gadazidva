@@ -163,32 +163,32 @@ openChat(): void {
     return;
   }
 
-  // ვინახავთ ზუსტად იმ ადგილს, სადაც მომხმარებელი იმყოფება
-  this.chatScrollPosition = window.scrollY;
-
   this.isChatOpen = true;
 
-  // Angular-ის მიერ DOM-ის განახლების შემდეგ
-  requestAnimationFrame(() => {
-    window.scrollTo({
-      top: this.chatScrollPosition,
-      left: 0,
-      behavior: 'auto'
-    });
-  });
+  // ბექგრაუნდის (body) სქროლის ჩაკეტვა — მთავარი გვერდი აღარ იძვრება,
+  // ჩატი კი position:fixed-ის წყალობით ეკრანზე ზუსტად იქ ჩნდება, სადაც ხართ
+  document.body.style.overflow = 'hidden';
+  document.body.style.position = 'fixed';
+  document.body.style.width = '100%';
+  document.body.style.top = `-${window.scrollY}px`;
+
+  this.cdr.detectChanges();
 }
 
 closeChat(): void {
   this.isChatOpen = false;
 
-  // ჩატის დახურვის შემდეგაც ზუსტად იმავე ადგილას ვაბრუნებთ
-  requestAnimationFrame(() => {
-    window.scrollTo({
-      top: this.chatScrollPosition,
-      left: 0,
-      behavior: 'auto'
-    });
-  });
+  // body-ს სქროლის აღდგენა ზუსტად იმავე ადგილას, საიდანაც გაიხსნა ჩატი
+  const scrollY = document.body.style.top;
+
+  document.body.style.overflow = '';
+  document.body.style.position = '';
+  document.body.style.width = '';
+  document.body.style.top = '';
+
+  window.scrollTo(0, parseInt(scrollY || '0') * -1);
+
+  this.cdr.detectChanges();
 }
 
   // ============================================================
