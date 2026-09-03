@@ -96,6 +96,15 @@ export class RequestDetailComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+     if (window.visualViewport) {
+    window.visualViewport.removeEventListener('resize', this.viewportResizeHandler);
+    window.visualViewport.removeEventListener('scroll', this.viewportResizeHandler);
+  }
+
+  document.body.style.overflow = '';
+  document.body.style.position = '';
+  document.body.style.width = '';
+  document.body.style.top = '';
   }
 
   /**
@@ -165,12 +174,17 @@ openChat(): void {
 
   this.isChatOpen = true;
 
-  // ბექგრაუნდის (body) სქროლის ჩაკეტვა — მთავარი გვერდი აღარ იძვრება,
-  // ჩატი კი position:fixed-ის წყალობით ეკრანზე ზუსტად იქ ჩნდება, სადაც ხართ
   document.body.style.overflow = 'hidden';
   document.body.style.position = 'fixed';
   document.body.style.width = '100%';
   document.body.style.top = `-${window.scrollY}px`;
+
+  // ✅ კლავიატურის მიხედვით სიმაღლის დინამიური მორგება
+  this.updateChatViewportHeight();
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', this.viewportResizeHandler);
+    window.visualViewport.addEventListener('scroll', this.viewportResizeHandler);
+  }
 
   this.cdr.detectChanges();
 }
@@ -178,7 +192,11 @@ openChat(): void {
 closeChat(): void {
   this.isChatOpen = false;
 
-  // body-ს სქროლის აღდგენა ზუსტად იმავე ადგილას, საიდანაც გაიხსნა ჩატი
+  if (window.visualViewport) {
+    window.visualViewport.removeEventListener('resize', this.viewportResizeHandler);
+    window.visualViewport.removeEventListener('scroll', this.viewportResizeHandler);
+  }
+
   const scrollY = document.body.style.top;
 
   document.body.style.overflow = '';
@@ -488,4 +506,26 @@ closeChat(): void {
   get isDelivered(): boolean {
     return this.unifiedRequest.isDelivered;
   }
+
+  private viewportResizeHandler = () => this.updateChatViewportHeight();
+
+private updateChatViewportHeight(): void {
+  const vv = window.visualViewport;
+  if (!vv) return;
+
+  // ვაყენებთ რეალურ ხილულ სიმაღლეს CSS ცვლადში
+  document.documentElement.style.setProperty(
+    '--chat-vh',
+    `${vv.height}px`
+  );
+
+  // safari/iOS-ზე ხშირად საჭიროა offset-იც, თუ ჩატი ცოტა "აწეულია"
+  document.documentElement.style.setProperty(
+    '--chat-offset-top',
+    `${vv.offsetTop}px`
+  );
+}
+
+
+
 }
