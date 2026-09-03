@@ -1141,14 +1141,16 @@
        CHAT
        ===================================================== -->
 
-<app-chat-modal
-  class="mobile-chat-modal"
-  *ngIf="isChatOpen && originalRequest && !isOwnRequest"
-  [requestId]="originalRequest._id || ''"
-  [recipientId]="recipientIdSafe"
-  [recipientName]="originalRequest.senderName || 'გამგზავნი'"
-  [currentUserId]="currentUserId"
-  (close)="closeChat()">
-</app-chat-modal>
+<ng-template #chatPortal>
+  <app-chat-modal
+    class="mobile-chat-modal"
+    *ngIf="isChatOpen && originalRequest && !isOwnRequest"
+    [requestId]="originalRequest._id || ''"
+    [recipientId]="recipientIdSafe"
+    [recipientName]="originalRequest.senderName || 'გამგზავნი'"
+    [currentUserId]="currentUserId"
+    (close)="closeChat()">
+  </app-chat-modal>
+</ng-template>
 
 </div>

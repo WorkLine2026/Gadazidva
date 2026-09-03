@@ -1,4 +1,8 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import {
+  Component, OnInit, OnDestroy, ChangeDetectorRef,
+  ViewChild, TemplateRef, ViewContainerRef, EmbeddedViewRef,
+  Renderer2
+} from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -24,7 +28,7 @@ interface UnifiedRequest {
 @Component({
   selector: 'app-request-detail',
   standalone: true,
-  imports: [CommonModule, FormsModule, ChatModalImprovedComponent], 
+  imports: [CommonModule, FormsModule, ChatModalImprovedComponent],
   templateUrl: './request-detail-component.html',
   styleUrls: ['./request-detail-component.scss']
 })
@@ -34,22 +38,28 @@ export class RequestDetailComponent implements OnInit, OnDestroy {
   currentTab: 'original' | 'accepted' | 'trip' = 'original';
   isAuthenticated = false;
   statusOptions: RequestStatus[] = ['pending', 'accepted', 'in-transit', 'delivered'];
-  private chatScrollPosition = 0;
 
   // 💬 ჩატის მდგომარეობა
   isChatOpen = false;
   currentUserId = '';
 
-  // ✅ NEW: ფოტოების Lightbox მდგომარეობა
+  // ✅ ფოტოების Lightbox მდგომარეობა
   lightboxOpen = false;
   lightboxIndex = 0;
 
-  // ✅ NEW: მიმდინარე request-ის id, pull-to-refresh-ს რომ იცოდეს რა ჩატვირთოს ხელახლა
+  // ✅ მიმდინარე request-ის id, pull-to-refresh-ს რომ იცოდეს რა ჩატვირთოს ხელახლა
   private currentRequestId: string | null = null;
 
   // 🚚 ნივთის წაღების მოთხოვნის მდგომარეობა
   isSendingPickupRequest = false;
   pickupRequestSent = false;
+
+  // 💬 ჩატის body-portal-ისთვის
+  @ViewChild('chatPortal') chatPortalTemplate!: TemplateRef<any>;
+  private chatPortalView: EmbeddedViewRef<any> | null = null;
+
+  // 💬 visualViewport (კლავიატურის) handler
+  private viewportResizeHandler = () => this.updateChatViewportHeight();
 
   unifiedRequest: UnifiedRequest = {
     originalRequest: null,
@@ -68,7 +78,9 @@ export class RequestDetailComponent implements OnInit, OnDestroy {
     public router: Router,
     private parcelService: ParcelService,
     private smsService: SmsVerificationService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private vcRef: ViewContainerRef,
+    private renderer: Renderer2
   ) {}
 
   ngOnInit(): void {
@@ -96,15 +108,19 @@ export class RequestDetailComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
-     if (window.visualViewport) {
-    window.visualViewport.removeEventListener('resize', this.viewportResizeHandler);
-    window.visualViewport.removeEventListener('scroll', this.viewportResizeHandler);
-  }
 
-  document.body.style.overflow = '';
-  document.body.style.position = '';
-  document.body.style.width = '';
-  document.body.style.top = '';
+    // 💬 დაცვა: თუ კომპონენტი განადგურდა ჩატის ღია მდგომარეობაში
+    this.unmountChatFromBody();
+
+    if (window.visualViewport) {
+      window.visualViewport.removeEventListener('resize', this.viewportResizeHandler);
+      window.visualViewport.removeEventListener('scroll', this.viewportResizeHandler);
+    }
+
+    document.body.style.overflow = '';
+    document.body.style.position = '';
+    document.body.style.width = '';
+    document.body.style.top = '';
   }
 
   /**
@@ -140,77 +156,121 @@ export class RequestDetailComponent implements OnInit, OnDestroy {
   }
 
   get recipientIdSafe(): string {
-  const sender = this.unifiedRequest.originalRequest?.senderId as any;
-  if (!sender) return '';
-  
-  const id = typeof sender === 'object' ? (sender._id || sender.id || '') : sender;
-  return String(id).trim();
-}
+    const sender = this.unifiedRequest.originalRequest?.senderId as any;
+    if (!sender) return '';
 
-get isOwnRequest(): boolean {
-  if (!this.unifiedRequest.originalRequest || !this.currentUserId) return false;
-
-  const recipientId = this.recipientIdSafe.toLowerCase();
-  const currentId = String(this.currentUserId).trim().toLowerCase();
-
-
-  return recipientId === currentId && recipientId !== '';
-}
-
-
-
-openChat(): void {
-
-  if (!this.isAuthenticated) {
-    alert('⚠️ შეტყობინების გასაგზავნად გთხოვთ დალოგინდით');
-    this.router.navigate(['/login']);
-    return;
+    const id = typeof sender === 'object' ? (sender._id || sender.id || '') : sender;
+    return String(id).trim();
   }
 
-  if (this.isOwnRequest) {
-    alert('⚠️ საკუთარ განცხადებაზე შეტყობინებას ვერ გააგზავნით');
-    return;
+  get isOwnRequest(): boolean {
+    if (!this.unifiedRequest.originalRequest || !this.currentUserId) return false;
+
+    const recipientId = this.recipientIdSafe.toLowerCase();
+    const currentId = String(this.currentUserId).trim().toLowerCase();
+
+    return recipientId === currentId && recipientId !== '';
   }
-
-  this.isChatOpen = true;
-
-  document.body.style.overflow = 'hidden';
-  document.body.style.position = 'fixed';
-  document.body.style.width = '100%';
-  document.body.style.top = `-${window.scrollY}px`;
-
-  // ✅ კლავიატურის მიხედვით სიმაღლის დინამიური მორგება
-  this.updateChatViewportHeight();
-  if (window.visualViewport) {
-    window.visualViewport.addEventListener('resize', this.viewportResizeHandler);
-    window.visualViewport.addEventListener('scroll', this.viewportResizeHandler);
-  }
-
-  this.cdr.detectChanges();
-}
-
-closeChat(): void {
-  this.isChatOpen = false;
-
-  if (window.visualViewport) {
-    window.visualViewport.removeEventListener('resize', this.viewportResizeHandler);
-    window.visualViewport.removeEventListener('scroll', this.viewportResizeHandler);
-  }
-
-  const scrollY = document.body.style.top;
-
-  document.body.style.overflow = '';
-  document.body.style.position = '';
-  document.body.style.width = '';
-  document.body.style.top = '';
-
-  window.scrollTo(0, parseInt(scrollY || '0') * -1);
-
-  this.cdr.detectChanges();
-}
 
   // ============================================================
-  // 🚚 NEW: ნივთის წაღების მოთხოვნა
+  // 💬 ჩატის გახსნა/დახურვა
+  // ============================================================
+
+  openChat(): void {
+
+    if (!this.isAuthenticated) {
+      alert('⚠️ შეტყობინების გასაგზავნად გთხოვთ დალოგინდით');
+      this.router.navigate(['/login']);
+      return;
+    }
+
+    if (this.isOwnRequest) {
+      alert('⚠️ საკუთარ განცხადებაზე შეტყობინებას ვერ გააგზავნით');
+      return;
+    }
+
+    this.isChatOpen = true;
+
+    // body-ს სქროლის ჩაკეტვა — მთავარი გვერდი აღარ იძვრება
+    document.body.style.overflow = 'hidden';
+    document.body.style.position = 'fixed';
+    document.body.style.width = '100%';
+    document.body.style.top = `-${window.scrollY}px`;
+
+    // კლავიატურის მიხედვით სიმაღლის დინამიური მორგება
+    this.updateChatViewportHeight();
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', this.viewportResizeHandler);
+      window.visualViewport.addEventListener('scroll', this.viewportResizeHandler);
+    }
+
+    this.cdr.detectChanges();
+
+    // ✅ ჩატის DOM-ის გატანა პირდაპირ body-ში, რომ position:fixed
+    // ყოველთვის რეალურ viewport-ს ეყრდნობოდეს (და არა parent-ის transform-ს)
+    setTimeout(() => {
+      this.mountChatToBody();
+    });
+  }
+
+  closeChat(): void {
+    this.isChatOpen = false;
+
+    this.unmountChatFromBody();
+
+    if (window.visualViewport) {
+      window.visualViewport.removeEventListener('resize', this.viewportResizeHandler);
+      window.visualViewport.removeEventListener('scroll', this.viewportResizeHandler);
+    }
+
+    // body-ს სქროლის აღდგენა ზუსტად იმავე ადგილას
+    const scrollY = document.body.style.top;
+
+    document.body.style.overflow = '';
+    document.body.style.position = '';
+    document.body.style.width = '';
+    document.body.style.top = '';
+
+    window.scrollTo(0, parseInt(scrollY || '0') * -1);
+
+    this.cdr.detectChanges();
+  }
+
+  private mountChatToBody(): void {
+    if (this.chatPortalView || !this.chatPortalTemplate) return; // უკვე დამონტაჟებულია ან template ჯერ არაა მზად
+
+    this.chatPortalView = this.vcRef.createEmbeddedView(this.chatPortalTemplate);
+    this.chatPortalView.detectChanges();
+
+    this.chatPortalView.rootNodes.forEach((node: Node) => {
+      this.renderer.appendChild(document.body, node);
+    });
+  }
+
+  private unmountChatFromBody(): void {
+    if (!this.chatPortalView) return;
+
+    this.chatPortalView.destroy();
+    this.chatPortalView = null;
+  }
+
+  private updateChatViewportHeight(): void {
+    const vv = window.visualViewport;
+    if (!vv) return;
+
+    document.documentElement.style.setProperty(
+      '--chat-vh',
+      `${vv.height}px`
+    );
+
+    document.documentElement.style.setProperty(
+      '--chat-offset-top',
+      `${vv.offsetTop}px`
+    );
+  }
+
+  // ============================================================
+  // 🚚 ნივთის წაღების მოთხოვნა
   // ============================================================
 
   requestPickup(): void {
@@ -256,7 +316,7 @@ closeChat(): void {
   }
 
   // ============================================================
-  // ✅ NEW: ფოტოების Lightbox
+  // ✅ ფოტოების Lightbox
   // ============================================================
 
   openLightbox(index: number): void {
@@ -405,9 +465,9 @@ closeChat(): void {
     }
   }
 
- goBack(): void {
-  window.history.back();
-}
+  goBack(): void {
+    window.history.back();
+  }
 
   private updateRequestStatus(status: string | undefined): void {
     this.unifiedRequest.isPending = status === 'pending';
@@ -506,26 +566,4 @@ closeChat(): void {
   get isDelivered(): boolean {
     return this.unifiedRequest.isDelivered;
   }
-
-  private viewportResizeHandler = () => this.updateChatViewportHeight();
-
-private updateChatViewportHeight(): void {
-  const vv = window.visualViewport;
-  if (!vv) return;
-
-  // ვაყენებთ რეალურ ხილულ სიმაღლეს CSS ცვლადში
-  document.documentElement.style.setProperty(
-    '--chat-vh',
-    `${vv.height}px`
-  );
-
-  // safari/iOS-ზე ხშირად საჭიროა offset-იც, თუ ჩატი ცოტა "აწეულია"
-  document.documentElement.style.setProperty(
-    '--chat-offset-top',
-    `${vv.offsetTop}px`
-  );
-}
-
-
-
 }
