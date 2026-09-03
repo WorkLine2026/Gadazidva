@@ -34,6 +34,7 @@ export class RequestDetailComponent implements OnInit, OnDestroy {
   currentTab: 'original' | 'accepted' | 'trip' = 'original';
   isAuthenticated = false;
   statusOptions: RequestStatus[] = ['pending', 'accepted', 'in-transit', 'delivered'];
+  private chatScrollPosition = 0;
 
   // 💬 ჩატის მდგომარეობა
   isChatOpen = false;
@@ -149,8 +150,8 @@ get isOwnRequest(): boolean {
 
 
 
-  openChat(): void {
-   
+openChat(): void {
+
   if (!this.isAuthenticated) {
     alert('⚠️ შეტყობინების გასაგზავნად გთხოვთ დალოგინდით');
     this.router.navigate(['/login']);
@@ -162,12 +163,33 @@ get isOwnRequest(): boolean {
     return;
   }
 
+  // ვინახავთ ზუსტად იმ ადგილს, სადაც მომხმარებელი იმყოფება
+  this.chatScrollPosition = window.scrollY;
+
   this.isChatOpen = true;
+
+  // Angular-ის მიერ DOM-ის განახლების შემდეგ
+  requestAnimationFrame(() => {
+    window.scrollTo({
+      top: this.chatScrollPosition,
+      left: 0,
+      behavior: 'auto'
+    });
+  });
 }
 
-  closeChat(): void {
-    this.isChatOpen = false;
-  }
+closeChat(): void {
+  this.isChatOpen = false;
+
+  // ჩატის დახურვის შემდეგაც ზუსტად იმავე ადგილას ვაბრუნებთ
+  requestAnimationFrame(() => {
+    window.scrollTo({
+      top: this.chatScrollPosition,
+      left: 0,
+      behavior: 'auto'
+    });
+  });
+}
 
   // ============================================================
   // 🚚 NEW: ნივთის წაღების მოთხოვნა
