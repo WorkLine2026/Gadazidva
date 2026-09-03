@@ -216,16 +216,21 @@
               class="file-input-hidden"
               id="carImages"
               #imageInput
+              [disabled]="isProcessingImages"
             />
             <label
               for="carImages"
               class="upload-trigger-btn"
-              *ngIf="imagePreviews.length < maxImages"
+              *ngIf="imagePreviews.length < maxImages && !isProcessingImages"
             >
               <span class="upload-icon">🚗</span>
               <span>ატვირთეთ ფოტო</span>
               <span class="upload-hint">{{ imagePreviews.length }}/{{ maxImages }}</span>
             </label>
+
+            <div class="image-processing-indicator" *ngIf="isProcessingImages">
+              <span>⏳ ფოტო მუშავდება...</span>
+            </div>
 
             <div class="image-previews" *ngIf="imagePreviews.length > 0">
               <div class="image-preview-item" *ngFor="let preview of imagePreviews; let i = index">
@@ -234,6 +239,7 @@
                   type="button"
                   class="remove-image-btn"
                   (click)="removeImage(i)"
+                  [disabled]="isProcessingImages"
                   aria-label="ფოტოს წაშლა"
                 >
                   ✕

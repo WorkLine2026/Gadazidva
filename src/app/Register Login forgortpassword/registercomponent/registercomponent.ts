@@ -19,7 +19,8 @@ type RegistrationStep = 'form' | 'verification';
 
 const RESEND_COOLDOWN_SECONDS = 30;
 const ALLOWED_LICENSE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'pdf'];
-const MAX_LICENSE_FILE_SIZE_MB = 5;
+const MAX_LICENSE_FILE_SIZE_MB = 1; // ✅ 1MB — კომპრესირებული სურათისთვის ან PDF-ისთვის
+const MAX_ORIGINAL_LICENSE_FILE_SIZE_MB = 30; // ✅ ამაზე დიდ საწყის ფაილს არც ვცდით დამუშავებას
 
 // ✅ ფაილის ატვირთვას (განსაკუთრებით მართვის მოწმობის ფოტოს) შეიძლება
 // ნელა ატვირთვის შემთხვევაში მეტი დრო დასჭირდეს, ამიტომ 30 წამი ვუთმობთ
@@ -75,6 +76,7 @@ export class RegisterComponent implements OnInit, OnDestroy {
   licenseFileName: string | null = null;
   licensePreviewUrl: string | null = null;
   licenseFileError: string | null = null;
+  isProcessingLicenseFile = false; // ✅ compression მიმდინარეობის indicator
 
   constructor(
     private fb: FormBuilder,
@@ -207,9 +209,9 @@ export class RegisterComponent implements OnInit, OnDestroy {
     return control.invalid && (control.dirty || control.touched);
   }
 
-  // ======================== ლიცენზიის ფოტოს ატვირთვა ========================
+  // ======================== ლიცენზიის ფოტოს ატვირთვა + კომპრესია ========================
 
-  onLicenseFileSelected(event: Event): void {
+  async onLicenseFileSelected(event: Event): Promise<void> {
     const input = event.target as HTMLInputElement;
     const file = input.files && input.files[0] ? input.files[0] : null;
     this.licenseFileError = null;
@@ -217,7 +219,8 @@ export class RegisterComponent implements OnInit, OnDestroy {
     if (!file) return;
 
     const ext = file.name.split('.').pop()?.toLowerCase();
-    const maxSizeBytes = MAX_LICENSE_FILE_SIZE_MB * 1024 * 1024;
+    const maxOriginalSizeBytes = MAX_ORIGINAL_LICENSE_FILE_SIZE_MB * 1024 * 1024;
+    const maxFinalSizeBytes = MAX_LICENSE_FILE_SIZE_MB * 1024 * 1024;
 
     if (!ext || !ALLOWED_LICENSE_EXTENSIONS.includes(ext)) {
       this.licenseFileError = 'დაშვებულია მხოლოდ JPG, PNG ან PDF ფორმატის ფაილი';
@@ -225,17 +228,49 @@ export class RegisterComponent implements OnInit, OnDestroy {
       return;
     }
 
-    if (file.size > maxSizeBytes) {
-      this.licenseFileError = `ფაილის ზომა არ უნდა აღემატებოდეს ${MAX_LICENSE_FILE_SIZE_MB}MB-ს`;
+    if (file.size > maxOriginalSizeBytes) {
+      this.licenseFileError = `ფაილის საწყისი ზომა ძალიან დიდია (მაქს. ${MAX_ORIGINAL_LICENSE_FILE_SIZE_MB}MB)`;
       input.value = '';
       return;
     }
 
-    const control = this.registerForm.get('licensePhoto');
-    control?.setValue(file);
-    control?.markAsTouched();
+    const isPdf = ext === 'pdf';
 
-    this.updateLicensePreview(file);
+    // ✅ PDF-ს ვერ დავამუშავებთ Canvas-ით — თუ ზომაში ვერ ეტევა, პირდაპირ ვამბობთ უარს
+    if (isPdf) {
+      if (file.size > maxFinalSizeBytes) {
+        this.licenseFileError = `PDF ფაილის ზომა არ უნდა აღემატებოდეს ${MAX_LICENSE_FILE_SIZE_MB}MB-ს`;
+        input.value = '';
+        return;
+      }
+
+      const control = this.registerForm.get('licensePhoto');
+      control?.setValue(file);
+      control?.markAsTouched();
+      this.updateLicensePreview(file);
+      input.value = '';
+      return;
+    }
+
+    // ✅ სურათებისთვის — ვცდით კომპრესიას, თუ ზომა აღემატება ლიმიტს
+    this.isProcessingLicenseFile = true;
+    this.cdr.detectChanges();
+
+    try {
+      const compressedFile = await this.compressImage(file, maxFinalSizeBytes);
+
+      const control = this.registerForm.get('licensePhoto');
+      control?.setValue(compressedFile);
+      control?.markAsTouched();
+
+      this.updateLicensePreview(compressedFile);
+    } catch (err) {
+      this.licenseFileError = 'ფოტოს დამუშავება ვერ მოხერხდა';
+    } finally {
+      this.isProcessingLicenseFile = false;
+      this.cdr.detectChanges();
+      input.value = '';
+    }
   }
 
   removeLicenseFile(): void {
@@ -268,6 +303,92 @@ export class RegisterComponent implements OnInit, OnDestroy {
       URL.revokeObjectURL(this.licensePreviewUrl);
       this.licensePreviewUrl = null;
     }
+  }
+
+  // ✅ სურათს ამცირებს resize + quality-ის ეტაპობრივი შემცირებით, სანამ maxSizeBytes-ს არ ჩაეტევა
+  private async compressImage(file: File, maxSizeBytes: number): Promise<File> {
+    if (file.size <= maxSizeBytes) {
+      return file;
+    }
+
+    const dataUrl = await this.readFileAsDataUrl(file);
+    const img = await this.loadImage(dataUrl);
+
+    let width = img.width;
+    let height = img.height;
+    const maxDimension = 1600;
+
+    if (width > maxDimension || height > maxDimension) {
+      if (width > height) {
+        height = Math.round((height * maxDimension) / width);
+        width = maxDimension;
+      } else {
+        width = Math.round((width * maxDimension) / height);
+        height = maxDimension;
+      }
+    }
+
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext('2d');
+
+    if (!ctx) {
+      throw new Error('Canvas context ვერ შეიქმნა');
+    }
+
+    ctx.drawImage(img, 0, 0, width, height);
+
+    let quality = 0.8;
+    let blob = await this.canvasToBlob(canvas, quality);
+
+    while (blob.size > maxSizeBytes && quality > 0.1) {
+      quality -= 0.1;
+      blob = await this.canvasToBlob(canvas, quality);
+    }
+
+    // ✅ თუ quality-ის დაწევითაც ვერ ჩავეტიეთ ზომაში — დამატებით ვამცირებთ განზომილებას
+    if (blob.size > maxSizeBytes) {
+      const scaleFactor = Math.sqrt(maxSizeBytes / blob.size);
+      canvas.width = Math.max(1, Math.round(width * scaleFactor));
+      canvas.height = Math.max(1, Math.round(height * scaleFactor));
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      blob = await this.canvasToBlob(canvas, 0.7);
+    }
+
+    return new File(
+      [blob],
+      file.name.replace(/\.\w+$/, '.jpg'),
+      { type: 'image/jpeg' }
+    );
+  }
+
+  private readFileAsDataUrl(file: File | Blob): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = () => reject(new Error('ფაილის წაკითხვა ვერ მოხერხდა'));
+      reader.readAsDataURL(file);
+    });
+  }
+
+  private loadImage(dataUrl: string): Promise<HTMLImageElement> {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = () => reject(new Error('სურათის ჩატვირთვა ვერ მოხერხდა'));
+      img.src = dataUrl;
+    });
+  }
+
+  private canvasToBlob(canvas: HTMLCanvasElement, quality: number): Promise<Blob> {
+    return new Promise((resolve, reject) => {
+      canvas.toBlob(
+        (blob) => (blob ? resolve(blob) : reject(new Error('კომპრესია ვერ შესრულდა'))),
+        'image/jpeg',
+        quality
+      );
+    });
   }
 
   // ======================== რეგისტრაცია ========================

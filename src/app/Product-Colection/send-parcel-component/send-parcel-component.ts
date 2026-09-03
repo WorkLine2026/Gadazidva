@@ -40,10 +40,12 @@ export class SendParcelComponent implements OnInit {
 
   // ✅ ფოტოს ატვირთვისთვის
   maxImages = 3;
-  maxFileSizeBytes = 5 * 1024 * 1024; // 5MB თითო ფოტოზე
+  maxFileSizeBytes = 1 * 1024 * 1024; // 1MB თითო ფოტოზე (კომპრესიის შემდეგ)
+  maxOriginalFileSizeBytes = 30 * 1024 * 1024; // 30MB — ამაზე დიდს არც ვცდით დამუშავებას
   selectedImages: File[] = [];
   imagePreviews: string[] = [];
   imageError: string | null = null;
+  isProcessingImages = false; // ✅ compression მიმდინარეობის indicator
 
   // ✅ getter-ის მეშვეობით (constructor-მდე initialize არ საჭიროა)
   get GEORGIAN_CITIES(): string[] {
@@ -141,9 +143,9 @@ export class SendParcelComponent implements OnInit {
     }
   }
 
-  // ============ ფოტოს ატვირთვა ============
+  // ============ ფოტოს ატვირთვა + კომპრესია ============
 
-  onImagesSelected(event: Event): void {
+  async onImagesSelected(event: Event): Promise<void> {
     const input = event.target as HTMLInputElement;
     const files = input.files;
     this.imageError = null;
@@ -166,6 +168,9 @@ export class SendParcelComponent implements OnInit {
       this.imageError = `მაქსიმუმ ${this.maxImages} ფოტოს ატვირთვა შეგიძლიათ`;
     }
 
+    this.isProcessingImages = true;
+    this.cdr.detectChanges();
+
     for (const file of filesToProcess) {
       // ✅ ტიპის შემოწმება
       if (!file.type.startsWith('image/')) {
@@ -173,21 +178,25 @@ export class SendParcelComponent implements OnInit {
         continue;
       }
 
-      // ✅ ზომის შემოწმება
-      if (file.size > this.maxFileSizeBytes) {
-        this.imageError = 'ფოტოს ზომა არ უნდა აღემატებოდეს 5MB-ს';
+      // ✅ ძალიან დიდ ფაილებს არც ვცდილობთ დამუშავებას
+      if (file.size > this.maxOriginalFileSizeBytes) {
+        this.imageError = 'ფოტოს საწყისი ზომა ძალიან დიდია (მაქს. 30MB)';
         continue;
       }
 
-      this.selectedImages.push(file);
+      try {
+        const compressedFile = await this.compressImage(file, this.maxFileSizeBytes);
+        this.selectedImages.push(compressedFile);
 
-      const reader = new FileReader();
-      reader.onload = () => {
-        this.imagePreviews.push(reader.result as string);
-        this.cdr.detectChanges();
-      };
-      reader.readAsDataURL(file);
+        const previewUrl = await this.readFileAsDataUrl(compressedFile);
+        this.imagePreviews.push(previewUrl);
+      } catch (err) {
+        this.imageError = 'ფოტოს დამუშავება ვერ მოხერხდა';
+      }
     }
+
+    this.isProcessingImages = false;
+    this.cdr.detectChanges();
 
     // ✅ input-ის გასუფთავება, რომ იმავე ფაილის ხელახლა არჩევა შესაძლებელი იყოს
     input.value = '';
@@ -198,6 +207,92 @@ export class SendParcelComponent implements OnInit {
     this.imagePreviews.splice(index, 1);
     this.imageError = null;
     this.cdr.detectChanges();
+  }
+
+  // ✅ სურათს ამცირებს resize + quality-ის ეტაპობრივი შემცირებით, სანამ maxSizeBytes-ს არ ჩაეტევა
+  private async compressImage(file: File, maxSizeBytes: number): Promise<File> {
+    if (file.size <= maxSizeBytes) {
+      return file;
+    }
+
+    const dataUrl = await this.readFileAsDataUrl(file);
+    const img = await this.loadImage(dataUrl);
+
+    let width = img.width;
+    let height = img.height;
+    const maxDimension = 1600;
+
+    if (width > maxDimension || height > maxDimension) {
+      if (width > height) {
+        height = Math.round((height * maxDimension) / width);
+        width = maxDimension;
+      } else {
+        width = Math.round((width * maxDimension) / height);
+        height = maxDimension;
+      }
+    }
+
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext('2d');
+
+    if (!ctx) {
+      throw new Error('Canvas context ვერ შეიქმნა');
+    }
+
+    ctx.drawImage(img, 0, 0, width, height);
+
+    let quality = 0.8;
+    let blob = await this.canvasToBlob(canvas, quality);
+
+    while (blob.size > maxSizeBytes && quality > 0.1) {
+      quality -= 0.1;
+      blob = await this.canvasToBlob(canvas, quality);
+    }
+
+    // ✅ თუ quality-ის დაწევითაც ვერ ჩავეტიეთ ზომაში — დამატებით ვამცირებთ განზომილებას
+    if (blob.size > maxSizeBytes) {
+      const scaleFactor = Math.sqrt(maxSizeBytes / blob.size);
+      canvas.width = Math.max(1, Math.round(width * scaleFactor));
+      canvas.height = Math.max(1, Math.round(height * scaleFactor));
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      blob = await this.canvasToBlob(canvas, 0.7);
+    }
+
+    return new File(
+      [blob],
+      file.name.replace(/\.\w+$/, '.jpg'),
+      { type: 'image/jpeg' }
+    );
+  }
+
+  private readFileAsDataUrl(file: File | Blob): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = () => reject(new Error('ფაილის წაკითხვა ვერ მოხერხდა'));
+      reader.readAsDataURL(file);
+    });
+  }
+
+  private loadImage(dataUrl: string): Promise<HTMLImageElement> {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = () => reject(new Error('სურათის ჩატვირთვა ვერ მოხერხდა'));
+      img.src = dataUrl;
+    });
+  }
+
+  private canvasToBlob(canvas: HTMLCanvasElement, quality: number): Promise<Blob> {
+    return new Promise((resolve, reject) => {
+      canvas.toBlob(
+        (blob) => (blob ? resolve(blob) : reject(new Error('კომპრესია ვერ შესრულდა'))),
+        'image/jpeg',
+        quality
+      );
+    });
   }
 
   // ============ STEP 1: SUBMIT DETAILS ============
@@ -336,16 +431,16 @@ export class SendParcelComponent implements OnInit {
 
   // ============ UTILITIES ============
 
-goBack(): void {
-  if (this.currentStep === 'details') {
-    window.history.back();
-  } else if (this.currentStep === 'confirmation') {
-    this.currentStep = 'details';
-    this.errorMessage = null;
-  }
+  goBack(): void {
+    if (this.currentStep === 'details') {
+      window.history.back();
+    } else if (this.currentStep === 'confirmation') {
+      this.currentStep = 'details';
+      this.errorMessage = null;
+    }
 
-  this.cdr.detectChanges();
-}
+    this.cdr.detectChanges();
+  }
 
   // ✅ განახლებული: finishAndReturn() - state-ით ProfileComponent-ზე
   finishAndReturn(): void {

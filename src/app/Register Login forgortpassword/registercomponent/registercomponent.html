@@ -109,6 +109,7 @@
           </div>
 
           <!-- ✅ ახალი: მართვის მოწმობის ფოტოს ატვირთვა -->
+          <!-- ✅ ახალი: მართვის მოწმობის ფოტოს ატვირთვა -->
           <div class="form-row">
             <label class="field-label">მართვის მოწმობის ფოტო</label>
 
@@ -119,14 +120,19 @@
                 accept=".jpg,.jpeg,.png,.pdf"
                 class="file-input-hidden"
                 (change)="onLicenseFileSelected($event)"
+                [disabled]="isProcessingLicenseFile"
               />
 
-              <label for="licensePhotoInput" class="file-upload-label" *ngIf="!licenseFileName">
+              <label for="licensePhotoInput" class="file-upload-label" *ngIf="!licenseFileName && !isProcessingLicenseFile">
                 <span class="upload-icon">📎</span>
-                <span>აირჩიეთ ფაილი — JPG, PNG ან PDF, მაქს. 5MB</span>
+                <span>აირჩიეთ ფაილი — JPG, PNG ან PDF, მაქს. 1MB</span>
               </label>
 
-              <div class="file-preview" *ngIf="licenseFileName">
+              <div class="file-processing-indicator" *ngIf="isProcessingLicenseFile">
+                <span>⏳ ფაილი მუშავდება...</span>
+              </div>
+
+              <div class="file-preview" *ngIf="licenseFileName && !isProcessingLicenseFile">
                 <img *ngIf="licensePreviewUrl" [src]="licensePreviewUrl" alt="მართვის მოწმობის გადახედვა" class="preview-thumb" />
                 <span *ngIf="!licensePreviewUrl" class="pdf-icon">📄</span>
                 <span class="file-name">{{ licenseFileName }}</span>
@@ -139,6 +145,10 @@
               მართვის მოწმობის ფოტოს ატვირთვა სავალდებულოა
             </span>
           </div>
+
+
+
+
         </div>
 
         <div class="terms-checkbox">
