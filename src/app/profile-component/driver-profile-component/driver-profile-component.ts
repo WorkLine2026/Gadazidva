@@ -1,4 +1,8 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import {
+  Component, OnInit, OnDestroy, ChangeDetectorRef,
+  ViewChild, TemplateRef, ViewContainerRef, EmbeddedViewRef,
+  Renderer2
+} from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
@@ -105,6 +109,11 @@ export class DriverProfileComponent implements OnInit, OnDestroy {
   isDeletingAccount = false;
   deleteAccountError: string | null = null;
 
+  // 💬 Portal
+  @ViewChild('chatPortal') chatPortalTemplate!: TemplateRef<any>;
+  private chatPortalView: EmbeddedViewRef<any> | null = null;
+  private viewportResizeHandler = () => this.updateChatViewportHeight();
+
   private lastHandledNotification: any = null;
   private destroy$ = new Subject<void>();
 
@@ -114,7 +123,9 @@ export class DriverProfileComponent implements OnInit, OnDestroy {
     private smsService: SmsVerificationService,
     private parcelService: ParcelService,
     private socketService: SocketNotificationService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private vcRef: ViewContainerRef,
+    private renderer: Renderer2
   ) {}
 
   ngOnInit(): void {
@@ -157,6 +168,15 @@ export class DriverProfileComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+    this.unmountChatFromBody();
+    if (window.visualViewport) {
+      window.visualViewport.removeEventListener('resize', this.viewportResizeHandler);
+      window.visualViewport.removeEventListener('scroll', this.viewportResizeHandler);
+    }
+    document.body.style.overflow = '';
+    document.body.style.position = '';
+    document.body.style.width = '';
+    document.body.style.top = '';
   }
 
   // ✅ სექციის გახსნა/დახურვა (accordion)
@@ -612,6 +632,9 @@ export class DriverProfileComponent implements OnInit, OnDestroy {
     this.showConversations = !this.showConversations;
   }
 
+  // ============================================================
+  // 💬 ჩატი — portal + body lock
+  // ============================================================
   onConversationSelected(conversation: Conversation): void {
     const recipientId = conversation.userId && !conversation.userId.startsWith('unknown_')
       ? conversation.userId
@@ -632,13 +655,68 @@ export class DriverProfileComponent implements OnInit, OnDestroy {
 
     this.showChatModal = true;
     this.showConversations = false;
+
+    // body scroll lock
+    document.body.style.overflow = 'hidden';
+    document.body.style.position = 'fixed';
+    document.body.style.width = '100%';
+    document.body.style.top = `-${window.scrollY}px`;
+
+    this.updateChatViewportHeight();
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', this.viewportResizeHandler);
+      window.visualViewport.addEventListener('scroll', this.viewportResizeHandler);
+    }
+
     this.cdr.detectChanges();
+
+    // portal body-ში
+    setTimeout(() => {
+      this.mountChatToBody();
+    });
   }
 
   closeChatModal(): void {
     this.showChatModal = false;
     this.selectedConversation = null;
+    this.unmountChatFromBody();
+
+    if (window.visualViewport) {
+      window.visualViewport.removeEventListener('resize', this.viewportResizeHandler);
+      window.visualViewport.removeEventListener('scroll', this.viewportResizeHandler);
+    }
+
+    // scroll restore
+    const scrollY = document.body.style.top;
+    document.body.style.overflow = '';
+    document.body.style.position = '';
+    document.body.style.width = '';
+    document.body.style.top = '';
+    window.scrollTo(0, parseInt(scrollY || '0') * -1);
+
     this.cdr.detectChanges();
+  }
+
+  private mountChatToBody(): void {
+    if (this.chatPortalView || !this.chatPortalTemplate) return;
+    this.chatPortalView = this.vcRef.createEmbeddedView(this.chatPortalTemplate);
+    this.chatPortalView.detectChanges();
+    this.chatPortalView.rootNodes.forEach((node: Node) => {
+      this.renderer.appendChild(document.body, node);
+    });
+  }
+
+  private unmountChatFromBody(): void {
+    if (!this.chatPortalView) return;
+    this.chatPortalView.destroy();
+    this.chatPortalView = null;
+  }
+
+  private updateChatViewportHeight(): void {
+    const vv = window.visualViewport;
+    if (!vv) return;
+    document.documentElement.style.setProperty('--chat-vh', `${vv.height}px`);
+    document.documentElement.style.setProperty('--chat-offset-top', `${vv.offsetTop}px`);
   }
 
   toggleMenu(): void {

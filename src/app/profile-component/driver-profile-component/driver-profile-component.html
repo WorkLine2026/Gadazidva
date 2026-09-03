@@ -607,15 +607,20 @@
   </div>
 </div>
 
-<!-- Chat Modal -->
-<app-chat-modal
-  *ngIf="showChatModal && selectedConversation"
-  [requestId]="selectedConversation.conversationId"
-  [recipientId]="selectedConversation.userId"
-  [recipientName]="selectedConversation.userName"
-  [currentUserId]="userId"
-  (close)="closeChatModal()">
-</app-chat-modal>
+<!-- =========================================================
+     CHAT PORTAL (body-ში გავა)
+     ========================================================= -->
+<ng-template #chatPortal>
+  <app-chat-modal
+    class="mobile-chat-modal"
+    *ngIf="showChatModal && selectedConversation"
+    [requestId]="selectedConversation.conversationId"
+    [recipientId]="selectedConversation.userId"
+    [recipientName]="selectedConversation.userName"
+    [currentUserId]="userId"
+    (close)="closeChatModal()">
+  </app-chat-modal>
+</ng-template>
 
 <!-- Offer Details Modal -->
 <div class="modal-backdrop" *ngIf="showOfferDetailModal" (click)="closeOfferDetails()">

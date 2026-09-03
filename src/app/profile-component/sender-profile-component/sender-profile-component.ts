@@ -1,11 +1,15 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import {
+  Component, OnInit, OnDestroy, ChangeDetectorRef,
+  ViewChild, TemplateRef, ViewContainerRef, EmbeddedViewRef,
+  Renderer2
+} from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { SmsVerificationService, UserProfile } from '../../services/smsverifikation.service';
-import { ParcelService, PickupOffer, TripPickupRequest } from '../../services/Parcel.service'; // ✅ NEW: TripPickupRequest დამატებულია
+import { ParcelService, PickupOffer, TripPickupRequest } from '../../services/Parcel.service';
 import { ConversationsListComponent, Conversation } from '../../chat/conversations-list-component/conversations-list-component';
 import { ChatModalImprovedComponent } from '../../chat/chat-modal-component/chat-modal-component';
 import { SocketNotificationService } from '../../services/Socketnotification.service';
@@ -28,8 +32,8 @@ const PICKUP_NOTIFICATION_TYPES = [
   'pickup_offer_rejected',
   'pickup_offer_driver_completed',
   'pickup_offer_sender_confirmed',
-  'trip_pickup_request_accepted', // ✅ NEW: მძღოლმა დაათანხმა ჩემი trip-მოთხოვნა
-  'trip_pickup_request_rejected'  // ✅ NEW: მძღოლმა უარყო ჩემი trip-მოთხოვნა
+  'trip_pickup_request_accepted',
+  'trip_pickup_request_rejected'
 ];
 
 @Component({
@@ -75,17 +79,24 @@ export class SenderProfileComponent implements OnInit, OnDestroy {
   inProgressOffers: PickupOffer[] = [];
   sentCompleted: PickupOffer[] = [];
 
-  // ✅ NEW: ჩემი გაგზავნილი trip-მოთხოვნები (ტრიპზე ჩატვირთვის თხოვნები)
+  // ✅ ჩემი გაგზავნილი trip-მოთხოვნები
   outgoingTripRequests: TripPickupRequest[] = [];
 
   showOfferDetailModal = false;
   selectedOffer: PickupOffer | null = null;
   respondingOfferId: string | null = null;
   completingOfferId: string | null = null;
+
   openSections: { [key: string]: boolean } = {};
+
   showDeleteAccountModal = false;
   isDeletingAccount = false;
   deleteAccountError: string | null = null;
+
+  // 💬 Portal
+  @ViewChild('chatPortal') chatPortalTemplate!: TemplateRef<any>;
+  private chatPortalView: EmbeddedViewRef<any> | null = null;
+  private viewportResizeHandler = () => this.updateChatViewportHeight();
 
   private lastHandledNotification: any = null;
   private destroy$ = new Subject<void>();
@@ -96,17 +107,19 @@ export class SenderProfileComponent implements OnInit, OnDestroy {
     private smsService: SmsVerificationService,
     private parcelService: ParcelService,
     private socketService: SocketNotificationService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private vcRef: ViewContainerRef,
+    private renderer: Renderer2
   ) {}
 
-
   toggleSection(key: string): void {
-  this.openSections[key] = !this.openSections[key];
-}
+    this.openSections[key] = !this.openSections[key];
+  }
 
-isSectionOpen(key: string): boolean {
-  return !!this.openSections[key];
-}
+  isSectionOpen(key: string): boolean {
+    return !!this.openSections[key];
+  }
+
   ngOnInit(): void {
     if (!this.smsService.isAuthenticated()) {
       this.router.navigate(['/login']);
@@ -132,7 +145,7 @@ isSectionOpen(key: string): boolean {
 
         if (PICKUP_NOTIFICATION_TYPES.includes(latest.type)) {
           this.loadPickupOffers();
-          this.loadOutgoingTripRequests(); // ✅ NEW
+          this.loadOutgoingTripRequests();
         }
       });
   }
@@ -140,6 +153,15 @@ isSectionOpen(key: string): boolean {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+    this.unmountChatFromBody();
+    if (window.visualViewport) {
+      window.visualViewport.removeEventListener('resize', this.viewportResizeHandler);
+      window.visualViewport.removeEventListener('scroll', this.viewportResizeHandler);
+    }
+    document.body.style.overflow = '';
+    document.body.style.position = '';
+    document.body.style.width = '';
+    document.body.style.top = '';
   }
 
   private loadUserData(): void {
@@ -156,7 +178,7 @@ isSectionOpen(key: string): boolean {
           this.initProfileForm();
           this.loadUserRequests();
           this.loadPickupOffers();
-          this.loadOutgoingTripRequests(); // ✅ NEW
+          this.loadOutgoingTripRequests();
         } else {
           this.errorMessage = res.message ?? 'მომხმარებლის ინფორმაცია ვერ ჩაიკითხა';
         }
@@ -235,7 +257,7 @@ isSectionOpen(key: string): boolean {
     });
   }
 
-  // ✅ NEW: ჩემი გაგზავნილი trip-მოთხოვნების ჩატვირთვა
+  // ✅ ჩემი გაგზავნილი trip-მოთხოვნების ჩატვირთვა
   private loadOutgoingTripRequests(): void {
     this.parcelService.getMyTripPickupRequests().subscribe({
       next: (res) => {
@@ -319,17 +341,17 @@ isSectionOpen(key: string): boolean {
     return typeof offer.parcelId === 'object' ? offer.parcelId : null;
   }
 
-  // ✅ NEW: trip-მოთხოვნის მძღოლის ინფო (populate-ის შემდეგ ობიექტია)
+  // ✅ trip-მოთხოვნის მძღოლის ინფო
   driverOfTripRequest(request: TripPickupRequest): any {
     return typeof request.driverId === 'object' ? request.driverId : null;
   }
 
-  // ✅ NEW: trip-მოთხოვნის ტრიპის მარშრუტი (populate-ის შემდეგ ობიექტია)
+  // ✅ trip-მოთხოვნის ტრიპის მარშრუტი
   tripOfRequest(request: TripPickupRequest): any {
     return typeof request.tripId === 'object' ? request.tripId : null;
   }
 
-  // ✅ NEW: trip-მოთხოვნის სტატუსის ლეიბლი
+  // ✅ trip-მოთხოვნის სტატუსის ლეიბლი
   getTripRequestStatusLabel(status: string): string {
     const labels: { [key: string]: string } = {
       'pending': '⏳ პასუხის მოლოდინში',
@@ -339,7 +361,7 @@ isSectionOpen(key: string): boolean {
     return labels[status] || status;
   }
 
-  // ✅ NEW: trip-მოთხოვნის სტატუსის ფერი
+  // ✅ trip-მოთხოვნის სტატუსის ფერი
   getTripRequestStatusColor(status: string): string {
     const colors: { [key: string]: string } = {
       'pending': '#f59e0b',
@@ -457,72 +479,129 @@ isSectionOpen(key: string): boolean {
     this.showConversations = !this.showConversations;
   }
 
- onConversationSelected(conversation: Conversation): void {
-  console.log('📂 არჩეული საუბარი:', conversation);
+  // ============================================================
+  // 💬 ჩატი — portal + body lock
+  // ============================================================
+  onConversationSelected(conversation: Conversation): void {
+    console.log('📂 არჩეული საუბარი:', conversation);
 
-  const conversationId = String(
-    (conversation as any).conversationId ||
-    (conversation as any).requestId ||
-    ''
-  ).trim();
+    const conversationId = String(
+      (conversation as any).conversationId ||
+      (conversation as any).requestId ||
+      ''
+    ).trim();
 
-  const recipientId = String(
-    (conversation as any).userId ||
-    (conversation as any).recipientId ||
-    (conversation as any).otherUserId ||
-    ''
-  ).trim();
+    const recipientId = String(
+      (conversation as any).userId ||
+      (conversation as any).recipientId ||
+      (conversation as any).otherUserId ||
+      ''
+    ).trim();
 
-  const recipientName = String(
-    (conversation as any).userName ||
-    (conversation as any).recipientName ||
-    'მომხმარებელი'
-  ).trim();
+    const recipientName = String(
+      (conversation as any).userName ||
+      (conversation as any).recipientName ||
+      'მომხმარებელი'
+    ).trim();
 
-  console.log('💬 ჩატის გახსნა:', {
-    conversationId,
-    recipientId,
-    recipientName
-  });
+    console.log('💬 ჩატის გახსნა:', {
+      conversationId,
+      recipientId,
+      recipientName
+    });
 
-  if (!conversationId) {
-    console.error('❌ conversationId/requestId არ არსებობს:', conversation);
-    return;
+    if (!conversationId) {
+      console.error('❌ conversationId/requestId არ არსებობს:', conversation);
+      return;
+    }
+
+    if (!recipientId || recipientId.startsWith('unknown_')) {
+      console.error('❌ recipientId არ არსებობს:', conversation);
+      return;
+    }
+
+    this.selectedConversation = {
+      ...conversation,
+      conversationId,
+      userId: recipientId,
+      userName: recipientName
+    };
+
+    this.socketService.registerConversationMeta(
+      conversationId,
+      recipientId,
+      recipientName
+    );
+
+    // ჯერ ვხურავთ საუბრების სიას
+    this.showConversations = false;
+
+    // შემდეგ ვხსნით ჩატს
+    this.showChatModal = true;
+
+    // body scroll lock
+    document.body.style.overflow = 'hidden';
+    document.body.style.position = 'fixed';
+    document.body.style.width = '100%';
+    document.body.style.top = `-${window.scrollY}px`;
+
+    this.updateChatViewportHeight();
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', this.viewportResizeHandler);
+      window.visualViewport.addEventListener('scroll', this.viewportResizeHandler);
+    }
+
+    this.cdr.detectChanges();
+
+    // portal body-ში
+    setTimeout(() => {
+      this.mountChatToBody();
+    });
+
+    console.log('✅ Chat Modal გაიხსნა:', this.selectedConversation);
   }
-
-  if (!recipientId || recipientId.startsWith('unknown_')) {
-    console.error('❌ recipientId არ არსებობს:', conversation);
-    return;
-  }
-
-  this.selectedConversation = {
-    ...conversation,
-    conversationId,
-    userId: recipientId,
-    userName: recipientName
-  };
-
-  this.socketService.registerConversationMeta(
-    conversationId,
-    recipientId,
-    recipientName
-  );
-
-  // ჯერ ვხურავთ საუბრების სიას
-  this.showConversations = false;
-
-  // შემდეგ ვხსნით ჩატს
-  this.showChatModal = true;
-
-  this.cdr.detectChanges();
-
-  console.log('✅ Chat Modal გაიხსნა:', this.selectedConversation);
-}
 
   closeChatModal(): void {
     this.showChatModal = false;
     this.selectedConversation = null;
+    this.unmountChatFromBody();
+
+    if (window.visualViewport) {
+      window.visualViewport.removeEventListener('resize', this.viewportResizeHandler);
+      window.visualViewport.removeEventListener('scroll', this.viewportResizeHandler);
+    }
+
+    // scroll restore
+    const scrollY = document.body.style.top;
+    document.body.style.overflow = '';
+    document.body.style.position = '';
+    document.body.style.width = '';
+    document.body.style.top = '';
+    window.scrollTo(0, parseInt(scrollY || '0') * -1);
+
     this.cdr.detectChanges();
+  }
+
+  private mountChatToBody(): void {
+    if (this.chatPortalView || !this.chatPortalTemplate) return;
+    this.chatPortalView = this.vcRef.createEmbeddedView(this.chatPortalTemplate);
+    this.chatPortalView.detectChanges();
+    this.chatPortalView.rootNodes.forEach((node: Node) => {
+      this.renderer.appendChild(document.body, node);
+    });
+  }
+
+  private unmountChatFromBody(): void {
+    if (!this.chatPortalView) return;
+    this.chatPortalView.destroy();
+    this.chatPortalView = null;
+  }
+
+  private updateChatViewportHeight(): void {
+    const vv = window.visualViewport;
+    if (!vv) return;
+    document.documentElement.style.setProperty('--chat-vh', `${vv.height}px`);
+    document.documentElement.style.setProperty('--chat-offset-top', `${vv.offsetTop}px`);
   }
 
   toggleMenu(): void {
@@ -627,7 +706,7 @@ isSectionOpen(key: string): boolean {
     Object.values(this.profileForm.controls).forEach(control => control.markAsTouched());
   }
 
-   dismissTripRequest(request: TripPickupRequest): void {
+  dismissTripRequest(request: TripPickupRequest): void {
     this.dismissingRequestId = request._id;
     this.cdr.detectChanges();
 
