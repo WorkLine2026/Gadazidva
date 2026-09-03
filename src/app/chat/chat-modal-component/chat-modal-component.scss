@@ -63,7 +63,7 @@ $transition-fast:
   inset: 0;
 
   width: 100vw;
-  height: 200px;
+  height: 100dvh; // ← FIX: აქ იყო შეცდომით "200px"
 
   background: rgba(16, 27, 51, 0.48);
 
@@ -72,8 +72,6 @@ $transition-fast:
   backdrop-filter: blur(2px);
   -webkit-backdrop-filter: blur(2px);
 
-  // FIX: prevents the page behind the modal from rubber-band
-  // scrolling on iOS Safari when swiping over the backdrop.
   overscroll-behavior: contain;
   touch-action: none;
 
@@ -81,17 +79,11 @@ $transition-fast:
 }
 
 // ============================================
-// CHAT MODAL
+// CHAT MODAL (Desktop / Tablet — float-card)
 // ============================================
 
 .chat-modal {
   position: fixed;
-
-  /*
-   * მთავარი ფიქსი:
-   * ჩატი აღარ არის დამოკიდებული parent-ის
-   * height-ზე ან flex layout-ზე.
-   */
 
   top: 50%;
   left: 50%;
@@ -124,9 +116,6 @@ $transition-fast:
 
   animation: chatModalOpen 0.2s ease-out;
 
-  /*
-   * ძალიან მნიშვნელოვანია პატარა ეკრანებზე
-   */
   isolation: isolate;
 }
 
@@ -350,11 +339,6 @@ $transition-fast:
 
   background: $color-bg;
 
-  /*
-   * scroll ყოველთვის აქ ხდება,
-   * არა მთელ modal-ზე.
-   */
-
   scrollbar-width: thin;
 
   &::-webkit-scrollbar {
@@ -538,8 +522,6 @@ $transition-fast:
 
   z-index: 3;
 
-  // FIX: აჩვენე hit-area ვიზუალურ ზომაზე მეტი — მობილურზე თითით
-  // ადვილად მოხვედრისთვის, ისე რომ ვიზუალურად წრე იგივე ზომის დარჩეს.
   &::after {
     content: '';
     position: absolute;
@@ -903,53 +885,56 @@ $transition-fast:
 }
 
 // ============================================
-// MOBILE
+// MOBILE — FULLSCREEN TAKEOVER
 // ============================================
-
-// ============================================
-// MOBILE
-// ============================================
+//
+// FIX: მობილურზე ჩატი აღარაა ცენტრირებული float-card
+// (ეს იყო წინა ვერსიის ბაგი — header ჩანდა ბექგრაუნდზე
+// და input იმალებოდა კლავიატურის ქვეშ). ახლა ჩატი იკავებს
+// მთელ ეკრანს, ხოლო სიმაღლე კონტროლდება TS-დან
+// (--chat-vh, visualViewport-იდან), რომ კლავიატურის
+// გახსნისას input ყოველთვის ხილული დარჩეს.
 
 @media (max-width: 560px) {
 
   .chat-modal-backdrop {
     width: 100vw;
-    height: 100dvh;
+    height: var(--chat-vh, 100dvh);
 
     background: rgba(16, 27, 51, 0.38);
   }
 
-  // FIX: აღარ ხდება სრულეკრანიანი takeover.
-  // ჩატი რჩება კომპაქტური, ცენტრირებული float-modal,
-  // რომ header + მესიჯები + input ერთბაშად ჩანდეს ეკრანზე.
   .chat-modal {
-    top: 50%;
-    left: 50%;
+    position: fixed;
 
-    transform: translate(-50%, -50%);
+    top: var(--chat-offset-top, 0);
+    left: 0;
 
-    width: calc(100vw - 20px);
+    transform: none;
 
-    height: min(560px, calc(100dvh - 40px));
+    width: 100vw;
+
+    height: var(--chat-vh, 100dvh);
 
     max-width: none;
-    max-height: calc(100dvh - 40px);
+    max-height: var(--chat-vh, 100dvh);
 
     min-height: 0;
 
-    border-radius: 18px;
+    border-radius: 0;
 
-    box-shadow:
-      0 24px 70px rgba(16, 27, 51, 0.28),
-      0 8px 24px rgba(16, 27, 51, 0.14);
+    box-shadow: none;
 
-    animation: chatModalOpen 0.2s ease-out;
+    animation: mobileChatOpen 0.2s ease-out;
   }
 
   .chat-header {
     min-height: 64px;
 
-    padding: 10px 12px;
+    padding:
+      calc(10px + env(safe-area-inset-top, 0px))
+      12px
+      10px;
   }
 
   .avatar {
@@ -1051,7 +1036,7 @@ $transition-fast:
 @media (max-height: 520px) and (orientation: landscape) {
 
   .chat-modal {
-    height: 100dvh;
+    height: var(--chat-vh, 100dvh);
 
     max-height: none;
 

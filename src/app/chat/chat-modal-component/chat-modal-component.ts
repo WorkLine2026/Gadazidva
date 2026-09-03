@@ -75,6 +75,35 @@ export class ChatModalImprovedComponent
 
   private lastMessagesLength = 0;
 
+  // ============================================================
+  // 💬 KEYBOARD-AWARE VIEWPORT (mobile fix)
+  // ============================================================
+  // visualViewport-ი ერთადერთია, რომელიც რეალურად აღრიცხავს
+  // მობილურის ეკრანულ კლავიატურას. --chat-vh / --chat-offset-top
+  // CSS ცვლადებს ვაყენებთ document-ის root-ზე, რომ SCSS-მა
+  // შეძლოს ჩატის სიმაღლის დინამიური მორგება კლავიატურის
+  // გახსნა/დახურვაზე.
+
+  private viewportResizeHandler = () => this.updateViewportHeight();
+
+  private updateViewportHeight(): void {
+    const vv = (window as any).visualViewport;
+
+    if (!vv) {
+      return;
+    }
+
+    document.documentElement.style.setProperty(
+      '--chat-vh',
+      `${vv.height}px`
+    );
+
+    document.documentElement.style.setProperty(
+      '--chat-offset-top',
+      `${vv.offsetTop}px`
+    );
+  }
+
   constructor(
     private socketService: SocketNotificationService,
     private cdr: ChangeDetectorRef
@@ -131,6 +160,35 @@ export class ChatModalImprovedComponent
         currentUserId: this.currentUserId
       }
     );
+
+    // ----------------------------------------------------------
+    // 💬 keyboard-aware viewport — ჩართვა
+    // ----------------------------------------------------------
+
+    this.updateViewportHeight();
+
+    if ((window as any).visualViewport) {
+
+      (window as any).visualViewport.addEventListener(
+        'resize',
+        this.viewportResizeHandler
+      );
+
+      (window as any).visualViewport.addEventListener(
+        'scroll',
+        this.viewportResizeHandler
+      );
+    }
+
+    // ----------------------------------------------------------
+    // 💬 body scroll lock — მთავარი გვერდი აღარ იძვრება,
+    // სანამ ჩატი ღიაა
+    // ----------------------------------------------------------
+
+    document.body.style.overflow = 'hidden';
+    document.body.style.position = 'fixed';
+    document.body.style.width = '100%';
+    document.body.style.top = `-${window.scrollY}px`;
 
     // ----------------------------------------------------------
     // safety-net: თუ socket ჯერ არ შექმნილა (constructor-ის პირველი
@@ -384,6 +442,38 @@ export class ChatModalImprovedComponent
       );
 
       this.scrollTimeout = null;
+    }
+
+    // ----------------------------------------------------------
+    // 💬 keyboard-aware viewport — გამორთვა
+    // ----------------------------------------------------------
+
+    if ((window as any).visualViewport) {
+
+      (window as any).visualViewport.removeEventListener(
+        'resize',
+        this.viewportResizeHandler
+      );
+
+      (window as any).visualViewport.removeEventListener(
+        'scroll',
+        this.viewportResizeHandler
+      );
+    }
+
+    // ----------------------------------------------------------
+    // 💬 body scroll lock — აღდგენა
+    // ----------------------------------------------------------
+
+    const scrollY = document.body.style.top;
+
+    document.body.style.overflow = '';
+    document.body.style.position = '';
+    document.body.style.width = '';
+    document.body.style.top = '';
+
+    if (scrollY) {
+      window.scrollTo(0, parseInt(scrollY, 10) * -1);
     }
 
     this.socketService.clearActiveConversation();
