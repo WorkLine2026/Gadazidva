@@ -1,4 +1,8 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import {
+  Component, OnInit, OnDestroy, ChangeDetectorRef,
+  ViewChild, TemplateRef, ViewContainerRef, EmbeddedViewRef,
+  Renderer2
+} from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -21,17 +25,22 @@ export class TripDetailComponent implements OnInit, OnDestroy {
   isAuthenticated = false;
   trip: DriverTrip | null = null;
 
-  // ✅ ჩატის მოდალის მართვა
+  // 💬 ჩატი
   isChatOpen = false;
   currentUserId = '';
 
-  // ✅ NEW: ფოტოების Lightbox მდგომარეობა
+  // 📷 Lightbox
   lightboxOpen = false;
   lightboxIndex = 0;
 
-  // ✅ NEW: ნივთის შეკვეთის გაგზავნის მდგომარეობა
+  // 🚚 ნივთის შეკვეთა
   isSendingPickupRequest = false;
   pickupRequestSent = false;
+
+  // 💬 Portal
+  @ViewChild('chatPortal') chatPortalTemplate!: TemplateRef<any>;
+  private chatPortalView: EmbeddedViewRef<any> | null = null;
+  private viewportResizeHandler = () => this.updateChatViewportHeight();
 
   private destroy$ = new Subject<void>();
   public router: Router;
@@ -41,7 +50,9 @@ export class TripDetailComponent implements OnInit, OnDestroy {
     router: Router,
     private parcelService: ParcelService,
     private smsService: SmsVerificationService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private vcRef: ViewContainerRef,
+    private renderer: Renderer2
   ) {
     this.router = router;
   }
@@ -57,9 +68,7 @@ export class TripDetailComponent implements OnInit, OnDestroy {
     this.route.params
       .pipe(takeUntil(this.destroy$))
       .subscribe(params => {
-
         const tripId = params['id'];
-
         if (tripId) {
           this.loadTrip(tripId);
         } else {
@@ -73,6 +82,15 @@ export class TripDetailComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+    this.unmountChatFromBody();
+    if (window.visualViewport) {
+      window.visualViewport.removeEventListener('resize', this.viewportResizeHandler);
+      window.visualViewport.removeEventListener('scroll', this.viewportResizeHandler);
+    }
+    document.body.style.overflow = '';
+    document.body.style.position = '';
+    document.body.style.width = '';
+    document.body.style.top = '';
   }
 
   private loadTrip(tripId: string): void {
@@ -90,7 +108,6 @@ export class TripDetailComponent implements OnInit, OnDestroy {
       )
       .subscribe({
         next: (res) => {
-
           if (res.success && res.data) {
             this.trip = res.data;
           } else {
@@ -100,7 +117,6 @@ export class TripDetailComponent implements OnInit, OnDestroy {
         },
         error: (err) => {
           console.error('❌ მგზავრობის ჩატვირთვის შეცდომა:', err);
-
           if (err.status === 404) {
             this.errorMessage = 'ასეთი მგზავრობა არ არსებობს';
           } else if (err.status === 401) {
@@ -122,45 +138,98 @@ export class TripDetailComponent implements OnInit, OnDestroy {
   get recipientIdSafe(): string {
     const driver = (this.trip as any)?.driverId;
     if (!driver) return '';
-
     const id = typeof driver === 'object' ? (driver._id || driver.id || '') : driver;
     return String(id).trim();
   }
 
   get isOwnTrip(): boolean {
     if (!this.trip || !this.currentUserId) return false;
-
     const recipientId = this.recipientIdSafe.toLowerCase();
     const currentId = String(this.currentUserId).trim().toLowerCase();
-
     return recipientId === currentId && recipientId !== '';
   }
 
-  // ===== 💬 შეტყობინების მიწერა =====
+  // ============================================================
+  // 💬 ჩატი — portal + body lock
+  // ============================================================
   openChat(): void {
-
     if (!this.isAuthenticated) {
       alert('⚠️ შეტყობინების გასაგზავნად გთხოვთ დალოგინდით');
       this.router.navigate(['/login']);
       return;
     }
-
     if (this.isOwnTrip) {
       alert('⚠️ საკუთარ მგზავრობაზე შეტყობინებას ვერ გააგზავნით');
       return;
     }
 
     this.isChatOpen = true;
+
+    // body scroll lock
+    document.body.style.overflow = 'hidden';
+    document.body.style.position = 'fixed';
+    document.body.style.width = '100%';
+    document.body.style.top = `-${window.scrollY}px`;
+
+    this.updateChatViewportHeight();
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', this.viewportResizeHandler);
+      window.visualViewport.addEventListener('scroll', this.viewportResizeHandler);
+    }
+
+    this.cdr.detectChanges();
+
+    // portal body-ში
+    setTimeout(() => {
+      this.mountChatToBody();
+    });
   }
 
   closeChat(): void {
     this.isChatOpen = false;
+    this.unmountChatFromBody();
+
+    if (window.visualViewport) {
+      window.visualViewport.removeEventListener('resize', this.viewportResizeHandler);
+      window.visualViewport.removeEventListener('scroll', this.viewportResizeHandler);
+    }
+
+    // scroll restore
+    const scrollY = document.body.style.top;
+    document.body.style.overflow = '';
+    document.body.style.position = '';
+    document.body.style.width = '';
+    document.body.style.top = '';
+    window.scrollTo(0, parseInt(scrollY || '0') * -1);
+
+    this.cdr.detectChanges();
+  }
+
+  private mountChatToBody(): void {
+    if (this.chatPortalView || !this.chatPortalTemplate) return;
+    this.chatPortalView = this.vcRef.createEmbeddedView(this.chatPortalTemplate);
+    this.chatPortalView.detectChanges();
+    this.chatPortalView.rootNodes.forEach((node: Node) => {
+      this.renderer.appendChild(document.body, node);
+    });
+  }
+
+  private unmountChatFromBody(): void {
+    if (!this.chatPortalView) return;
+    this.chatPortalView.destroy();
+    this.chatPortalView = null;
+  }
+
+  private updateChatViewportHeight(): void {
+    const vv = window.visualViewport;
+    if (!vv) return;
+    document.documentElement.style.setProperty('--chat-vh', `${vv.height}px`);
+    document.documentElement.style.setProperty('--chat-offset-top', `${vv.offsetTop}px`);
   }
 
   // ============================================================
-  // ✅ NEW: ნივთის შეკვეთის გაგზავნა (trip pickup request)
+  // 🚚 ნივთის შეკვეთა
   // ============================================================
-
   sendPickupRequest(): void {
     if (!this.trip || !this.trip._id) return;
 
@@ -169,12 +238,10 @@ export class TripDetailComponent implements OnInit, OnDestroy {
       this.router.navigate(['/login']);
       return;
     }
-
     if (this.isOwnTrip) {
       alert('⚠️ საკუთარ მგზავრობაზე მოთხოვნას ვერ გააგზავნით');
       return;
     }
-
     if (this.isSendingPickupRequest || this.pickupRequestSent) return;
 
     this.isSendingPickupRequest = true;
@@ -196,7 +263,6 @@ export class TripDetailComponent implements OnInit, OnDestroy {
         },
         error: (err) => {
           if (err.status === 409) {
-            // უკვე გაგზავნილია ადრე — backend შეიძლება ასე დააბრუნოს
             this.pickupRequestSent = true;
           }
           alert('❌ ' + (err.error?.message || 'მოთხოვნის გაგზავნა ვერ მოხერხდა'));
@@ -205,9 +271,8 @@ export class TripDetailComponent implements OnInit, OnDestroy {
   }
 
   // ============================================================
-  // ✅ NEW: ფოტოების Lightbox
+  // 📷 Lightbox
   // ============================================================
-
   openLightbox(index: number): void {
     this.lightboxIndex = index;
     this.lightboxOpen = true;
@@ -229,13 +294,11 @@ export class TripDetailComponent implements OnInit, OnDestroy {
     this.lightboxIndex = (this.lightboxIndex - 1 + images.length) % images.length;
   }
 
-  // ===== 📧 იმეილის გაგზავნა =====
+  // ===== 📧 იმეილი =====
   sendEmail(): void {
     if (!this.trip || this.isOwnTrip) return;
-
     const email = (this.trip as any).driverEmail;
     if (!email) return;
-
     const subject = encodeURIComponent(`მგზავრობა: ${this.trip.from} → ${this.trip.to}`);
     const body = encodeURIComponent('გამარჯობა, დაინტერესებული ვარ თქვენი მგზავრობით...');
     window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
@@ -248,7 +311,6 @@ export class TripDetailComponent implements OnInit, OnDestroy {
   // ===== 📞 დარეკვა =====
   call(): void {
     if (!this.trip || this.isOwnTrip) return;
-
     const phone = this.trip?.senderPhone || (this.trip as any)?.personalNumber;
     if (!phone) return;
     window.location.href = `tel:${phone}`;
