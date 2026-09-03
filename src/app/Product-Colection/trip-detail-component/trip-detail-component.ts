@@ -115,9 +115,9 @@ export class TripDetailComponent implements OnInit, OnDestroy {
       });
   }
 
- goBack(): void {
-  window.history.back();
-}
+  goBack(): void {
+    window.history.back();
+  }
 
   get recipientIdSafe(): string {
     const driver = (this.trip as any)?.driverId;

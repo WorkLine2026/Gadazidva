@@ -1217,9 +1217,10 @@
 }
 
 /* =========================================================
-   📱 CHAT MODAL — ყოველთვის სწორ ადგილას
+   CHAT MODAL — გამოსწორებული (სწორი overlay + bottom-sheet)
    ========================================================= */
 
+:host ::ng-deep .mobile-chat-modal,
 .mobile-chat-modal {
   position: fixed !important;
   inset: 0 !important;
@@ -1228,9 +1229,9 @@
   right: 0 !important;
   bottom: 0 !important;
   width: 100vw !important;
-  height: 100vh !important;
+  height: 100dvh !important;
   max-width: 100vw !important;
-  max-height: 100vh !important;
+  max-height: 100dvh !important;
   margin: 0 !important;
   padding: 0 !important;
   z-index: 999999 !important;
@@ -1238,58 +1239,80 @@
   align-items: center !important;
   justify-content: center !important;
   overflow: hidden !important;
+  background: transparent !important;
+  pointer-events: auto !important;
 }
 
-/* Overlay - დაბურული ფონი */
+/* Overlay (დაბურული ფონი) */
 .mobile-chat-modal::before {
-  content: '';
+  content: '' !important;
   position: absolute !important;
   inset: 0 !important;
-  background: rgba(0, 0, 0, 0.5) !important;
-  backdrop-filter: blur(4px) !important;
-  z-index: -1 !important;
+  background: rgba(2, 8, 18, 0.72) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  z-index: 0 !important;
 }
 
-/* Chat container */
-.mobile-chat-modal > div,
+/* ჩატის კონტეინერი — ყველა შესაძლო root ელემენტი */
+.mobile-chat-modal > *,
 .mobile-chat-modal .chat-modal-container,
-.mobile-chat-modal .modal-content {
+.mobile-chat-modal .modal-content,
+.mobile-chat-modal .chat-wrapper,
+.mobile-chat-modal .chat-dialog {
   position: relative !important;
+  z-index: 1 !important;
   width: 100% !important;
-  max-width: 600px !important;
+  max-width: 520px !important;
   height: auto !important;
-  max-height: 85vh !important;
-  margin: 20px !important;
+  max-height: 88vh !important;
+  margin: 16px !important;
   background: #fff !important;
-  border-radius: 16px !important;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2) !important;
+  border-radius: 20px !important;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.35) !important;
   overflow: hidden !important;
   display: flex !important;
   flex-direction: column !important;
-  z-index: 1 !important;
+  animation: chatScaleIn 0.28s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
-/* Mobile-ზე ქვემოდან ამოსვლა */
+/* Mobile — ქვემოდან ამოსვლა (bottom sheet) */
 @media (max-width: 767px) {
   .mobile-chat-modal {
     align-items: flex-end !important;
+    justify-content: flex-end !important;
   }
 
-  .mobile-chat-modal > div,
+  .mobile-chat-modal > *,
   .mobile-chat-modal .chat-modal-container,
-  .mobile-chat-modal .modal-content {
+  .mobile-chat-modal .modal-content,
+  .mobile-chat-modal .chat-wrapper,
+  .mobile-chat-modal .chat-dialog {
     max-width: 100% !important;
-    max-height: 90vh !important;
+    width: 100% !important;
+    max-height: 92dvh !important;
+    height: 92dvh !important;
     margin: 0 !important;
-    border-radius: 16px 16px 0 0 !important;
-    animation: slideUp 0.3s ease-out !important;
+    border-radius: 22px 22px 0 0 !important;
+    animation: chatSlideUp 0.32s cubic-bezier(0.16, 1, 0.3, 1) !important;
   }
 }
 
-@keyframes slideUp {
+@keyframes chatScaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.94) translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes chatSlideUp {
   from {
     transform: translateY(100%);
-    opacity: 0;
+    opacity: 0.6;
   }
   to {
     transform: translateY(0);
