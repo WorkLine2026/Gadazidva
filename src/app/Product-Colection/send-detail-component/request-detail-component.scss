@@ -2811,7 +2811,7 @@ html {
 
 @media (max-width: 767px) {
 
-  /* მთავარი Angular chat component */
+  /* მთავარი Angular chat component (host) */
   app-chat-modal.mobile-chat-modal {
     position: fixed !important;
 
@@ -2840,11 +2840,13 @@ html {
 
   /* =====================================================
      OVERLAY
+     ::ng-deep აუცილებელია — სხვანაირად სელექტორი
+     ვერ პოულობს app-chat-modal-ის შიდა (child) DOM-ს
      ===================================================== */
 
-  app-chat-modal.mobile-chat-modal .chat-modal-overlay,
-  app-chat-modal.mobile-chat-modal .modal-overlay,
-  app-chat-modal.mobile-chat-modal .chat-overlay {
+  ::ng-deep app-chat-modal.mobile-chat-modal .chat-modal-overlay,
+  ::ng-deep app-chat-modal.mobile-chat-modal .modal-overlay,
+  ::ng-deep app-chat-modal.mobile-chat-modal .chat-overlay {
 
     position: fixed !important;
 
@@ -2871,9 +2873,9 @@ html {
      თვითონ ჩატის ფანჯარა
      ===================================================== */
 
-  app-chat-modal.mobile-chat-modal .chat-modal,
-  app-chat-modal.mobile-chat-modal .chat-container,
-  app-chat-modal.mobile-chat-modal .modal-content {
+  ::ng-deep app-chat-modal.mobile-chat-modal .chat-modal,
+  ::ng-deep app-chat-modal.mobile-chat-modal .chat-container,
+  ::ng-deep app-chat-modal.mobile-chat-modal .modal-content {
 
     position: relative !important;
 
@@ -2903,7 +2905,7 @@ html {
      HEADER
      ===================================================== */
 
-  app-chat-modal.mobile-chat-modal .chat-header {
+  ::ng-deep app-chat-modal.mobile-chat-modal .chat-header {
 
     position: relative !important;
 
@@ -2923,7 +2925,7 @@ html {
      BODY
      ===================================================== */
 
-  app-chat-modal.mobile-chat-modal .chat-body {
+  ::ng-deep app-chat-modal.mobile-chat-modal .chat-body {
 
     width: 100% !important;
 
@@ -2942,9 +2944,9 @@ html {
      MESSAGES
      ===================================================== */
 
-  app-chat-modal.mobile-chat-modal .messages,
-  app-chat-modal.mobile-chat-modal .chat-messages,
-  app-chat-modal.mobile-chat-modal .messages-container {
+  ::ng-deep app-chat-modal.mobile-chat-modal .messages,
+  ::ng-deep app-chat-modal.mobile-chat-modal .chat-messages,
+  ::ng-deep app-chat-modal.mobile-chat-modal .messages-container {
 
     width: 100% !important;
 
@@ -2966,8 +2968,8 @@ html {
      FOOTER
      ===================================================== */
 
-  app-chat-modal.mobile-chat-modal .chat-footer,
-  app-chat-modal.mobile-chat-modal .input-area {
+  ::ng-deep app-chat-modal.mobile-chat-modal .chat-footer,
+  ::ng-deep app-chat-modal.mobile-chat-modal .input-area {
 
     position: relative !important;
 
@@ -2987,8 +2989,8 @@ html {
      INPUT
      ===================================================== */
 
-  app-chat-modal.mobile-chat-modal input,
-  app-chat-modal.mobile-chat-modal textarea {
+  ::ng-deep app-chat-modal.mobile-chat-modal input,
+  ::ng-deep app-chat-modal.mobile-chat-modal textarea {
 
     max-width: 100% !important;
 
@@ -3000,7 +3002,7 @@ html {
      BUTTONS
      ===================================================== */
 
-  app-chat-modal.mobile-chat-modal button {
+  ::ng-deep app-chat-modal.mobile-chat-modal button {
     touch-action: manipulation !important;
   }
 }
