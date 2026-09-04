@@ -16,7 +16,7 @@ export class SupprotTeamService {
   private readonly http = inject(HttpClient);
 
   // ⚠️ აღარ არის ფარდობითი — ახლა სრული backend URL-ია environment-იდან
-  private readonly apiUrl = `${environment.apiUrl}/api/support/problem`;
+  private readonly apiUrl = `${environment.apiUrl}/support/problem`;
 
   private readonly contact: ContactInfo = {
     phoneNumber: '995500000000', // შეცვალეთ რეალურ ნომერზე (საერთაშორისო ფორმატით, +-ის გარეშე)
