@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
@@ -40,7 +40,8 @@ export class ForgotPasswordComponent implements OnInit, OnDestroy {
   constructor(
     private fb: FormBuilder,
     private router: Router,
-    private smsService: SmsVerificationService  
+    private smsService: SmsVerificationService,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -57,7 +58,6 @@ export class ForgotPasswordComponent implements OnInit, OnDestroy {
   }
 
   private initializeCodeForm(): void {
-    // ✅ შეცვლილია 4-ნიშნა კოდის ვალიდაციაზე
     this.codeForm = this.fb.group({
       code: ['', [Validators.required, Validators.pattern(/^\d{4}$/)]]
     });
@@ -73,9 +73,6 @@ export class ForgotPasswordComponent implements OnInit, OnDestroy {
     );
   }
 
-  /**
-   * პაროლების შედარების ვალიდატორი
-   */
   private passwordMatchValidator(control: AbstractControl): ValidationErrors | null {
     const password = control.get('password');
     const confirmPassword = control.get('confirmPassword');
@@ -98,6 +95,7 @@ export class ForgotPasswordComponent implements OnInit, OnDestroy {
 
     this.isLoading = true;
     this.phoneErrorMessage = null;
+    this.cdr.detectChanges();
 
     const phone = this.phoneForm.value.phone;
 
@@ -106,11 +104,13 @@ export class ForgotPasswordComponent implements OnInit, OnDestroy {
         this.isLoading = false;
         this.phoneStep = 2;
         this.startResendTimer();
+        this.cdr.detectChanges();
       },
       error: (err: any) => {
         this.isLoading = false;
         this.phoneErrorMessage = err?.error?.message || 'ამ ნომრით მომხმარებელი ვერ მოიძებნა.';
         console.error('SMS send error:', err);
+        this.cdr.detectChanges();
       }
     });
   }
@@ -126,24 +126,25 @@ export class ForgotPasswordComponent implements OnInit, OnDestroy {
 
     this.isLoading = true;
     this.phoneErrorMessage = null;
+    this.cdr.detectChanges();
 
     const phone = this.phoneForm.value.phone;
     const code = this.codeForm.value.code;
 
     this.smsService.verifyPasswordRecoveryCode(phone, code).subscribe({
       next: (res: VerifyPasswordCodeResponse) => {
-        
         if (res.resetToken) {
           this.smsService.setResetToken(res.resetToken);
         }
-        
         this.isLoading = false;
         this.phoneStep = 3;
+        this.cdr.detectChanges();
       },
       error: (err: any) => {
         this.isLoading = false;
         this.phoneErrorMessage = err?.error?.message || 'კოდი არასწორია.';
         console.error('Code verification error:', err);
+        this.cdr.detectChanges();
       }
     });
   }
@@ -159,10 +160,12 @@ export class ForgotPasswordComponent implements OnInit, OnDestroy {
       next: (res: SendPasswordCodeResponse) => {
         this.showResendBtn = false;
         this.startResendTimer();
+        this.cdr.detectChanges();
       },
       error: (err: any) => {
         this.phoneErrorMessage = err?.error?.message || 'კოდის ხელახლა გაგზავნა ვერ მოხერხდა.';
         console.error('Resend error:', err);
+        this.cdr.detectChanges();
       }
     });
   }
@@ -181,6 +184,7 @@ export class ForgotPasswordComponent implements OnInit, OnDestroy {
         if (this.resendTimer === 0) {
           this.showResendBtn = true;
         }
+        this.cdr.detectChanges();
       });
   }
 
@@ -195,15 +199,16 @@ export class ForgotPasswordComponent implements OnInit, OnDestroy {
 
     this.isLoading = true;
     this.phoneErrorMessage = null;
+    this.cdr.detectChanges();
 
     const phone = this.phoneForm.value.phone;
     const newPassword = this.newPasswordForm.value.password;
 
-
     this.smsService.resetPassword(phone, newPassword).subscribe({
       next: (res: ResetPasswordResponse) => {
         this.isLoading = false;
-        
+        this.cdr.detectChanges();
+
         setTimeout(() => {
           this.smsService.clearState();
           this.router.navigate(['/login']);
@@ -213,6 +218,7 @@ export class ForgotPasswordComponent implements OnInit, OnDestroy {
         this.isLoading = false;
         this.phoneErrorMessage = err?.error?.message || 'პაროლის განახლება ვერ მოხერხდა. გთხოვთ სცადოთ მოგვიანებით.';
         console.error('Password reset error:', err);
+        this.cdr.detectChanges();
       }
     });
   }

@@ -25,6 +25,7 @@ import { DriverProfileAndroidComponent } from './android-components/driver-profi
 // სმარტ პროფილი (როლის მიხედვით)
 import { ProfileRedirectComponent } from './android-components/profile-redirect/profile-redirect';
 import { AndroidLoginComponent } from './android-components/android-login-component/android-login-component';
+import { SupprotTeam } from './Main/supprot-team/supprot-team';
 
 export const routes: Routes = [
   { path: '', component: HomeComponent },
@@ -57,6 +58,6 @@ export const routes: Routes = [
   { path: 'trip/:id', component: TripDetailComponent },
   ...adminRoutes,
   { path: 'listing', component: AllListingsComponent },
-
+  { path: 'support', component:SupprotTeam},
   { path: '**', redirectTo: 'home' }
 ];

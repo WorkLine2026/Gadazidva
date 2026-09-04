@@ -1,0 +1,62 @@
+<div class="support-team">
+  <h2 class="support-team__title">დაგვიკავშირდით</h2>
+  <p class="support-team__subtitle">აირჩიეთ თქვენთვის მოსახერხებელი საკომუნიკაციო არხი</p>
+
+  <div class="support-team__contacts">
+    <a class="support-team__contact support-team__contact--viber" [href]="viberLink" target="_blank" rel="noopener noreferrer">
+      <span class="support-team__icon">📞</span>
+      <span class="support-team__label">Viber</span>
+    </a>
+
+    <a class="support-team__contact support-team__contact--whatsapp" [href]="whatsappLink" target="_blank" rel="noopener noreferrer">
+      <span class="support-team__icon">💬</span>
+      <span class="support-team__label">WhatsApp</span>
+    </a>
+
+    <a class="support-team__contact support-team__contact--telegram" [href]="telegramLink" target="_blank" rel="noopener noreferrer">
+      <span class="support-team__icon">✈️</span>
+      <span class="support-team__label">Telegram</span>
+    </a>
+
+    <a class="support-team__contact support-team__contact--mail" [href]="mailLink">
+      <span class="support-team__icon">✉️</span>
+      <span class="support-team__label">Email</span>
+    </a>
+
+    <a class="support-team__contact support-team__contact--tel" [href]="telLink">
+      <span class="support-team__icon">📱</span>
+      <span class="support-team__label">{{ contact.phoneDisplay }}</span>
+    </a>
+  </div>
+
+  <div class="support-team__problem">
+    <h3 class="support-team__problem-title">გაქვთ პრობლემა?</h3>
+    <p class="support-team__problem-subtitle">დაგვიწერეთ და პირდაპირ მოგვივა შეტყობინება მეილზე</p>
+
+    <textarea
+      class="support-team__problem-input"
+      rows="5"
+      placeholder="აღწერეთ თქვენი პრობლემა..."
+      [(ngModel)]="problemText"
+      name="problemText"
+    ></textarea>
+
+    <button
+      class="support-team__problem-submit"
+      type="button"
+      [disabled]="!problemText().trim() || isSending()"
+      (click)="sendProblem()"
+    >
+      {{ isSending() ? 'იგზავნება...' : 'გაგზავნა' }}
+    </button>
+
+    @if (statusMessage()) {
+      <p
+        class="support-team__problem-status"
+        [class.support-team__problem-status--error]="isError()"
+      >
+        {{ statusMessage() }}
+      </p>
+    }
+  </div>
+</div>
