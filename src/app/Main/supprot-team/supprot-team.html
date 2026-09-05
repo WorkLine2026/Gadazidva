@@ -1,62 +1,160 @@
-<div class="support-team">
-  <h2 class="support-team__title">დაგვიკავშირდით</h2>
-  <p class="support-team__subtitle">აირჩიეთ თქვენთვის მოსახერხებელი საკომუნიკაციო არხი</p>
+<section class="support-team">
+  <div class="support-team__ambient support-team__ambient--one"></div>
+  <div class="support-team__ambient support-team__ambient--two"></div>
+  <div class="support-team__grid"></div>
 
-  <div class="support-team__contacts">
-    <a class="support-team__contact support-team__contact--viber" [href]="viberLink" target="_blank" rel="noopener noreferrer">
-      <span class="support-team__icon">📞</span>
-      <span class="support-team__label">Viber</span>
-    </a>
+  <div class="support-team__content">
+    <div class="support-team__badge">
+      <span class="support-team__badge-icon">🚚</span>
+      <span>სწრაფი • უსაფრთხო • მთელი საქართველო</span>
+    </div>
 
-    <a class="support-team__contact support-team__contact--whatsapp" [href]="whatsappLink" target="_blank" rel="noopener noreferrer">
-      <span class="support-team__icon">💬</span>
-      <span class="support-team__label">WhatsApp</span>
-    </a>
+    <h2 class="support-team__title">
+      დაგვიკავშირდით
+      <span>ნებისმიერი გზით</span>
+    </h2>
 
-    <a class="support-team__contact support-team__contact--telegram" [href]="telegramLink" target="_blank" rel="noopener noreferrer">
-      <span class="support-team__icon">✈️</span>
-      <span class="support-team__label">Telegram</span>
-    </a>
+    <p class="support-team__subtitle">
+      აირჩიეთ თქვენთვის სასურველი საკომუნიკაციო არხი
+      <br />
+      და ჩვენი გუნდი მალე დაგიბრუნდებათ პასუხით.
+    </p>
 
-    <a class="support-team__contact support-team__contact--mail" [href]="mailLink">
-      <span class="support-team__icon">✉️</span>
-      <span class="support-team__label">Email</span>
-    </a>
+    <div class="support-team__delivery-visual" aria-hidden="true">
+      <div class="delivery-item delivery-item--box">📦</div>
+      <div class="delivery-item delivery-item--bag">🛍️</div>
+      <div class="delivery-item delivery-item--pin">📍</div>
 
-    <a class="support-team__contact support-team__contact--tel" [href]="telLink">
-      <span class="support-team__icon">📱</span>
-      <span class="support-team__label">{{ contact.phoneDisplay }}</span>
-    </a>
-  </div>
+      <div class="delivery-road"></div>
 
-  <div class="support-team__problem">
-    <h3 class="support-team__problem-title">გაქვთ პრობლემა?</h3>
-    <p class="support-team__problem-subtitle">დაგვიწერეთ და პირდაპირ მოგვივა შეტყობინება მეილზე</p>
+      <div class="delivery-truck">
+        <div class="delivery-truck__light"></div>
 
-    <textarea
-      class="support-team__problem-input"
-      rows="5"
-      placeholder="აღწერეთ თქვენი პრობლემა..."
-      [(ngModel)]="problemText"
-      name="problemText"
-    ></textarea>
+        <div class="delivery-truck__body">
+          <span class="delivery-truck__logo">GO</span>
+        </div>
 
-    <button
-      class="support-team__problem-submit"
-      type="button"
-      [disabled]="!problemText().trim() || isSending()"
-      (click)="sendProblem()"
-    >
-      {{ isSending() ? 'იგზავნება...' : 'გაგზავნა' }}
-    </button>
+        <div class="delivery-truck__cabin"></div>
+        <div class="delivery-truck__window"></div>
 
-    @if (statusMessage()) {
-      <p
-        class="support-team__problem-status"
-        [class.support-team__problem-status--error]="isError()"
+        <div class="delivery-truck__wheel delivery-truck__wheel--left"></div>
+        <div class="delivery-truck__wheel delivery-truck__wheel--right"></div>
+      </div>
+    </div>
+
+    <div class="support-team__contacts">
+      <a
+        class="support-team__contact support-team__contact--whatsapp"
+        [href]="whatsappLink"
+        target="_blank"
+        rel="noopener noreferrer"
       >
-        {{ statusMessage() }}
-      </p>
-    }
+        <span class="support-team__contact-icon">💬</span>
+
+        <span class="support-team__contact-info">
+          <small>მოგვწერეთ</small>
+          <strong>WhatsApp</strong>
+        </span>
+
+        <span class="support-team__arrow">↗</span>
+      </a>
+
+      <a
+        class="support-team__contact support-team__contact--viber-chat"
+        [href]="viberLink"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        <span class="support-team__contact-icon">💜</span>
+
+        <span class="support-team__contact-info">
+          <small>სწრაფი ჩატი</small>
+          <strong>Viber ჩატი</strong>
+        </span>
+
+        <span class="support-team__arrow">↗</span>
+      </a>
+
+      <a
+        class="support-team__contact support-team__contact--mail"
+        [href]="mailLink"
+      >
+        <span class="support-team__contact-icon">✉️</span>
+
+        <span class="support-team__contact-info">
+          <small>მოგვწერეთ</small>
+          <strong>Email</strong>
+        </span>
+
+        <span class="support-team__arrow">↗</span>
+      </a>
+
+      <a
+        class="support-team__contact support-team__contact--tel"
+        [href]="telLink"
+      >
+        <span class="support-team__contact-icon">📱</span>
+
+        <span class="support-team__contact-info">
+          <small>დარეკეთ ახლა</small>
+          <strong>{{ contact.phoneDisplay }}</strong>
+        </span>
+
+        <span class="support-team__arrow">↗</span>
+      </a>
+    </div>
+
+    <div class="support-team__problem">
+      <div class="support-team__problem-header">
+        <div class="support-team__problem-icon">💡</div>
+
+        <div>
+          <h3 class="support-team__problem-title">გაქვთ პრობლემა?</h3>
+
+          <p class="support-team__problem-subtitle">
+            დაგვიწერეთ და შეტყობინება პირდაპირ ჩვენს გუნდთან მოვა.
+          </p>
+        </div>
+      </div>
+
+      <textarea
+        class="support-team__problem-input"
+        rows="5"
+        placeholder="აღწერეთ თქვენი პრობლემა..."
+        [(ngModel)]="problemText"
+        name="problemText"
+      ></textarea>
+
+      <div class="support-team__problem-footer">
+        <span class="support-team__secure">
+          <span>🔒</span>
+          თქვენი მონაცემები დაცულია
+        </span>
+
+        <button
+          class="support-team__problem-submit"
+          type="button"
+          [disabled]="!problemText().trim() || isSending()"
+          (click)="sendProblem()"
+        >
+          <span>
+            {{ isSending() ? 'იგზავნება...' : 'გაგზავნა' }}
+          </span>
+
+          <span class="support-team__submit-icon">
+            {{ isSending() ? '⏳' : '➜' }}
+          </span>
+        </button>
+      </div>
+
+      @if (statusMessage()) {
+        <p
+          class="support-team__problem-status"
+          [class.support-team__problem-status--error]="isError()"
+        >
+          {{ statusMessage() }}
+        </p>
+      }
+    </div>
   </div>
-</div>
+</section>

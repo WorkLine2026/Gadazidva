@@ -122,6 +122,12 @@ export class NavbarComponent implements OnInit, OnDestroy {
     this.closeMenu();
     console.log('🔍 [Navbar] navigateToAllListings → /listing');
     this.router.navigate(['/listing']);
+  } 
+  
+  navigateTosupport(): void {
+    this.closeMenu();
+    console.log('🔍 [Navbar] navigateToAllListings → /support');
+    this.router.navigate(['/support']);
   }
 
   navigateToLogin(): void {

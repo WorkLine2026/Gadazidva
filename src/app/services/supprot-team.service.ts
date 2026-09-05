@@ -15,11 +15,11 @@ export interface ContactInfo {
 export class SupprotTeamService {
   private readonly http = inject(HttpClient);
 
-  // ⚠️ აღარ არის ფარდობითი — ახლა სრული backend URL-ია environment-იდან
+
   private readonly apiUrl = `${environment.apiUrl}/support/problem`;
 
   private readonly contact: ContactInfo = {
-    phoneNumber: '995500000000', // შეცვალეთ რეალურ ნომერზე (საერთაშორისო ფორმატით, +-ის გარეშე)
+    phoneNumber: '995500000000', // შეცვალეთ რეალურ ნომერზე 
     phoneDisplay: '+995 500 00 00 00',
     email: 'work.1999line@gmail.com',
   };
