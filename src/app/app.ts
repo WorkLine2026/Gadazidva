@@ -8,6 +8,7 @@ import { BottomNavbarComponent } from "../app/android-components/bottom-navbar-c
 import { FooterComponent } from "./Main/footer/footer";
 import { ToastNotificationsComponent } from './chat/toast-notifications-component/toast-notifications-component';
 import { PullToRefreshDirective } from './android-components/directives/pull-to-refresh.directive';
+import { Pushnofication } from './chat/pushnofication/pushnofication';
 
 @Component({
   selector: 'app-root',
@@ -18,7 +19,8 @@ import { PullToRefreshDirective } from './android-components/directives/pull-to-
     NavbarComponent,
     BottomNavbarComponent,
     ToastNotificationsComponent,
-    PullToRefreshDirective
+    PullToRefreshDirective,
+    Pushnofication
   ],
   templateUrl: './app.html',
   styleUrl: './app.scss'

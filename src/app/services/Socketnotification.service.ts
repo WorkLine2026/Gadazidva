@@ -6,6 +6,7 @@ import { io, Socket } from 'socket.io-client';
 import { environment } from '../environment/environment';
 import { SmsVerificationService } from './smsverifikation.service';
 import { ChatService } from '../services/Chat.Service';
+import { HttpClient } from '@angular/common/http';
 
 export interface ChatMessage {
   _id?: string;
@@ -42,6 +43,10 @@ export interface Conversation {
 }
 
 export interface NotificationData {
+  _id?: string;
+
+  seen?: boolean;
+
   type:
     | 'request'
     | 'trip'
@@ -94,6 +99,21 @@ interface SendMessageAck {
 const MAX_STORED_NOTIFICATIONS = 50;
 
 // ==============================================================
+// NOTIFICATIONS PERSISTENCE
+// ==============================================================
+// ✅ ბაზა (backend: /notifications/recent, /mark-seen, /clear-all)
+// არის source of truth — შეტყობინებები ნებისმიერ device/browser-ზე
+// ერთნაირად ჩანს და მხოლოდ მაშინ იშლება, როცა მომხმარებელი თავად
+// დააჭერს "ყველას გასუფთავებას" (იხ. clearNotifications(), რომელიც
+// DELETE /notifications/clear-all-საც უძახებს).
+//
+// localStorage აქ მხოლოდ ლოკალურ cache-ად გამოიყენება — socket-ის
+// დაკავშირებამდე/-ის დროს სწრაფად, ქსელის გარეშეც, რომ სია მაშინვე
+// გამოჩნდეს ეკრანზე; ის ყოველთვის გადაიწერება ბაზიდან მოსული
+// ახალი მონაცემებით (იხ. loadNotificationHistory()).
+const NOTIFICATIONS_STORAGE_PREFIX = 'gz_notifications_';
+
+// ==============================================================
 // INIT RETRY CONFIG
 // ==============================================================
 // თუ ავტორიზაციის token ჯერ არ არის მზად (constructor-ი socket-ის
@@ -119,6 +139,16 @@ export class SocketNotificationService {
 
   private notifications$ =
     new BehaviorSubject<NotificationData[]>([]);
+
+  // ✅ ცალკე მთვლელი notifications-სიისთვის (offer/request-ები),
+  // რომ ბეჯზე ის რიცხვი ეწეროს, რაც დროფდაუნშიც ჩანს —
+  // unreadCount$ (ქვემოთ) ჩატის წაუკითხავ მესიჯებს ითვლის და
+  // ცალკე დანიშნულებისთვის რჩება უცვლელი.
+  private notificationsUnreadCount$ =
+    new BehaviorSubject<number>(0);
+
+  private notificationToast$ =
+    new Subject<NotificationData>();
 
   private connectionStatus$ =
     new BehaviorSubject<boolean>(false);
@@ -192,7 +222,8 @@ export class SocketNotificationService {
 
   constructor(
     private smsService: SmsVerificationService,
-    private chatService: ChatService
+    private chatService: ChatService,
+    private http: HttpClient
   ) {
     this.initializeSocket();
   }
@@ -287,6 +318,12 @@ export class SocketNotificationService {
       this.initRetryTimeout = null;
     }
 
+    // ✅ token/user უკვე ცნობილია — localStorage-დან აღვადგინოთ
+    // ადრე შენახული შეტყობინებები (თუ storage-ში რამე არის).
+    // ეს გამოსწორავს პრობლემას, როცა refresh-ის/საიტიდან გასვლა-
+    // შემოსვლის შემდეგ სია ცარიელდებოდა.
+    this.restoreNotificationsFromStorage();
+
     if (this.socket) {
 
       if (!this.socket.connected) {
@@ -361,6 +398,10 @@ export class SocketNotificationService {
       return;
     }
 
+    // ✅ login-ის შემდეგაც აღვადგინოთ ამ მომხმარებლის
+    // ადრე შენახული შეტყობინებები storage-დან.
+    this.restoreNotificationsFromStorage();
+
     if (!this.socket) {
 
       this.initializeSocket();
@@ -404,6 +445,10 @@ export class SocketNotificationService {
 
         // conversations განვაახლოთ
         this.loadConversationsFromServer();
+
+        // ✅ notifications ბაზიდან ვტვირთავთ (/recent) — ბაზა
+        // არის source of truth ნებისმიერ device-ზე
+        this.loadNotificationHistory();
 
         // თუ ჩატი გახსნილი იყო,
         // ისევ შევუერთდეთ ოთახს
@@ -691,6 +736,18 @@ export class SocketNotificationService {
 
         this.notifications$.next(
           updated
+        );
+
+        // ✅ ვინახავთ localStorage-ში, რომ refresh-მაც
+        // არ წაშალოს
+        this.persistNotifications(
+          updated
+        );
+
+        this.recalculateNotificationsUnreadCount();
+
+        this.notificationToast$.next(
+          data
         );
 
         this.showPushNotification(
@@ -2143,16 +2200,235 @@ export class SocketNotificationService {
 
   clearNotifications(): void {
 
+    // ოპტიმისტურად ვასუფთავებთ ეკრანზე მაშინვე
     this.notifications$.next(
       []
     );
+
+    this.notificationsUnreadCount$.next(
+      0
+    );
+
+    // ✅ storage-იდანაც ვშლით — ეს ერთადერთი ადგილია,
+    // საიდანაც შეტყობინებების სია ლოკალურად საბოლოოდ იშლება.
+    this.clearNotificationsStorage();
+
+    // ✅ ბაზიდანაც ვშლით — რომ სხვა device/browser-ებზეც
+    // გაქრეს, რადგან ბაზა არის source of truth.
+    this.http.delete<{ success: boolean }>(
+      `${environment.apiUrl}/notifications/clear-all`
+    )
+      .pipe(take(1))
+      .subscribe({
+        error: error => {
+          console.error(
+            '❌ clear-all API error:',
+            error
+          );
+        }
+      });
   }
 
+  // ✅ ჩატის (message) წაუკითხავი მესიჯების მთვლელის გასუფთავება —
+  // ცალკეა notifications-სიისგან, სხვა ადგილას თუ გამოიყენება.
   resetUnreadCount(): void {
 
     this.unreadCount$.next(
       0
     );
+  }
+
+  // ✅ NEW — notifications-სიის (offer/request და ა.შ.) ბეჯის
+  // გასუფთავება: badge ნულდება, notification-ები ბაზაშიც
+  // "seen"-ად აღინიშნება (რომ სხვა device-ზეც აღარ ითვლებოდეს
+  // unread-ად), მაგრამ სია თავად ეკრანიდან **არ** ქრება —
+  // მხოლოდ clearNotifications()-ს შეუძლია სიის წაშლა.
+  resetNotificationsUnreadCount(): void {
+
+    const unseenIds = this.notifications$.value
+      .filter(item => item.seen !== true)
+      .map(item => item._id)
+      .filter((id): id is string => !!id);
+
+    if (unseenIds.length > 0) {
+
+      const updated = this.notifications$.value.map(item =>
+        item._id && unseenIds.includes(item._id)
+          ? { ...item, seen: true }
+          : item
+      );
+
+      this.notifications$.next(updated);
+
+      this.persistNotifications(updated);
+    }
+
+    this.notificationsUnreadCount$.next(
+      0
+    );
+
+    this.markNotificationsSeen(unseenIds);
+  }
+
+  // ============================================================
+  // NOTIFICATIONS PERSISTENCE (localStorage)
+  // ============================================================
+  // ✅ ახალი — შეტყობინებების სია ინახება localStorage-ში,
+  // მიმდინარე მომხმარებლის ID-ზე მიბმულ key-ზე. ეს უზრუნველყოფს,
+  // რომ გვერდის refresh-ის ან საიტიდან გასვლა-შემოსვლის შემდეგაც
+  // შეტყობინებები ადგილზე დარჩეს — მათი წაშლა მხოლოდ
+  // clearNotifications()-ის (ანუ "ყველას გასუფთავება" ღილაკის)
+  // მეშვეობით ხდება.
+  // ============================================================
+
+  private getNotificationsStorageKey(): string | null {
+
+    const userId =
+      this.getCurrentUserId();
+
+    if (!userId) {
+      return null;
+    }
+
+    return `${NOTIFICATIONS_STORAGE_PREFIX}${userId}`;
+  }
+
+  private restoreNotificationsFromStorage(): void {
+
+    if (
+      typeof window === 'undefined' ||
+      !window.localStorage
+    ) {
+      return;
+    }
+
+    const key =
+      this.getNotificationsStorageKey();
+
+    if (!key) {
+      return;
+    }
+
+    try {
+
+      const raw =
+        window.localStorage.getItem(key);
+
+      if (!raw) {
+        return;
+      }
+
+      const parsed: NotificationData[] =
+        JSON.parse(raw);
+
+      if (
+        !Array.isArray(parsed) ||
+        parsed.length === 0
+      ) {
+        return;
+      }
+
+      // მიმდინარე (მეხსიერებაში უკვე არსებული) შეტყობინებები
+      // პრიორიტეტულია — storage-დან მხოლოდ იმ ჩანაწერებს
+      // დავამატებთ, რომლებიც ჯერ არ არის სიაში (id-ის მიხედვით)
+      const existingIds = new Set(
+        this.notifications$.value
+          .map(item => item._id)
+          .filter(Boolean)
+      );
+
+      const restored = parsed.filter(item =>
+        !item._id || !existingIds.has(item._id)
+      );
+
+      if (restored.length === 0) {
+        return;
+      }
+
+      const merged = [
+        ...this.notifications$.value,
+        ...restored
+      ].slice(
+        0,
+        MAX_STORED_NOTIFICATIONS
+      );
+
+      this.notifications$.next(
+        merged
+      );
+
+      this.recalculateNotificationsUnreadCount();
+
+    } catch (error) {
+
+      console.warn(
+        '⚠️ notifications storage restore error:',
+        error
+      );
+    }
+  }
+
+  private persistNotifications(
+    list: NotificationData[]
+  ): void {
+
+    if (
+      typeof window === 'undefined' ||
+      !window.localStorage
+    ) {
+      return;
+    }
+
+    const key =
+      this.getNotificationsStorageKey();
+
+    if (!key) {
+      return;
+    }
+
+    try {
+
+      window.localStorage.setItem(
+        key,
+        JSON.stringify(list)
+      );
+
+    } catch (error) {
+
+      console.warn(
+        '⚠️ notifications storage persist error:',
+        error
+      );
+    }
+  }
+
+  private clearNotificationsStorage(): void {
+
+    if (
+      typeof window === 'undefined' ||
+      !window.localStorage
+    ) {
+      return;
+    }
+
+    const key =
+      this.getNotificationsStorageKey();
+
+    if (!key) {
+      return;
+    }
+
+    try {
+
+      window.localStorage.removeItem(key);
+
+    } catch (error) {
+
+      console.warn(
+        '⚠️ notifications storage clear error:',
+        error
+      );
+    }
   }
 
   // ============================================================
@@ -2180,10 +2456,37 @@ export class SocketNotificationService {
       .asObservable();
   }
 
+  /**
+   * ✅ NEW: ცალკეული ("ახალი ჩამოვარდნილი") შეტყობინების stream —
+   * გამოსადეგია toast/push კომპონენტისთვის, რომელსაც არ სურს
+   * მთელი დაგროვილი სიის დამუშავება, არამედ მხოლოდ ახლახან
+   * მოსული ერთი შეტყობინების ჩვენება ეკრანზე.
+   */
+  getNotificationToast():
+    Observable<NotificationData> {
+
+    return this.notificationToast$
+      .asObservable();
+  }
+
   getUnreadCount():
     Observable<number> {
 
     return this.unreadCount$
+      .asObservable();
+  }
+
+  /**
+   * ✅ NEW: notifications-სიის (offer/request და ა.შ.) წაუნახავი
+   * ჩანაწერების რაოდენობა — ეს არის ის, რაც ბეჯზე უნდა ეწეროს,
+   * რომ ბეჯზე დაწერილი რიცხვი ზუსტად დროფდაუნში ნანახ სიას
+   * შეესაბამებოდეს. getUnreadCount() კი ჩატის წაუკითხავ
+   * მესიჯებს ითვლის — ცალკე დანიშნულებაა.
+   */
+  getNotificationsUnreadCount():
+    Observable<number> {
+
+    return this.notificationsUnreadCount$
       .asObservable();
   }
 
@@ -2942,6 +3245,22 @@ export class SocketNotificationService {
   }
 
   // ============================================================
+  // NOTIFICATIONS UNREAD (offer/request-ები, ჩატისგან დამოუკიდებელი)
+  // ============================================================
+
+  private recalculateNotificationsUnreadCount(): void {
+
+    const count =
+      this.notifications$.value.filter(
+        item => item.seen !== true
+      ).length;
+
+    this.notificationsUnreadCount$.next(
+      count
+    );
+  }
+
+  // ============================================================
   // DEDUPE
   // ============================================================
 
@@ -3063,6 +3382,67 @@ export class SocketNotificationService {
   }// ============================================================
 // ENSURE CONNECTED (ახალი მეთოდი)
 // ============================================================
+
+private loadNotificationHistory(): void {
+  // ✅ /recent აბრუნებს ბოლო 30 შეტყობინებას (seen/unseen ერთად) —
+  // ბაზა არის source of truth ნებისმიერ device-ზე, ამიტომ სია
+  // მთლიანად ამის მიხედვით ვანახლებთ, localStorage კი მხოლოდ
+  // fallback/cache-ის როლს ასრულებს სწრაფი პირველადი ჩვენებისთვის.
+  //
+  // ⚠️ მნიშვნელოვანი: აქ აღარ ვნიშნავთ ავტომატურად "seen"-ად —
+  // seen-ად მონიშვნა ხდება მხოლოდ მაშინ, როცა მომხმარებელი თავად
+  // გახსნის შეტყობინებების დროფდაუნს (resetNotificationsUnreadCount()).
+  // წინააღმდეგ შემთხვევაში ბეჯი ყოველ reconnect-ზე/refresh-ზე
+  // ნულდებოდა, თუნდაც მომხმარებელს არაფერი ენახა.
+  this.http.get<{ success: boolean; notifications: NotificationData[] }>(
+    `${environment.apiUrl}/notifications/recent`
+  ).pipe(take(1)).subscribe({
+    next: res => {
+      if (!res?.success || !Array.isArray(res.notifications)) {
+        return;
+      }
+
+      const serverList = res.notifications.slice(0, MAX_STORED_NOTIFICATIONS);
+
+      // toast-ისთვის: ვნახოთ რომელი ჩანაწერი ნამდვილად ახალია
+      // (აქამდე ლოკალურად/cache-ში საერთოდ არ გვინახავს)
+      const previousIds = new Set(
+        this.notifications$.value.map(item => item._id).filter(Boolean)
+      );
+
+      const brandNew = serverList.filter(
+        item => item._id && !previousIds.has(item._id) && item.seen === false
+      );
+
+      this.notifications$.next(serverList);
+
+      // ✅ ვინახავთ localStorage-ში (cache შემდეგი სწრაფი ჩატვირთვისთვის)
+      this.persistNotifications(serverList);
+
+      this.recalculateNotificationsUnreadCount();
+
+      brandNew.forEach(item => this.notificationToast$.next(item));
+    },
+
+    error: error => {
+      console.error('❌ notifications history API error:', error);
+    }
+  });
+}
+
+private markNotificationsSeen(ids: string[]): void {
+  if (!ids.length) {
+    return;
+  }
+
+  this.http.put(`${environment.apiUrl}/notifications/mark-seen`, { ids })
+    .pipe(take(1))
+    .subscribe({
+      error: error => console.error('❌ mark-seen API error:', error)
+    });
+}
+
+
 
 ensureConnected(): void {
   const token = this.smsService.getAuthToken();

@@ -1,475 +1,1775 @@
-// ====================================
-// Color Variables
-// ====================================
-$primary-blue: #1e40af;
-$primary-blue-light: #3b82f6;
-$primary-blue-dark: #1d4ed8;
-$secondary-orange: #f97316;
-$secondary-orange-light: #ff6b35;
-$secondary-orange-medium: #f7931e;
+/* =========================================================
+   NAVBAR VARIABLES
+   ========================================================= */
 
-$text-dark: #1a202c;
-$text-gray-dark: #4a5568;
-$text-gray: #4b5563;
-$text-gray-light: #cbd5e0;
+:host {
+  --nav-deep: #09131f;
+  --nav-blue: #122c4d;
+  --nav-blue-light: #4ea1ff;
 
-$bg-white: #ffffff;
-$bg-light: #f8f9ff;
-$bg-gray-light: #f7fafc;
-$bg-gray: #f3f4f6;
+  --nav-orange: #ff5f29;
+  --nav-orange-light: #ff8b54;
 
-$border-light: #e2e8f0;
-$border-lighter: #e5e7eb;
+  --nav-white: #f8fafc;
+  --nav-muted: #b7c3d4;
 
-$shadow-color-blue: rgba(30, 64, 175, 0.05);
-$shadow-color-orange: rgba(249, 115, 22, 0.25);
+  --nav-border: rgba(255, 255, 255, 0.11);
 
-// ====================================
-// Typography & Transitions
-// ====================================
-$font-stack: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif;
-$font-weight-medium: 500;
-$font-weight-semibold: 600;
-$font-weight-bold: 700;
-$font-weight-extrabold: 800;
+  display: block;
 
-$transition-fast: all 0.2s ease;
-$transition-default: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
 
-// ====================================
-// Mixins
-// ====================================
-@mixin flex-center {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  z-index: 1000;
 }
 
-@mixin flex-between {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+
+* {
+  box-sizing: border-box;
 }
 
-@mixin button-base {
-  font-family: inherit;
-  border: none;
+
+/* =========================================================
+   MAIN NAVBAR
+   ========================================================= */
+
+.navbar {
+  position: sticky;
+
+  top: 0;
+
+  z-index: 1000;
+
+  width: 100%;
+
+  min-height: 82px;
+
+  overflow: visible;
+
+  isolation: isolate;
+
+  color: var(--nav-white);
+
+  background:
+    linear-gradient(
+      105deg,
+      #2a1a2b 0%,
+      #131a31 38%,
+      #0d2639 72%,
+      #0a3345 100%
+    );
+
+  border-bottom:
+    1px solid
+    rgba(255, 255, 255, 0.09);
+
+  box-shadow:
+    0 15px 35px
+    rgba(0, 0, 0, 0.20);
+}
+
+
+/* =========================================================
+   BACKGROUND PATTERN
+   ========================================================= */
+
+.navbar__pattern {
+  position: absolute;
+
+  inset: 0;
+
+  z-index: -2;
+
+  opacity: 0.20;
+
+  pointer-events: none;
+
+  background-image:
+    radial-gradient(
+      circle at 1px 1px,
+      rgba(255, 255, 255, 0.36) 1px,
+      transparent 1.4px
+    );
+
+  background-size: 23px 23px;
+
+  mask-image:
+    linear-gradient(
+      to bottom,
+      #000,
+      transparent
+    );
+}
+
+
+/* =========================================================
+   GLOW
+   ========================================================= */
+
+.navbar__glow {
+  position: absolute;
+
+  z-index: -1;
+
+  width: 260px;
+
+  height: 190px;
+
+  border-radius: 50%;
+
+  opacity: 0.16;
+
+  filter: blur(70px);
+
+  pointer-events: none;
+}
+
+
+.navbar__glow--orange {
+  top: -125px;
+
+  left: 8%;
+
+  background:
+    var(--nav-orange);
+}
+
+
+.navbar__glow--blue {
+  top: -125px;
+
+  right: 9%;
+
+  background:
+    #2688e6;
+}
+
+
+/* =========================================================
+   NAVBAR INNER
+   ========================================================= */
+
+.navbar__inner {
+  position: relative;
+
+  /* FIX: raised from 10 to 1010 so this stacking context (and
+     everything inside it — nav-menu, menu-toggle) sits above
+     .nav-backdrop (1001) and .road (20). Previously this was 10,
+     which meant the whole inner block — including the open mobile
+     menu — lost the stacking comparison to the backdrop and got
+     visually covered/blurred by it, and also ate all its clicks. */
+  z-index: 1010;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 24px;
+
+  width:
+    min(
+      1440px,
+      calc(100% - 48px)
+    );
+
+  min-height: 82px;
+
+  margin: 0 auto;
+}
+
+
+/* =========================================================
+   BRAND
+   ========================================================= */
+
+.brand {
+  display: inline-flex;
+
+  align-items: center;
+
+  flex: 0 0 auto;
+
+  gap: 10px;
+
+  color:
+    var(--nav-white);
+
+  text-decoration: none;
+
   cursor: pointer;
-  transition: $transition-default;
-  @include flex-center;
-  font-weight: $font-weight-semibold;
-  letter-spacing: 0.3px;
+
+  transition:
+    transform 180ms ease;
+}
+
+
+.brand:hover {
+  transform:
+    translateY(-2px);
+}
+
+
+.brand__mark {
+  display: grid;
+
+  width: 43px;
+
+  height: 43px;
+
+  place-items: center;
+
+  color: white;
+
+  background:
+    linear-gradient(
+      135deg,
+      var(--nav-orange-light),
+      var(--nav-orange)
+    );
+
+  border:
+    1px solid
+    rgba(255, 255, 255, 0.20);
+
+  border-radius: 14px;
+
+  box-shadow:
+    0 8px 20px
+    rgba(255, 95, 41, 0.26),
+
+    inset 0 1px 0
+    rgba(255, 255, 255, 0.22);
+}
+
+
+.brand__mark svg {
+  width: 25px;
+
+  height: 25px;
+}
+
+
+.brand__text {
+  font-size: 22px;
+
+  font-weight: 900;
+
+  letter-spacing: -0.8px;
+}
+
+
+.brand__text span {
+  color:
+    var(--nav-orange-light);
+}
+
+
+/* =========================================================
+   NAV MENU
+   ========================================================= */
+
+.nav-menu {
+  display: flex;
+
+  flex: 1;
+
+  align-items: center;
+
+  min-width: 0;
+}
+
+
+.nav-links {
+  display: flex;
+
+  align-items: center;
+
+  gap: 4px;
+
+  margin: 0 auto;
+
+  padding: 0;
+
+  list-style: none;
+}
+
+
+.nav-links a {
+  position: relative;
+
+  display: inline-flex;
+
+  align-items: center;
+
+  gap: 7px;
+
+  min-height: 42px;
+
+  padding: 0 12px;
+
+  overflow: hidden;
+
+  color:
+    var(--nav-muted);
+
+  font-size: 13px;
+
+  font-weight: 800;
+
+  text-decoration: none;
+
+  white-space: nowrap;
+
+  border-radius: 11px;
+
+  transition:
+    color 180ms ease,
+    background 180ms ease,
+    transform 180ms ease;
+}
+
+
+.nav-links a::after {
+  position: absolute;
+
+  right: 13px;
+
+  bottom: 5px;
+
+  left: 13px;
+
+  height: 2px;
+
+  content: "";
+
+  background:
+    var(--nav-orange-light);
+
+  border-radius: 999px;
+
+  transform:
+    scaleX(0);
+
+  transition:
+    transform 220ms ease;
+}
+
+
+.nav-links a:hover,
+.nav-links a.active {
+  color: white;
+
+  background:
+    rgba(255, 255, 255, 0.08);
+}
+
+
+.nav-links a:hover {
+  transform:
+    translateY(-2px);
+}
+
+
+.nav-links a:hover::after,
+.nav-links a.active::after {
+  transform:
+    scaleX(1);
+}
+
+
+.nav-links__icon {
+  display: grid;
+
+  width: 19px;
+
+  height: 19px;
+
+  place-items: center;
+
+  color:
+    var(--nav-orange-light);
+
+  font-size: 16px;
+
+  font-weight: 900;
+}
+
+
+/* =========================================================
+   DESKTOP ACTIONS
+   ========================================================= */
+
+.desktop-actions {
+  display: flex;
+
+  align-items: center;
+
+  flex: 0 0 auto;
+
+  gap: 8px;
+}
+
+
+.desktop-listings,
+.desktop-login,
+.desktop-register,
+.desktop-ride,
+.notification-button,
+.profile-avatar-button {
+  font: inherit;
+
+  cursor: pointer;
+
+  transition:
+    transform 180ms ease,
+    background 180ms ease,
+    box-shadow 180ms ease;
+}
+
+
+/* =========================================================
+   ALL LISTINGS
+   ========================================================= */
+
+.desktop-listings {
+  display: inline-flex;
+
+  align-items: center;
+
+  gap: 8px;
+
+  min-height: 40px;
+
+  padding: 0 13px;
+
+  color: white;
+
+  background:
+    rgba(255, 255, 255, 0.07);
+
+  border:
+    1px solid
+    rgba(255, 255, 255, 0.12);
+
+  border-radius: 999px;
+
+  font-size: 12px;
+
+  font-weight: 850;
+}
+
+
+.desktop-listings:hover {
+  background:
+    rgba(255, 255, 255, 0.13);
+
+  transform:
+    translateY(-2px);
+}
+
+
+.desktop-listings__dot {
+  width: 7px;
+
+  height: 7px;
+
+  background:
+    #57d88a;
+
+  border-radius: 50%;
+
+  box-shadow:
+    0 0 0 4px
+    rgba(87, 216, 138, 0.13);
+
+  animation:
+    nav-pulse
+    1.8s
+    ease-in-out
+    infinite;
+}
+
+
+/* =========================================================
+   LOGIN
+   ========================================================= */
+
+.desktop-login {
+  min-height: 40px;
+
+  padding: 0 11px;
+
+  color:
+    var(--nav-muted);
+
+  background: transparent;
+
+  border: 0;
+
+  font-size: 13px;
+
+  font-weight: 800;
+}
+
+
+.desktop-login:hover {
+  color: white;
+
+  transform:
+    translateY(-1px);
+}
+
+
+/* =========================================================
+   REGISTER
+   ========================================================= */
+
+.desktop-register {
+  min-height: 40px;
+
+  padding: 0 15px;
+
+  color: white;
+
+  background:
+    linear-gradient(
+      135deg,
+      var(--nav-orange-light),
+      var(--nav-orange)
+    );
+
+  border: 0;
+
+  border-radius: 11px;
+
+  box-shadow:
+    0 8px 18px
+    rgba(255, 95, 41, 0.20);
+
+  font-size: 13px;
+
+  font-weight: 850;
+}
+
+
+.desktop-register:hover {
+  box-shadow:
+    0 12px 25px
+    rgba(255, 95, 41, 0.32);
+
+  transform:
+    translateY(-2px);
+}
+
+
+/* =========================================================
+   RIDE
+   ========================================================= */
+
+.desktop-ride {
+  min-height: 40px;
+
+  padding: 0 13px;
+
+  color:
+    #dcecff;
+
+  background:
+    rgba(49, 116, 232, 0.22);
+
+  border:
+    1px solid
+    rgba(104, 170, 255, 0.25);
+
+  border-radius: 11px;
+
+  font-size: 13px;
+
+  font-weight: 850;
+}
+
+
+.desktop-ride:hover {
+  background:
+    rgba(49, 116, 232, 0.38);
+
+  transform:
+    translateY(-2px);
+}
+
+
+/* =========================================================
+   NOTIFICATION
+   ========================================================= */
+
+.notification-wrapper {
+  position: relative;
+}
+
+
+.notification-button {
+  position: relative;
+
+  display: grid;
+
+  width: 40px;
+
+  height: 40px;
+
+  padding: 0;
+
+  place-items: center;
+
+  color:
+    #dce7f4;
+
+  background:
+    rgba(255, 255, 255, 0.07);
+
+  border:
+    1px solid
+    var(--nav-border);
+
+  border-radius: 11px;
+}
+
+
+.notification-button:hover {
+  color: white;
+
+  background:
+    rgba(255, 255, 255, 0.13);
+
+  transform:
+    translateY(-2px);
+}
+
+
+.notification-button svg {
+  width: 20px;
+
+  height: 20px;
+}
+
+
+.notification-badge {
+  position: absolute;
+
+  top: -6px;
+
+  right: -6px;
+
+  display: grid;
+
+  min-width: 18px;
+
+  height: 18px;
+
+  padding: 0 4px;
+
+  place-items: center;
+
+  color: white;
+
+  background:
+    var(--nav-orange);
+
+  border:
+    2px solid
+    #122137;
+
+  border-radius: 999px;
+
+  font-size: 10px;
+
+  font-weight: 900;
+}
+
+
+/* =========================================================
+   PROFILE
+   ========================================================= */
+
+.profile-avatar-button {
+  display: grid;
+
+  width: 42px;
+
+  height: 42px;
+
+  padding: 2px;
+
+  place-items: center;
+
+  color: white;
+
+  background:
+    linear-gradient(
+      135deg,
+      #60b2ff,
+      #2563eb
+    );
+
+  border: 0;
+
+  border-radius: 50%;
+
+  box-shadow:
+    0 8px 18px
+    rgba(37, 99, 235, 0.26);
+}
+
+
+.profile-avatar-button span {
+  display: grid;
+
+  width: 100%;
+
+  height: 100%;
+
+  place-items: center;
+
+  background:
+    #15263d;
+
+  border:
+    1px solid
+    rgba(255, 255, 255, 0.17);
+
+  border-radius: inherit;
+
+  font-size: 12px;
+
+  font-weight: 900;
+}
+
+
+.profile-avatar-button:hover {
+  transform:
+    translateY(-2px)
+    rotate(3deg);
+}
+
+
+/* =========================================================
+   NOTIFICATION DROPDOWN
+   ========================================================= */
+
+.notification-dropdown {
+  position: absolute;
+
+  top:
+    calc(100% + 14px);
+
+  right: 0;
+
+  width:
+    min(
+      370px,
+      calc(100vw - 26px)
+    );
+
+  overflow: hidden;
+
+  color: white;
+
+  background:
+    rgba(15, 27, 46, 0.98);
+
+  border:
+    1px solid
+    rgba(255, 255, 255, 0.13);
+
+  border-radius: 18px;
+
+  box-shadow:
+    0 25px 55px
+    rgba(0, 0, 0, 0.35);
+
+  animation:
+    dropdown-enter
+    180ms ease both;
+}
+
+
+.notification-dropdown__header,
+.notification-dropdown__footer {
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  padding: 15px 17px;
+}
+
+
+.notification-dropdown__header {
+  border-bottom:
+    1px solid
+    rgba(255, 255, 255, 0.08);
+}
+
+
+.notification-dropdown__header h4 {
+  margin: 0;
+
+  font-size: 15px;
+
+  font-weight: 850;
+}
+
+
+.notification-dropdown__clear,
+.notification-dropdown__footer button {
+  padding: 0;
+
+  color:
+    var(--nav-orange-light);
+
+  background: transparent;
+
+  border: 0;
+
+  font: inherit;
+
+  font-size: 12px;
+
+  font-weight: 800;
+
+  cursor: pointer;
+}
+
+
+.notification-dropdown__list {
+  max-height: 335px;
+
+  overflow-y: auto;
+}
+
+
+.notification-item {
+  display: flex;
+
+  align-items: flex-start;
+
+  gap: 11px;
+
+  width: 100%;
+
+  padding: 13px 16px;
+
+  color: white;
+
+  text-align: left;
+
+  background: transparent;
+
+  border: 0;
+
+  border-bottom:
+    1px solid
+    rgba(255, 255, 255, 0.06);
+
+  cursor: pointer;
+}
+
+
+.notification-item:hover {
+  background:
+    rgba(255, 255, 255, 0.06);
+}
+
+
+.notification-item__icon {
+  display: grid;
+
+  flex: 0 0 auto;
+
+  width: 31px;
+
+  height: 31px;
+
+  place-items: center;
+
+  color: white;
+
+  border-radius: 10px;
+
+  font-size: 15px;
+
+  font-weight: 900;
+}
+
+
+.notification-item__icon--orange {
+  background:
+    #e87335;
+}
+
+
+.notification-item__icon--teal {
+  background:
+    #0f9f90;
+}
+
+
+.notification-item__icon--navy {
+  background:
+    #365886;
+}
+
+
+.notification-item__icon--red {
+  background:
+    #db4b55;
+}
+
+
+.notification-item__icon--blue {
+  background:
+    #377ce5;
+}
+
+
+.notification-item__icon--green {
+  background:
+    #2f9f70;
+}
+
+
+.notification-item__body {
+  display: grid;
+
+  gap: 3px;
+
+  min-width: 0;
+}
+
+
+.notification-item__body strong {
+  font-size: 13px;
+
+  font-weight: 800;
+}
+
+
+.notification-item__body span {
+  overflow: hidden;
+
+  color:
+    var(--nav-muted);
+
+  font-size: 12px;
+
+  text-overflow: ellipsis;
+
   white-space: nowrap;
 }
 
-@mixin transition-transform-hover {
-  &:hover { transform: translateY(-2px); }
-  &:active { transform: translateY(0); }
+
+.notification-item__body small {
+  color:
+    #7790aa;
+
+  font-size: 10px;
 }
 
-@mixin glass-effect {
-  background: rgba($bg-white, 0.95);
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba($border-light, 0.7);
-}
 
-@mixin underline-animation {
-  position: relative;
-  &::after {
-    content: '';
-    position: absolute;
-    bottom: -2px;
-    left: 0;
-    width: 0;
-    height: 2.5px;
-    background: linear-gradient(90deg, $primary-blue 0%, $primary-blue-light 100%);
-    transition: width 0.3s ease;
-    border-radius: 2px;
-  }
-  &:hover::after, &.active::after { width: 100%; }
-  &:hover, &.active { color: $primary-blue; }
-  &.active { font-weight: $font-weight-bold; }
-}
+.notification-item__dot {
+  flex: 0 0 auto;
 
-// ====================================
-// Navbar Container & Layout
-// ====================================
-.navbar {
-  @include glass-effect;
-  position: fixed;
-  top: 20px; left: 20px; right: 20px;
-  z-index: 1000;
-  border-radius: 20px;
-  box-shadow: 0 10px 30px $shadow-color-blue;
-  font-family: $font-stack;
-  transition: $transition-default;
-  // 🛠️ overflow: hidden აქედან მოვხსენით — ის კლიპავდა mobile dropdown მენიუს
-  // (.nav-wrapper.active), რომელიც ნავბარის ქვემოთ, position:absolute-ით იხსნება.
-  // კლიპვა ახლა მხოლოდ .nav-road-ზეა გადატანილი, სადაც საწყისად იყო საჭირო.
+  width: 6px;
 
-  @media (max-width: 1024px) { top: 12px; left: 12px; right: 12px; border-radius: 16px; }
-  @media (max-width: 480px) { top: 8px; left: 8px; right: 8px; border-radius: 14px; }
-}
+  height: 6px;
 
-.nav-container {
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 14px 32px;
-  @include flex-between;
-  gap: 24px;
+  margin-top: 5px;
 
-  @media (max-width: 1024px) { padding: 12px 20px; }
-}
+  margin-left: auto;
 
-// ====================================
-// Logo
-// ====================================
-.logo {
-  @include flex-center;
-  gap: 10px;
-  cursor: pointer;
-  user-select: none;
-  flex-shrink: 0;
-  transition: $transition-default;
+  background:
+    var(--nav-orange-light);
 
-  &:hover {
-    transform: translateY(-1px);
-    .logo-icon-box {
-      transform: scale(1.05) rotate(-3deg);
-      box-shadow: 0 6px 20px rgba($secondary-orange-light, 0.3);
-    }
-  }
-}
-
-.logo-icon-box {
-  width: 38px; height: 38px;
-  background: linear-gradient(135deg, $secondary-orange-light 0%, $secondary-orange-medium 100%);
-  border-radius: 10px;
-  @include flex-center;
-  box-shadow: 0 4px 14px rgba($secondary-orange-light, 0.2);
-  transition: $transition-default;
-
-  @media (max-width: 1024px) { width: 34px; height: 34px; border-radius: 8px; }
-}
-
-.arrow-icon {
-  width: 18px; height: 18px;
-  color: $bg-white;
-  @media (max-width: 1024px) { width: 16px; height: 16px; }
-}
-
-.logo-text {
-  font-size: 17px;
-  font-weight: $font-weight-extrabold;
-  letter-spacing: -0.3px;
-  color: $text-dark;
-
-  @media (max-width: 1024px) { font-size: 15px; }
-  @media (max-width: 380px) { font-size: 14px; }
-
-  .highlight {
-    color: $primary-blue;
-    font-weight: $font-weight-semibold;
-    margin-left: 1px;
-  }
-}
-
-// ====================================
-// Nav Wrapper (Desktop vs Mobile layout)
-// ====================================
-.nav-wrapper {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex: 1;
-
-  /* 🛠️ შეცვლილია 768px-დან 1024px-მდე, რათა 989px-ზე იდეალურად გაიხსნას ბურგერ მენიუ */
-  @media (max-width: 1024px) {
-    display: none; 
-    position: absolute;
-    top: calc(100% + 10px);
-    left: 0; right: 0;
-    background: $bg-white;
-    border-radius: 16px;
-    padding: 24px;
-    box-shadow: 0 15px 35px rgba($primary-blue, 0.1);
-    border: 1px solid $border-light;
-    flex-direction: column;
-    gap: 20px;
-    align-items: stretch;
-    z-index: 999;
-
-    &.active {
-      display: flex; 
-    }
-  }
-}
-
-// ====================================
-// Navigation Links
-// ====================================
-.nav-links {
-  display: flex;
-  list-style: none;
-  gap: 32px;
-  margin: 0; padding: 0;
-
-  @media (max-width: 1200px) { gap: 20px; }
-
-  @media (max-width: 1024px) {
-    flex-direction: column;
-    gap: 16px;
-    align-items: center;
-    border-bottom: 1px solid $border-light;
-    padding-bottom: 16px;
-  }
-
-  a {
-    text-decoration: none;
-    color: $text-gray-dark;
-    font-size: 14px;
-    font-weight: $font-weight-medium;
-    padding: 6px 0;
-    display: inline-block;
-    @include underline-animation;
-  }
-}
-
-// ====================================
-// Navigation Actions & Buttons
-// ====================================
-.nav-actions {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-
-  @media (max-width: 1024px) {
-    flex-direction: column;
-    gap: 12px;
-    width: 100%;
-  }
-}
-
-.btn {
-  @include button-base;
-  padding: 10px 20px;
-  font-size: 13px;
-  border-radius: 12px;
-
-  @media (max-width: 1024px) {
-    width: 100%;
-    padding: 12px;
-  }
-
-  &-signin {
-    background: transparent;
-    color: $text-gray-dark;
-    border: 1.5px solid $border-light;
-    @include transition-transform-hover;
-
-    &:hover {
-      background-color: $bg-gray-light;
-      border-color: $text-gray-light;
-    }
-  }
-
-  &-register {
-    background: transparent;
-    color: $secondary-orange;
-    border: 2px solid $secondary-orange;
-    @include transition-transform-hover;
-
-    &:hover {
-      background: $secondary-orange;
-      color: $bg-white;
-      box-shadow: 0 6px 16px $shadow-color-orange;
-    }
-  }
-
-  &-primary {
-    background: linear-gradient(135deg, $primary-blue 0%, $primary-blue-dark 100%);
-    color: $bg-white;
-    box-shadow: 0 4px 12px rgba($primary-blue, 0.15);
-    @include transition-transform-hover;
-
-    &:hover {
-      box-shadow: 0 6px 16px rgba($primary-blue, 0.25);
-    }
-  }
-
-  &-secondary {
-    background: transparent;
-    color: $secondary-orange;
-    border: 2px solid $secondary-orange;
-    @include transition-transform-hover;
-
-    &:hover {
-      background: $secondary-orange;
-      color: $bg-white;
-    }
-    
-    /* 🛠️ წავშალეთ ძველი შემზღუდავი მედია ქუერი, რომელიც მალავდა ღილაკს */
-    display: block; 
-  }
-}
-
-// ====================================
-// Profile Avatar
-// ====================================
-.profile-avatar-btn {
-  @include button-base;
-  background: none; padding: 0;
   border-radius: 50%;
-  @include transition-transform-hover;
 }
 
-.profile-avatar {
-  width: 38px; height: 38px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, $primary-blue 0%, $primary-blue-dark 100%);
-  color: $bg-white;
+
+.notification-dropdown__footer {
+  border-top:
+    1px solid
+    rgba(255, 255, 255, 0.08);
+}
+
+
+.notification-dropdown__empty {
+  padding: 32px 15px;
+
+  color:
+    var(--nav-muted);
+
+  text-align: center;
+
   font-size: 13px;
-  font-weight: $font-weight-bold;
-  @include flex-center;
-  border: 2px solid $bg-white;
-  box-shadow: 0 4px 12px rgba($primary-blue, 0.2);
 }
 
-// ====================================
-// Hamburger Menu
-// ====================================
-.hamburger {
-  display: none;
-  flex-direction: column;
-  gap: 5px;
-  background: none; border: none;
-  cursor: pointer;
-  padding: 6px;
-  z-index: 1001;
 
-  /* 🛠️ აქაც 768px-ის ნაცვლად ავწიეთ 1024px-ზე */
-  @media (max-width: 1024px) { display: flex; }
+/* =========================================================
+   🚗 ROAD
+   ========================================================= */
 
-  span {
-    width: 22px; height: 2px;
-    background-color: $text-dark;
-    border-radius: 2px;
-    transition: $transition-default;
-  }
-
-  &.active {
-    span:nth-child(1) { transform: rotate(45deg) translate(5px, 5px); }
-    span:nth-child(2) { opacity: 0; }
-    span:nth-child(3) { transform: rotate(-45deg) translate(5px, -5px); }
-  }
-}
-
-// ====================================
-// Animated Route — a small van drives across the bottom edge
-// ====================================
-.nav-road {
+.road {
   position: absolute;
-  left: 28px;
-  right: 28px;
-  bottom: 5px;
-  height: 12px;
+
+  right: 0;
+
+  bottom: 0;
+
+  left: 0;
+
+  z-index: 20;
+
+  height: 42px;
+
+  overflow: hidden;
+
   pointer-events: none;
-  overflow: hidden; // 🛠️ აქ გადმოვიტანეთ .navbar-დან — მანქანის ტრეკი ისევ იჭრება,
-                     // მაგრამ აღარ ეხება mobile dropdown მენიუს, რომელიც .navbar-ის
-                     // შვილი ელემენტია და ცალკე stacking-ში დგას.
-
-  @media (max-width: 1024px) {
-    left: 20px;
-    right: 20px;
-    bottom: 4px;
-    height: 10px;
-  }
-
-  @media (max-width: 480px) {
-    left: 14px;
-    right: 14px;
-    bottom: 3px;
-    height: 9px;
-  }
 }
 
-.nav-road__track {
+
+/* ROAD LIGHT LINE */
+
+.road__line {
   position: absolute;
-  left: 0; right: 0;
-  top: 50%;
+
+  right: 0;
+
+  bottom: 6px;
+
+  left: 0;
+
   height: 2px;
-  transform: translateY(-50%);
-  border-radius: 2px;
-  background-image: linear-gradient(
-    to right,
-    rgba($primary-blue-light, 0.4) 0 6px, transparent 6px 13px
-  );
-  background-size: 19px 2px;
-  background-repeat: repeat-x;
 
-  @media (max-width: 480px) {
-    background-image: linear-gradient(
-      to right,
-      rgba($primary-blue-light, 0.4) 0 4px, transparent 4px 9px
+  background:
+    linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255, 96, 39, 0.15) 8%,
+      rgba(255, 96, 39, 0.9) 22%,
+      rgba(78, 161, 255, 0.95) 50%,
+      rgba(255, 96, 39, 0.9) 78%,
+      rgba(255, 96, 39, 0.15) 92%,
+      transparent 100%
     );
-    background-size: 13px 2px;
-  }
+
+  box-shadow:
+    0 0 8px
+    rgba(78, 161, 255, 0.45),
+
+    0 0 14px
+    rgba(255, 96, 39, 0.25);
 }
 
-.nav-road__car-wrap {
+
+/* =========================================================
+   🚙 SMALL CAR
+   ========================================================= */
+
+.road__car {
   position: absolute;
-  top: 50%;
-  left: -6%;
-  transform: translateY(-50%);
-  animation: navRoadDrive 9s linear infinite;
 
-  @media (max-width: 1024px) { animation-duration: 7s; }
-  @media (max-width: 480px) { animation-duration: 5.5s; }
+  top: 4px;
+
+  left: -85px;
+
+  z-index: 30;
+
+  width: 70px;
+
+  height: 34px;
+
+  filter:
+    drop-shadow(
+      0 4px 5px
+      rgba(0, 0, 0, 0.45)
+    )
+
+    drop-shadow(
+      0 0 8px
+      rgba(78, 161, 255, 0.35)
+    );
+
+  animation:
+    drive-car
+    10s
+    linear
+    infinite;
+
+  will-change:
+    transform;
 }
 
-.nav-road__car {
+
+.road__car svg {
   display: block;
-  width: 26px;
-  height: 13px;
-  filter: drop-shadow(0 2px 3px rgba(30, 64, 175, 0.25));
-  animation: navRoadBounce 0.5s ease-in-out infinite;
 
-  @media (max-width: 1024px) { width: 20px; height: 10px; }
-  @media (max-width: 480px) { width: 16px; height: 8px; }
+  width: 100%;
+
+  height: 100%;
 }
 
-@keyframes navRoadDrive {
-  0%   { left: -6%; }
-  100% { left: 106%; }
+
+/* =========================================================
+   CAR LIGHT
+   ========================================================= */
+
+.road__car-light {
+  position: absolute;
+
+  top: 13px;
+
+  right: -11px;
+
+  width: 18px;
+
+  height: 4px;
+
+  opacity: 0.95;
+
+  background:
+    linear-gradient(
+      90deg,
+      rgba(255, 209, 102, 1),
+      rgba(255, 209, 102, 0)
+    );
+
+  filter:
+    blur(2px);
+
+  animation:
+    car-light
+    900ms
+    ease-in-out
+    infinite alternate;
 }
 
-@keyframes navRoadBounce {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-1px); }
+
+/* =========================================================
+   CAR MOVEMENT
+   ========================================================= */
+
+@keyframes drive-car {
+
+  0% {
+    transform:
+      translateX(-100px);
+  }
+
+  100% {
+    transform:
+      translateX(
+        calc(100vw + 110px)
+      );
+  }
+
 }
+
+
+/* =========================================================
+   HEADLIGHT ANIMATION
+   ========================================================= */
+
+@keyframes car-light {
+
+  from {
+    opacity: 0.55;
+
+    transform:
+      scaleX(0.8);
+  }
+
+  to {
+    opacity: 1;
+
+    transform:
+      scaleX(1.25);
+  }
+
+}
+
+
+/* =========================================================
+   PULSE
+   ========================================================= */
+
+@keyframes nav-pulse {
+
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 4px
+      rgba(87, 216, 138, 0.13);
+  }
+
+  50% {
+    box-shadow:
+      0 0 0 7px
+      rgba(87, 216, 138, 0.03);
+  }
+
+}
+
+
+/* =========================================================
+   DROPDOWN ANIMATION
+   ========================================================= */
+
+@keyframes dropdown-enter {
+
+  from {
+    opacity: 0;
+
+    transform:
+      translateY(-8px)
+      scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+
+    transform:
+      translateY(0)
+      scale(1);
+  }
+
+}
+
+
+/* =========================================================
+   DROPDOWN ANIMATION (OPENS UPWARD — MOBILE)
+   ========================================================= */
+
+@keyframes dropdown-enter-up {
+
+  from {
+    opacity: 0;
+
+    transform:
+      translateY(8px)
+      scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+
+    transform:
+      translateY(0)
+      scale(1);
+  }
+
+}
+
+
+/* =========================================================
+   HIDDEN MOBILE ELEMENTS
+   ========================================================= */
+
+.menu-toggle,
+.mobile-actions,
+.nav-backdrop {
+  display: none;
+}
+
+
+/* =========================================================
+   TABLET
+   ========================================================= */
+
+@media (max-width: 1220px) {
+
+  .navbar__inner {
+    gap: 14px;
+
+    width:
+      min(
+        1440px,
+        calc(100% - 32px)
+      );
+  }
+
+
+  .nav-links a {
+    padding: 0 8px;
+
+    font-size: 12px;
+  }
+
+
+  .desktop-listings {
+    display: none;
+  }
+
+}
+
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 960px) {
+
+  .navbar {
+    min-height: 72px;
+  }
+
+
+  .navbar__inner {
+    min-height: 72px;
+
+    width:
+      calc(100% - 28px);
+  }
+
+
+  .desktop-actions {
+    display: none;
+  }
+
+
+  /* HAMBURGER */
+
+  .menu-toggle {
+    position: relative;
+
+    z-index: 1003;
+
+    display: flex;
+
+    flex-direction: column;
+
+    justify-content: center;
+
+    gap: 5px;
+
+    width: 44px;
+
+    height: 44px;
+
+    margin-left: auto;
+
+    padding: 0 11px;
+
+    cursor: pointer;
+
+    background:
+      rgba(255, 255, 255, 0.08);
+
+    border:
+      1px solid
+      rgba(255, 255, 255, 0.15);
+
+    border-radius: 12px;
+  }
+
+
+  .menu-toggle span {
+    display: block;
+
+    width: 100%;
+
+    height: 2px;
+
+    background: white;
+
+    border-radius: 100px;
+
+    transition:
+      opacity 220ms ease,
+      transform 220ms ease;
+  }
+
+
+  .menu-toggle--active span:nth-child(1) {
+    transform:
+      translateY(7px)
+      rotate(45deg);
+  }
+
+
+  .menu-toggle--active span:nth-child(2) {
+    opacity: 0;
+  }
+
+
+  .menu-toggle--active span:nth-child(3) {
+    transform:
+      translateY(-7px)
+      rotate(-45deg);
+  }
+
+
+  /* MOBILE MENU */
+
+  .nav-menu {
+    position: fixed;
+
+    top: 0;
+
+    right: 0;
+
+    z-index: 1002;
+
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: stretch;
+
+    width:
+      min(
+        375px,
+        88vw
+      );
+
+    height: 100dvh;
+
+    padding:
+      92px 20px 28px;
+
+    overflow-y: auto;
+
+    background:
+      linear-gradient(
+        155deg,
+        #2b1c2c 0%,
+        #14203a 48%,
+        #092b3b 100%
+      );
+
+    border-left:
+      1px solid
+      rgba(255, 255, 255, 0.11);
+
+    box-shadow:
+      -25px 0 60px
+      rgba(0, 0, 0, 0.38);
+
+    transform:
+      translateX(105%);
+
+    transition:
+      transform
+      320ms
+      cubic-bezier(
+        0.22,
+        1,
+        0.36,
+        1
+      );
+  }
+
+
+  .nav-menu.nav-menu--open {
+    transform:
+      translateX(0);
+  }
+
+
+  /* MOBILE LINKS */
+
+  .nav-links {
+    display: grid;
+
+    gap: 8px;
+
+    width: 100%;
+
+    margin: 0;
+  }
+
+
+  .nav-links li {
+    width: 100%;
+  }
+
+
+  .nav-links a {
+    display: flex;
+
+    width: 100%;
+
+    min-height: 53px;
+
+    padding: 0 16px;
+
+    color:
+      #dce7f3;
+
+    background:
+      rgba(255, 255, 255, 0.055);
+
+    border:
+      1px solid
+      rgba(255, 255, 255, 0.08);
+
+    border-radius: 13px;
+
+    font-size: 15px;
+  }
+
+
+  .nav-links a::after {
+    top: 14px;
+
+    right: auto;
+
+    bottom: 14px;
+
+    left: 0;
+
+    width: 3px;
+
+    height: auto;
+
+    transform:
+      scaleY(0);
+  }
+
+
+  .nav-links a:hover,
+  .nav-links a.active {
+    color: white;
+
+    background:
+      rgba(255, 95, 41, 0.14);
+
+    border-color:
+      rgba(255, 132, 79, 0.32);
+  }
+
+
+  .nav-links a:hover::after,
+  .nav-links a.active::after {
+    transform:
+      scaleY(1);
+  }
+
+
+  /* MOBILE ACTIONS */
+
+  .mobile-actions {
+    display: grid;
+
+    gap: 10px;
+
+    margin-top: auto;
+
+    padding-top: 30px;
+  }
+
+
+  .mobile-action {
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    width: 100%;
+
+    min-height: 49px;
+
+    padding: 0 16px;
+
+    color: white;
+
+    border:
+      1px solid
+      rgba(255, 255, 255, 0.12);
+
+    border-radius: 13px;
+
+    font: inherit;
+
+    font-size: 14px;
+
+    font-weight: 850;
+
+    cursor: pointer;
+  }
+
+
+  .mobile-action--listings {
+    background:
+      rgba(255, 255, 255, 0.10);
+  }
+
+
+  .mobile-action--dark {
+    background:
+      rgba(255, 255, 255, 0.07);
+  }
+
+
+  .mobile-action--orange {
+    background:
+      linear-gradient(
+        135deg,
+        var(--nav-orange-light),
+        var(--nav-orange)
+      );
+  }
+
+
+  /* MOBILE: NOTIFICATION + PROFILE ROW */
+
+  /* FIX: this row is now the positioning context for the dropdown
+     (position: relative added below) instead of the narrow
+     .notification-wrapper. The wrapper only spans part of the row
+     (it shares space with the profile avatar via flex), so anchoring
+     the dropdown to it made `right: 0` measure from the wrapper's
+     own edge — not the screen edge — pushing the dropdown off-screen
+     to the left. Anchoring to the full-width row instead means
+     `right: 0; left: 0; width: 100%` always fits within the visible
+     mobile menu panel. */
+
+  .mobile-secondary-row {
+    position: relative;
+
+    display: flex;
+
+    gap: 10px;
+
+    margin-bottom: 4px;
+  }
+
+
+  .mobile-secondary-row .notification-wrapper {
+    position: static;
+
+    flex: 1 1 auto;
+  }
+
+
+  .mobile-secondary-row .notification-button {
+    width: 100%;
+
+    height: 49px;
+
+    border-radius: 13px;
+  }
+
+
+  .mobile-secondary-row .profile-avatar-button {
+    flex: 0 0 auto;
+
+    width: 49px;
+
+    height: 49px;
+  }
+
+
+  /* FIX: dropdown now anchors to the full-width row and is capped
+     to 100% of it, so it can never overflow the mobile menu panel
+     horizontally. It still opens UPWARD (over the nav-links area)
+     via `bottom` instead of `top`, and its max-height is capped
+     relative to the viewport so it shrinks automatically on short
+     screens; internal content still scrolls via
+     .notification-dropdown__list. */
+
+  .mobile-secondary-row .notification-dropdown {
+    position: absolute;
+
+    top: auto;
+
+    right: 0;
+
+    left: 0;
+
+    bottom: calc(100% + 10px);
+
+    width: 100%;
+
+    max-width: 100%;
+
+    box-sizing: border-box;
+
+    max-height: min(50vh, 320px);
+
+    animation:
+      dropdown-enter-up
+      180ms ease both;
+  }
+
+}
+
+
+/* =========================================================
+   SMALL MOBILE
+   ========================================================= */
+
+@media (max-width: 480px) {
+
+  .navbar__inner {
+    width:
+      calc(100% - 20px);
+  }
+
+
+  .brand__mark {
+    width: 39px;
+
+    height: 39px;
+
+    border-radius: 12px;
+  }
+
+
+  .brand__mark svg {
+    width: 22px;
+
+    height: 22px;
+  }
+
+
+  .brand__text {
+    font-size: 19px;
+  }
+
+
+  .road {
+    height: 39px;
+  }
+
+
+  .road__car {
+    width: 60px;
+
+    height: 29px;
+
+    animation-duration: 7s;
+  }
+
+}
+
+
+/* =========================================================
+   REDUCED MOTION
+   ========================================================= */
 
 @media (prefers-reduced-motion: reduce) {
-  .nav-road__car-wrap { animation: none; left: 50%; }
-  .nav-road__car { animation: none; }
-}
 
-// ====================================
-// Dark Mode Support
-// ====================================
-@media (prefers-color-scheme: dark) {
-  .navbar {
-    background: rgba(#111827, 0.95);
-    border-color: #374151;
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+
+    animation-duration:
+      0.001ms !important;
+
+    animation-iteration-count:
+      1 !important;
+
+    transition-duration:
+      0.001ms !important;
   }
-  .logo-text { color: #f3f4f6; }
-  .nav-links a { color: #9ca3af; }
-  .btn-signin { color: #f3f4f6; border-color: #374151; &:hover { background-color: #1f2937; } }
-  .hamburger span { background-color: #f3f4f6; }
-  .nav-wrapper { @media (max-width: 1024px) { background: #111827; border-color: #374151; } }
-  .nav-road__track {
-    background-image: linear-gradient(
-      to right,
-      rgba($secondary-orange, 0.45) 0 6px, transparent 6px 13px
-    );
-  }
+
 }

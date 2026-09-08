@@ -19,9 +19,9 @@ export class SupprotTeamService {
   private readonly apiUrl = `${environment.apiUrl}/support/problem`;
 
   private readonly contact: ContactInfo = {
-    phoneNumber: '995500000000', // შეცვალეთ რეალურ ნომერზე 
-    phoneDisplay: '+995 500 00 00 00',
-    email: 'work.1999line@gmail.com',
+    phoneNumber: '+995555649476', // შეცვალეთ რეალურ ნომერზე 
+    phoneDisplay: '+995 555 64 94 076',
+    email: 'Ggzavna.info@gmail.com',
   };
 
   getContact(): ContactInfo {
