@@ -1,11 +1,11 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
-import { Router } from '@angular/router';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, Inject, PLATFORM_ID } from '@angular/core';
+import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { CommonModule } from '@angular/common';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { ParcelService, ParcelRequest, DriverTrip } from '../../services/Parcel.service';
-
+import { SeoService } from '../../services/seo.service'; // ⚠️ დააზუსტე გზა შენი ფოლდერების მიხედვით
 
 interface Step {
   id: number;
@@ -21,31 +21,14 @@ interface Badge {
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, FormsModule, ],
+  imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './home.html',
   styleUrls: ['./home.scss'],
 })
 export class HomeComponent implements OnInit, OnDestroy {
   // ============ Steps და Badges ============
+  // ⚠️ steps1 წაშლილია — იყო იდენტური steps-ის დუბლირება, ორივე გამოჩნდებოდა template-ში
   steps: Step[] = [
-    {
-      id: 1,
-      title: 'დარეგისტრირდი',
-      description: 'სწრაფი და უსაფრთხო ავტორიზაცია',
-    },
-    {
-      id: 2,
-      title: 'შეავსე ფორმა',
-      description: 'მიუთითე მონაცემები სულ რამდენიმე წამში',
-    },
-    {
-      id: 3,
-      title: 'დაიწყე მგზავრობა',
-      description: 'იპოვე სასურველი მძღოლი ან გაგზავნე ამანათი',
-    },
-  ];
-
-  steps1: Step[] = [
     {
       id: 1,
       title: 'დარეგისტრირდი',
@@ -89,14 +72,20 @@ export class HomeComponent implements OnInit, OnDestroy {
   isLoadingTrips = false;
 
   private destroy$ = new Subject<void>();
+  private readonly isBrowser: boolean;
 
   constructor(
     private router: Router,
     private parcelService: ParcelService,
-    private cdr: ChangeDetectorRef
-  ) {}
+    private cdr: ChangeDetectorRef,
+    private seo: SeoService,
+    @Inject(PLATFORM_ID) platformId: Object
+  ) {
+    this.isBrowser = isPlatformBrowser(platformId);
+  }
 
   ngOnInit(): void {
+    this.setSeo();
     this.loadRecentRequests();
     this.loadRecentTrips();
 
@@ -114,18 +103,83 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
+  // ============ SEO ============
+  private setSeo(): void {
+    this.seo.update({
+      title: 'გგზავნა — გააგზავნე ნებისმიერი ნივთი საქართველოს ნებისმიერ ქალაქში',
+      description:
+        'იპოვე მძღოლი რამდენიმე წუთში და გააგზავნე ამანათი, ავეჯი, ტექნიკა თუ ველოსიპედი — სწრაფად, უსაფრთხოდ და დაბალ ფასად მთელს საქართველოში.',
+      url: 'https://ggzavna.ge/',
+    });
+
+    this.seo.setJsonLd([
+      {
+        '@context': 'https://schema.org',
+        '@type': 'Organization',
+        name: 'გგზავნა',
+        url: 'https://ggzavna.ge',
+        logo: 'https://ggzavna.ge/assets/logo.png',
+        description: 'P2P ამანათების გადაზიდვის პლატფორმა საქართველოში',
+      },
+      {
+        '@context': 'https://schema.org',
+        '@type': 'FAQPage',
+        mainEntity: [
+          {
+            '@type': 'Question',
+            name: 'რამდენი ღირს ამანათის გაგზავნა?',
+            acceptedAnswer: {
+              '@type': 'Answer',
+              text: 'ფასი დამოკიდებულია მარშრუტის მანძილზე, ამანათის წონასა და ზომაზე. ვინაიდან მძღოლი ამ მიმართულებით ისედაც მგზავრობს, ტარიფები სტანდარტულ საკურიერო მომსახურებებთან შედარებით ბევრად უფრო დაბალია.',
+            },
+          },
+          {
+            '@type': 'Question',
+            name: 'უსაფრთხოა თუ არა ჩემი ამანათი?',
+            acceptedAnswer: {
+              '@type': 'Answer',
+              text: 'დიახ. ყველა მომხმარებელი და მძღოლი გადის იდენტიფიკაციას, თითოეული გზავნილი დაზღვეულია, და შესაძლებელია რეალურ დროში თვალის დევნება რუკაზე.',
+            },
+          },
+          {
+            '@type': 'Question',
+            name: 'მხოლოდ მცირე ზომის ნივთის გაგზავნა შემიძლია?',
+            acceptedAnswer: {
+              '@type': 'Answer',
+              text: 'დიახ, არანაირი მინიმალური ლიმიტი არ არსებობს — შეგიძლიათ გაგზავნოთ როგორც პატარა კონვერტი, ისე დიდი ზომის ტვირთი.',
+            },
+          },
+          {
+            '@type': 'Question',
+            name: 'რა დრო სჭირდება მიწოდებას?',
+            acceptedAnswer: {
+              '@type': 'Answer',
+              text: 'მძღოლი პირდაპირ მიემართება დანიშნულების ადგილისკენ, ამიტომ მიწოდება ხშირად სულ რამდენიმე საათში სრულდება.',
+            },
+          },
+          {
+            '@type': 'Question',
+            name: 'რა საკომისიო აქვს პლატფორმას?',
+            acceptedAnswer: {
+              '@type': 'Answer',
+              text: 'პლატფორმა თითოეული წარმატებული ტრანზაქციიდან იტოვებს მინიმალურ საკომისიოს (3-5%), რომელიც ხმარდება დაზღვევასა და სერვისის მხარდაჭერას.',
+            },
+          },
+        ],
+      },
+    ]);
+  }
+
   // ============ გამგზავნის განცხადებების ჩაკრება (PUBLIC) ============
   private loadRecentRequests(): void {
     this.isLoadingRequests = true;
     this.cdr.detectChanges();
 
-    // ✅ PUBLIC endpoint - auth არ სჭირდება
     this.parcelService.getRecentRequests().subscribe({
       next: (res: any) => {
         this.isLoadingRequests = false;
 
         if (res.success && res.requests) {
-          // მხოლოდ 6 ბოლო განცხადება
           this.recentRequests = res.requests.slice(0, 6);
         } else {
           this.recentRequests = [];
@@ -147,13 +201,11 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.isLoadingTrips = true;
     this.cdr.detectChanges();
 
-    // ✅ PUBLIC endpoint - auth არ სჭირდება
     this.parcelService.getRecentTrips().subscribe({
       next: (res: any) => {
         this.isLoadingTrips = false;
 
         if (res.success && res.trips) {
-          // მხოლოდ 6 ბოლო მგზავრობა
           this.recentTrips = res.trips.slice(0, 6);
         } else {
           this.recentTrips = [];
@@ -172,9 +224,6 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   // ============ დეტალების ნახვა ============
 
-  /**
-   * გამგზავნის განცხადების დეტალებზე გადასვლა
-   */
   viewRequest(requestId: string | undefined): void {
     if (!requestId) {
       console.error('❌ განცხადების ID არ გაითვალა');
@@ -183,9 +232,6 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.router.navigate(['/request', requestId]);
   }
 
-  /**
-   * მძღოლის მგზავრობის დეტალებზე გადასვლა
-   */
   viewTrip(tripId: string | undefined): void {
     if (!tripId) {
       console.error('❌ მგზავრობის ID არ გაითვალა');
@@ -257,6 +303,15 @@ export class HomeComponent implements OnInit, OnDestroy {
     return `${total.toFixed(2)} ₾`;
   }
 
+  /**
+   * გვერდის თავში რბილად (smooth) აყოლება — გამოიყენება how-cta სექციის ღილაკებზე
+   */
+  scrollToTop(): void {
+    if (this.isBrowser) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }
+
   // ============ კარუსელის სქროლი ============
   scrollCarousel(track: HTMLElement, direction: 1 | -1): void {
     if (!track) return;
@@ -265,12 +320,8 @@ export class HomeComponent implements OnInit, OnDestroy {
       '.request-card-home, .trip-card-home'
     ) as HTMLElement | null;
 
-    // fallback width თუ ბარათი ჯერ არ არის დარენდერებული
-    const cardWidth = firstCard ? firstCard.offsetWidth + 24 : 300; // 24px = $spacing-xl gap
+    const cardWidth = firstCard ? firstCard.offsetWidth + 24 : 300;
 
     track.scrollBy({ left: direction * cardWidth * 2, behavior: 'smooth' });
   }
-
- 
-
 }

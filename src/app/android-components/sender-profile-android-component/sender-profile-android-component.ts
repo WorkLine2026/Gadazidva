@@ -39,6 +39,11 @@ const PICKUP_NOTIFICATION_TYPES = [
   'trip_pickup_request_rejected'
 ];
 
+// 🛠️ FIX: აქ ადრე ერთდროულად ჰქონდა `templateUrl` + `template: ''` და
+// `styleUrl` + `styles: []` — ეს ორაზროვნებაა Angular-ისთვის: ორივე
+// property ერთდროულად ერთსა და იმავე დანიშნულებას (template/styles)
+// ავსებდა კონფლიქტურად, რაც prerender-ის დროს კომპონენტის half-initialized
+// მდგომარეობასაც უწყობდა ხელს. ახლა მხოლოდ templateUrl/styleUrl რჩება.
 @Component({
   selector: 'app-sender-profile-android',
   standalone: true,
@@ -51,8 +56,6 @@ const PICKUP_NOTIFICATION_TYPES = [
     ChatModalImprovedComponent,
     DeleteAccountModalComponent
   ],
-  template: '',
-  styles: [],
   encapsulation: ViewEncapsulation.ShadowDom
 })
 export class SenderProfileAndroidComponent implements OnInit, OnDestroy {
@@ -71,13 +74,17 @@ export class SenderProfileAndroidComponent implements OnInit, OnDestroy {
   isEditing = false;
   isSaving = false;
   errorMessage: string | null = null;
+
+  // 🛠️ FIX: profileForm ახლა იქმნება ერთხელ, სინქრონულად ngOnInit-ში.
+  // FormGroup-ის ობიექტი აღარასდროს იცვლება ახლით — მხოლოდ patchValue-ით
+  // ახლდება, რაც ხსნის prerender-ის დროს "_rawValidators of undefined"
+  // შეცდომას (იხ. initProfileForm()).
   profileForm!: FormGroup;
 
   // ===== REQUESTS & OFFERS =====
   userRequests: ParcelRequest[] = [];
   isLoadingRequests = false;
   deletingRequestId: string | null = null;
-
 
   incomingOffers: PickupOffer[] = [];
   inProgressOffers: PickupOffer[] = [];
@@ -118,6 +125,10 @@ export class SenderProfileAndroidComponent implements OnInit, OnDestroy {
       return;
     }
 
+    // 🛠️ FIX: FormGroup-ის ინსტანცია იქმნება ერთხელ და დაუყოვნებლივ,
+    // სანამ template-მა [formGroup]="profileForm" პირველად დააბაინდოს.
+    this.initProfileForm();
+
     this.loadUserData();
 
     this.socketService.getUnreadCount()
@@ -147,91 +158,107 @@ export class SenderProfileAndroidComponent implements OnInit, OnDestroy {
   }
 
   // ===== DATA LOADING =====
+  // ✅ FIX: ყველა HTTP subscription-ს ახლა აქვს takeUntil(this.destroy$),
+  // რომ prerender-ის დროს განადგურებული კომპონენტის callback-მა ვერ
+  // გამოიძახოს cdr.detectChanges() და ვერ გამოიწვიოს "_rawValidators of
+  // undefined" შეცდომა უკვე დანგრეულ FormGroupDirective-ზე.
   private loadUserData(): void {
     this.isLoading = true;
     this.cdr.detectChanges();
 
-    this.smsService.getProfile().subscribe({
-      next: (res) => {
-        this.isLoading = false;
-        if (res.success && res.user) {
-          this.applyUserData(res.user);
-          this.initProfileForm();
-          this.loadUserRequests();
-          this.loadPickupOffers();
-          this.loadOutgoingTripRequests();
-        } else {
-          this.errorMessage = res.message ?? 'ინფორმაცია ვერ ჩაიტვირთა';
+    this.smsService.getProfile()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (res) => {
+          this.isLoading = false;
+          if (res.success && res.user) {
+            this.applyUserData(res.user);
+            this.initProfileForm();
+            this.loadUserRequests();
+            this.loadPickupOffers();
+            this.loadOutgoingTripRequests();
+          } else {
+            this.errorMessage = res.message ?? 'ინფორმაცია ვერ ჩაიტვირთა';
+          }
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          this.isLoading = false;
+          if (err.status === 401) {
+            this.smsService.clearAuthToken();
+            this.router.navigate(['/login']);
+            return;
+          }
+          this.errorMessage = 'ინფორმაცია ვერ ჩაიტვირთა';
+          this.cdr.detectChanges();
         }
-        this.cdr.detectChanges();
-      },
-      error: (err) => {
-        this.isLoading = false;
-        if (err.status === 401) {
-          this.smsService.clearAuthToken();
-          this.router.navigate(['/login']);
-          return;
-        }
-        this.errorMessage = 'ინფორმაცია ვერ ჩაიტვირთა';
-        this.cdr.detectChanges();
-      }
-    });
+      });
   }
 
   private loadUserRequests(): void {
     this.isLoadingRequests = true;
     this.cdr.detectChanges();
-    this.parcelService.getUserRequests().subscribe({
-      next: (res: any) => {
-        this.isLoadingRequests = false;
-        this.userRequests = res.success && res.requests ? res.requests : [];
-        this.cdr.detectChanges();
-      },
-      error: () => {
-        this.isLoadingRequests = false;
-        this.userRequests = [];
-        this.cdr.detectChanges();
-      }
-    });
+    this.parcelService.getUserRequests()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (res: any) => {
+          this.isLoadingRequests = false;
+          this.userRequests = res.success && res.requests ? res.requests : [];
+          this.cdr.detectChanges();
+        },
+        error: () => {
+          this.isLoadingRequests = false;
+          this.userRequests = [];
+          this.cdr.detectChanges();
+        }
+      });
   }
 
   private loadPickupOffers(): void {
-    this.parcelService.getIncomingOffers().subscribe({
-      next: (res) => {
-        this.incomingOffers = res.success && res.offers ? res.offers : [];
-        this.cdr.detectChanges();
-      },
-      error: () => { this.incomingOffers = []; this.cdr.detectChanges(); }
-    });
+    this.parcelService.getIncomingOffers()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (res) => {
+          this.incomingOffers = res.success && res.offers ? res.offers : [];
+          this.cdr.detectChanges();
+        },
+        error: () => { this.incomingOffers = []; this.cdr.detectChanges(); }
+      });
 
-    this.parcelService.getMyInProgressOffers().subscribe({
-      next: (res) => {
-        this.inProgressOffers = res.success && res.offers ? res.offers : [];
-        this.cdr.detectChanges();
-      },
-      error: () => { this.inProgressOffers = []; this.cdr.detectChanges(); }
-    });
+    this.parcelService.getMyInProgressOffers()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (res) => {
+          this.inProgressOffers = res.success && res.offers ? res.offers : [];
+          this.cdr.detectChanges();
+        },
+        error: () => { this.inProgressOffers = []; this.cdr.detectChanges(); }
+      });
 
-    this.parcelService.getMySentCompleted().subscribe({
-      next: (res) => {
-        this.sentCompleted = res.success && res.offers ? res.offers : [];
-        this.cdr.detectChanges();
-      },
-      error: () => { this.sentCompleted = []; this.cdr.detectChanges(); }
-    });
+    this.parcelService.getMySentCompleted()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (res) => {
+          this.sentCompleted = res.success && res.offers ? res.offers : [];
+          this.cdr.detectChanges();
+        },
+        error: () => { this.sentCompleted = []; this.cdr.detectChanges(); }
+      });
   }
 
   private loadOutgoingTripRequests(): void {
-    this.parcelService.getMyTripPickupRequests().subscribe({
-      next: (res) => {
-        this.outgoingTripRequests = res.success && res.requests ? res.requests : [];
-        this.cdr.detectChanges();
-      },
-      error: () => {
-        this.outgoingTripRequests = [];
-        this.cdr.detectChanges();
-      }
-    });
+    this.parcelService.getMyTripPickupRequests()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (res) => {
+          this.outgoingTripRequests = res.success && res.requests ? res.requests : [];
+          this.cdr.detectChanges();
+        },
+        error: () => {
+          this.outgoingTripRequests = [];
+          this.cdr.detectChanges();
+        }
+      });
   }
 
   // ===== HELPERS =====
@@ -245,13 +272,31 @@ export class SenderProfileAndroidComponent implements OnInit, OnDestroy {
     this.phoneVerified = user.phoneVerified;
   }
 
+  /**
+   * 🛠️ FIX: აღარ ქმნის ახალ FormGroup ინსტანციას ყოველ გამოძახებაზე.
+   * პირველი გამოძახება ცარიელ ფორმას ქმნის, ყოველი შემდგომი — მხოლოდ
+   * patchValue-ით ანახლებს უკვე არსებულს.
+   */
   private initProfileForm(): void {
-    this.profileForm = this.fb.group({
-      firstName: [this.firstName, [Validators.required, Validators.minLength(2)]],
-      lastName: [this.lastName, [Validators.required, Validators.minLength(2)]],
-      email: [this.email, [Validators.required, Validators.email]],
-      personalNumber: [{ value: this.personalNumber, disabled: true }]
+    if (!this.profileForm) {
+      this.profileForm = this.fb.group({
+        firstName: ['', [Validators.required, Validators.minLength(2)]],
+        lastName: ['', [Validators.required, Validators.minLength(2)]],
+        email: ['', [Validators.required, Validators.email]],
+        personalNumber: [{ value: '', disabled: true }]
+      });
+      return;
+    }
+
+    this.profileForm.patchValue({
+      firstName: this.firstName,
+      lastName: this.lastName,
+      email: this.email,
+      personalNumber: this.personalNumber
     });
+
+    this.profileForm.markAsPristine();
+    this.profileForm.markAsUntouched();
   }
 
   getUserInitials(): string {
@@ -342,23 +387,25 @@ export class SenderProfileAndroidComponent implements OnInit, OnDestroy {
     this.errorMessage = null;
     this.cdr.detectChanges();
 
-    this.smsService.updateProfile(this.profileForm.getRawValue()).subscribe({
-      next: (res) => {
-        this.isSaving = false;
-        if (res.success && res.user) {
-          this.applyUserData(res.user);
-          this.isEditing = false;
-        } else {
-          this.errorMessage = res.message ?? 'შენახვა ვერ მოხერხდა';
+    this.smsService.updateProfile(this.profileForm.getRawValue())
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (res) => {
+          this.isSaving = false;
+          if (res.success && res.user) {
+            this.applyUserData(res.user);
+            this.isEditing = false;
+          } else {
+            this.errorMessage = res.message ?? 'შენახვა ვერ მოხერხდა';
+          }
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          this.isSaving = false;
+          this.errorMessage = err.error?.message || 'შენახვა ვერ მოხერხდა';
+          this.cdr.detectChanges();
         }
-        this.cdr.detectChanges();
-      },
-      error: (err) => {
-        this.isSaving = false;
-        this.errorMessage = err.error?.message || 'შენახვა ვერ მოხერხდა';
-        this.cdr.detectChanges();
-      }
-    });
+      });
   }
 
   openSendItemFlow(): void {
@@ -373,22 +420,24 @@ export class SenderProfileAndroidComponent implements OnInit, OnDestroy {
     if (!confirm('დარწმუნებული ხართ რომ გსურთ განცხადების წაშლა?')) return;
     this.deletingRequestId = id;
     this.cdr.detectChanges();
-    this.parcelService.deleteParcelRequest(id).subscribe({
-      next: (res) => {
-        this.deletingRequestId = null;
-        if (res.success) {
-          this.userRequests = this.userRequests.filter(r => r._id !== id);
-        } else {
-          alert(res.message ?? 'წაშლა ვერ მოხერხდა');
+    this.parcelService.deleteParcelRequest(id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (res) => {
+          this.deletingRequestId = null;
+          if (res.success) {
+            this.userRequests = this.userRequests.filter(r => r._id !== id);
+          } else {
+            alert(res.message ?? 'წაშლა ვერ მოხერხდა');
+          }
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          this.deletingRequestId = null;
+          alert(err.error?.message || 'წაშლა ვერ მოხერხდა');
+          this.cdr.detectChanges();
         }
-        this.cdr.detectChanges();
-      },
-      error: (err) => {
-        this.deletingRequestId = null;
-        alert(err.error?.message || 'წაშლა ვერ მოხერხდა');
-        this.cdr.detectChanges();
-      }
-    });
+      });
   }
 
   openOfferDetails(offer: PickupOffer): void {
@@ -404,67 +453,73 @@ export class SenderProfileAndroidComponent implements OnInit, OnDestroy {
   respondToOffer(offer: PickupOffer, accept: boolean): void {
     this.respondingOfferId = offer._id;
     this.cdr.detectChanges();
-    this.parcelService.respondToOffer(offer._id, accept).subscribe({
-      next: (res) => {
-        this.respondingOfferId = null;
-        if (res.success) {
-          this.closeOfferDetails();
-          this.loadPickupOffers();
-          alert(accept ? '✅ დათანხმდით — ნივთი მიწოდების პროცესშია' : 'მოთხოვნა უარყოფილია');
-        } else {
-          alert(res.message || 'შეცდომა');
+    this.parcelService.respondToOffer(offer._id, accept)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (res) => {
+          this.respondingOfferId = null;
+          if (res.success) {
+            this.closeOfferDetails();
+            this.loadPickupOffers();
+            alert(accept ? '✅ დათანხმდით — ნივთი მიწოდების პროცესშია' : 'მოთხოვნა უარყოფილია');
+          } else {
+            alert(res.message || 'შეცდომა');
+          }
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          this.respondingOfferId = null;
+          alert(err.error?.message || 'შეცდომა');
+          this.cdr.detectChanges();
         }
-        this.cdr.detectChanges();
-      },
-      error: (err) => {
-        this.respondingOfferId = null;
-        alert(err.error?.message || 'შეცდომა');
-        this.cdr.detectChanges();
-      }
-    });
+      });
   }
 
   confirmSenderComplete(offer: PickupOffer): void {
     this.completingOfferId = offer._id;
     this.cdr.detectChanges();
-    this.parcelService.confirmPickupCompleteBySender(offer._id).subscribe({
-      next: (res) => {
-        this.completingOfferId = null;
-        if (res.success) {
-          alert('✅ დადასტურებულია — მიწოდება დასრულდა');
-          this.loadPickupOffers();
-        } else {
-          alert(res.message || 'შეცდომა');
+    this.parcelService.confirmPickupCompleteBySender(offer._id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (res) => {
+          this.completingOfferId = null;
+          if (res.success) {
+            alert('✅ დადასტურებულია — მიწოდება დასრულდა');
+            this.loadPickupOffers();
+          } else {
+            alert(res.message || 'შეცდომა');
+          }
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          this.completingOfferId = null;
+          alert(err.error?.message || 'შეცდომა');
+          this.cdr.detectChanges();
         }
-        this.cdr.detectChanges();
-      },
-      error: (err) => {
-        this.completingOfferId = null;
-        alert(err.error?.message || 'შეცდომა');
-        this.cdr.detectChanges();
-      }
-    });
+      });
   }
 
   dismissTripRequest(req: TripPickupRequest): void {
     this.dismissingRequestId = req._id;
     this.cdr.detectChanges();
-    this.parcelService.deleteMyTripPickupRequest(req._id).subscribe({
-      next: (res) => {
-        this.dismissingRequestId = null;
-        if (res.success) {
-          this.outgoingTripRequests = this.outgoingTripRequests.filter(r => r._id !== req._id);
-        } else {
-          alert(res.message || 'წაშლა ვერ მოხერხდა');
+    this.parcelService.deleteMyTripPickupRequest(req._id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (res) => {
+          this.dismissingRequestId = null;
+          if (res.success) {
+            this.outgoingTripRequests = this.outgoingTripRequests.filter(r => r._id !== req._id);
+          } else {
+            alert(res.message || 'წაშლა ვერ მოხერხდა');
+          }
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          this.dismissingRequestId = null;
+          alert(err.error?.message || 'წაშლა ვერ მოხერხდა');
+          this.cdr.detectChanges();
         }
-        this.cdr.detectChanges();
-      },
-      error: (err) => {
-        this.dismissingRequestId = null;
-        alert(err.error?.message || 'წაშლა ვერ მოხერხდა');
-        this.cdr.detectChanges();
-      }
-    });
+      });
   }
 
   toggleConversations(): void {
@@ -532,22 +587,24 @@ export class SenderProfileAndroidComponent implements OnInit, OnDestroy {
     this.deleteAccountError = null;
     this.cdr.detectChanges();
 
-    this.smsService.deleteAccount().subscribe({
-      next: () => {
-        this.isDeletingAccount = false;
-        this.socketService.disconnect?.();
-        this.smsService.clearAuthToken();
-        this.smsService.clearState();
-        this.showDeleteAccountModal = false;
-        alert('ანგარიში წაიშალა');
-        this.router.navigate(['/login']);
-      },
-      error: (err) => {
-        this.isDeletingAccount = false;
-        this.deleteAccountError = err.error?.message || 'წაშლა ვერ მოხერხდა';
-        this.cdr.detectChanges();
-      }
-    });
+    this.smsService.deleteAccount()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.isDeletingAccount = false;
+          this.socketService.disconnect?.();
+          this.smsService.clearAuthToken();
+          this.smsService.clearState();
+          this.showDeleteAccountModal = false;
+          alert('ანგარიში წაიშალა');
+          this.router.navigate(['/login']);
+        },
+        error: (err) => {
+          this.isDeletingAccount = false;
+          this.deleteAccountError = err.error?.message || 'წაშლა ვერ მოხერხდა';
+          this.cdr.detectChanges();
+        }
+      });
   }
 
   goBack(): void {

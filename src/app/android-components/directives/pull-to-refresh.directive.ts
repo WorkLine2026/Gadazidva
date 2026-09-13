@@ -1,4 +1,5 @@
-import { Directive, ElementRef, HostListener, Renderer2, OnInit, OnDestroy } from '@angular/core';
+import { Directive, ElementRef, HostListener, Renderer2, OnInit, OnDestroy, Inject, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { Subscription } from 'rxjs';
 import { PullToRefreshService } from '../../services/PullToRefresh.Service';
 
@@ -23,13 +24,26 @@ export class PullToRefreshDirective implements OnInit, OnDestroy {
   private arrowEl: SVGElement | null = null;
   private subscription: Subscription | null = null;
 
+  // ✅ SSR-გუარდი — pull-to-refresh მთლიანად touch/DOM-დამოკიდებული
+  // ფუნქციონალია, ამიტომ სერვერზე (prerender) საერთოდ არაფერი
+  // არ სრულდება — არც document.head/body-ზე style/indicator injection,
+  // არც scroll-პოზიციის წაკითხვა.
+  private isBrowser: boolean;
+
   constructor(
     private el: ElementRef<HTMLElement>,
     private renderer: Renderer2,
-    private pullToRefreshService: PullToRefreshService
-  ) {}
+    private pullToRefreshService: PullToRefreshService,
+    @Inject(PLATFORM_ID) private platformId: Object
+  ) {
+    this.isBrowser = isPlatformBrowser(this.platformId);
+  }
 
   ngOnInit(): void {
+    if (!this.isBrowser) {
+      return;
+    }
+
     this.injectStylesOnce();
     this.createIndicator();
     this.subscription = this.pullToRefreshService.isRefreshing$.subscribe(state => {
@@ -39,6 +53,10 @@ export class PullToRefreshDirective implements OnInit, OnDestroy {
 
   @HostListener('touchstart', ['$event'])
   onTouchStart(event: TouchEvent): void {
+    if (!this.isBrowser) {
+      return;
+    }
+
     if (this.getScrollTop() === 0 && !this.isRefreshing) {
       this.startY = event.touches[0].clientY;
       this.isPulling = true;
@@ -49,7 +67,7 @@ export class PullToRefreshDirective implements OnInit, OnDestroy {
 
   @HostListener('touchmove', ['$event'])
   onTouchMove(event: TouchEvent): void {
-    if (!this.isPulling || this.isRefreshing) {
+    if (!this.isBrowser || !this.isPulling || this.isRefreshing) {
       return;
     }
 
@@ -80,6 +98,10 @@ export class PullToRefreshDirective implements OnInit, OnDestroy {
 
   @HostListener('touchend')
   onTouchEnd(): void {
+    if (!this.isBrowser) {
+      return;
+    }
+
     if (!this.isPulling || this.isRefreshing) {
       this.isPulling = false;
       return;
@@ -178,6 +200,10 @@ export class PullToRefreshDirective implements OnInit, OnDestroy {
   // === ინდიკატორის აწყობა (SVG პროგრეს-რგოლი + ისარი), მიბმული ეკრანთან (fixed) ===
 
   private createIndicator(): void {
+    if (!this.isBrowser) {
+      return;
+    }
+
     const wrapper = this.renderer.createElement('div');
     this.renderer.addClass(wrapper, 'ptr-indicator');
     this.renderer.setStyle(wrapper, 'opacity', '0');
@@ -223,6 +249,10 @@ export class PullToRefreshDirective implements OnInit, OnDestroy {
   }
 
   private getScrollTop(): number {
+    if (!this.isBrowser) {
+      return 0;
+    }
+
     const el = this.el.nativeElement;
     const isElementScrollable = el.scrollHeight > el.clientHeight + 1;
 
@@ -234,6 +264,10 @@ export class PullToRefreshDirective implements OnInit, OnDestroy {
   }
 
   private injectStylesOnce(): void {
+    if (!this.isBrowser) {
+      return;
+    }
+
     if (document.getElementById('ptr-global-styles')) {
       return;
     }
@@ -321,6 +355,11 @@ export class PullToRefreshDirective implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.subscription?.unsubscribe();
+
+    if (!this.isBrowser) {
+      return;
+    }
+
     if (this.wrapperEl) {
       this.renderer.removeChild(document.body, this.wrapperEl);
     }

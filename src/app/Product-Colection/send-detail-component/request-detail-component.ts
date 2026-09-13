@@ -1,16 +1,17 @@
 import {
   Component, OnInit, OnDestroy, ChangeDetectorRef,
   ViewChild, TemplateRef, ViewContainerRef, EmbeddedViewRef,
-  Renderer2
+  Renderer2, PLATFORM_ID, Inject
 } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { CommonModule } from '@angular/common';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subject } from 'rxjs';
 import { takeUntil, finalize } from 'rxjs/operators';
 import { ParcelService, ParcelRequest, AcceptedShipping, DriverTrip } from '../../services/Parcel.service';
 import { SmsVerificationService } from '../../services/smsverifikation.service';
 import { ChatModalImprovedComponent } from '../../chat/chat-modal-component/chat-modal-component';
+import { SeoService } from '../../services/seo.service'; // ⬅️ SEO — დააზუსტე გზა შენი ფოლდერების მიხედვით
 
 
 type RequestStatus = 'pending' | 'accepted' | 'in-transit' | 'delivered';
@@ -39,26 +40,22 @@ export class RequestDetailComponent implements OnInit, OnDestroy {
   isAuthenticated = false;
   statusOptions: RequestStatus[] = ['pending', 'accepted', 'in-transit', 'delivered'];
 
-  // 💬 ჩატის მდგომარეობა
   isChatOpen = false;
   currentUserId = '';
 
-  // ✅ ფოტოების Lightbox მდგომარეობა
   lightboxOpen = false;
   lightboxIndex = 0;
 
-  // ✅ მიმდინარე request-ის id, pull-to-refresh-ს რომ იცოდეს რა ჩატვირთოს ხელახლა
   private currentRequestId: string | null = null;
 
-  // 🚚 ნივთის წაღების მოთხოვნის მდგომარეობა
   isSendingPickupRequest = false;
   pickupRequestSent = false;
 
-  // 💬 ჩატის body-portal-ისთვის
   @ViewChild('chatPortal') chatPortalTemplate!: TemplateRef<any>;
   private chatPortalView: EmbeddedViewRef<any> | null = null;
 
-  // 💬 visualViewport (კლავიატურის) handler
+  private isBrowser: boolean;
+
   private viewportResizeHandler = () => this.updateChatViewportHeight();
 
   unifiedRequest: UnifiedRequest = {
@@ -80,8 +77,12 @@ export class RequestDetailComponent implements OnInit, OnDestroy {
     private smsService: SmsVerificationService,
     private cdr: ChangeDetectorRef,
     private vcRef: ViewContainerRef,
-    private renderer: Renderer2
-  ) {}
+    private renderer: Renderer2,
+    private seo: SeoService, // ⬅️ SEO
+    @Inject(PLATFORM_ID) platformId: Object
+  ) {
+    this.isBrowser = isPlatformBrowser(platformId);
+  }
 
   ngOnInit(): void {
     this.isAuthenticated = this.smsService.isAuthenticated();
@@ -101,6 +102,11 @@ export class RequestDetailComponent implements OnInit, OnDestroy {
         } else {
           console.error('❌ requestId არ მოვიდა route-დან. params:', params);
           this.errorMessage = 'არასწორი ბმული — განცხადების ID ვერ მოიძებნა';
+          this.seo.update({ // ⬅️ SEO — შეცდომის შემთხვევაში ინდექსაცია არ გვინდა
+            title: 'გვერდი ვერ მოიძებნა | გგზავნა',
+            description: 'მოთხოვნილი გვერდი არ არსებობს ან წაშლილია.',
+            noindex: true
+          });
         }
       });
   }
@@ -109,8 +115,11 @@ export class RequestDetailComponent implements OnInit, OnDestroy {
     this.destroy$.next();
     this.destroy$.complete();
 
-    // 💬 დაცვა: თუ კომპონენტი განადგურდა ჩატის ღია მდგომარეობაში
     this.unmountChatFromBody();
+
+    if (!this.isBrowser) {
+      return;
+    }
 
     if (window.visualViewport) {
       window.visualViewport.removeEventListener('resize', this.viewportResizeHandler);
@@ -123,11 +132,6 @@ export class RequestDetailComponent implements OnInit, OnDestroy {
     document.body.style.top = '';
   }
 
-  /**
-   * ✅ Pull-to-refresh handler.
-   * იმეორებს იმავე request-ის ჩატვირთვას, რომელიც ამჟამად ეკრანზეა
-   * (currentRequestId, რომელიც loadUnifiedRequest-ში ინახება).
-   */
   onRefresh(done: () => void): void {
     if (!this.currentRequestId) {
       done();
@@ -172,12 +176,7 @@ export class RequestDetailComponent implements OnInit, OnDestroy {
     return recipientId === currentId && recipientId !== '';
   }
 
-  // ============================================================
-  // 💬 ჩატის გახსნა/დახურვა
-  // ============================================================
-
   openChat(): void {
-
     if (!this.isAuthenticated) {
       alert('⚠️ შეტყობინების გასაგზავნად გთხოვთ დალოგინდით');
       this.router.navigate(['/login']);
@@ -191,23 +190,21 @@ export class RequestDetailComponent implements OnInit, OnDestroy {
 
     this.isChatOpen = true;
 
-    // body-ს სქროლის ჩაკეტვა — მთავარი გვერდი აღარ იძვრება
-    document.body.style.overflow = 'hidden';
-    document.body.style.position = 'fixed';
-    document.body.style.width = '100%';
-    document.body.style.top = `-${window.scrollY}px`;
+    if (this.isBrowser) {
+      document.body.style.overflow = 'hidden';
+      document.body.style.position = 'fixed';
+      document.body.style.width = '100%';
+      document.body.style.top = `-${window.scrollY}px`;
 
-    // კლავიატურის მიხედვით სიმაღლის დინამიური მორგება
-    this.updateChatViewportHeight();
-    if (window.visualViewport) {
-      window.visualViewport.addEventListener('resize', this.viewportResizeHandler);
-      window.visualViewport.addEventListener('scroll', this.viewportResizeHandler);
+      this.updateChatViewportHeight();
+      if (window.visualViewport) {
+        window.visualViewport.addEventListener('resize', this.viewportResizeHandler);
+        window.visualViewport.addEventListener('scroll', this.viewportResizeHandler);
+      }
     }
 
     this.cdr.detectChanges();
 
-    // ✅ ჩატის DOM-ის გატანა პირდაპირ body-ში, რომ position:fixed
-    // ყოველთვის რეალურ viewport-ს ეყრდნობოდეს (და არა parent-ის transform-ს)
     setTimeout(() => {
       this.mountChatToBody();
     });
@@ -218,26 +215,28 @@ export class RequestDetailComponent implements OnInit, OnDestroy {
 
     this.unmountChatFromBody();
 
-    if (window.visualViewport) {
-      window.visualViewport.removeEventListener('resize', this.viewportResizeHandler);
-      window.visualViewport.removeEventListener('scroll', this.viewportResizeHandler);
+    if (this.isBrowser) {
+      if (window.visualViewport) {
+        window.visualViewport.removeEventListener('resize', this.viewportResizeHandler);
+        window.visualViewport.removeEventListener('scroll', this.viewportResizeHandler);
+      }
+
+      const scrollY = document.body.style.top;
+
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.width = '';
+      document.body.style.top = '';
+
+      window.scrollTo(0, parseInt(scrollY || '0') * -1);
     }
-
-    // body-ს სქროლის აღდგენა ზუსტად იმავე ადგილას
-    const scrollY = document.body.style.top;
-
-    document.body.style.overflow = '';
-    document.body.style.position = '';
-    document.body.style.width = '';
-    document.body.style.top = '';
-
-    window.scrollTo(0, parseInt(scrollY || '0') * -1);
 
     this.cdr.detectChanges();
   }
 
   private mountChatToBody(): void {
-    if (this.chatPortalView || !this.chatPortalTemplate) return; // უკვე დამონტაჟებულია ან template ჯერ არაა მზად
+    if (!this.isBrowser) return;
+    if (this.chatPortalView || !this.chatPortalTemplate) return;
 
     this.chatPortalView = this.vcRef.createEmbeddedView(this.chatPortalTemplate);
     this.chatPortalView.detectChanges();
@@ -255,23 +254,14 @@ export class RequestDetailComponent implements OnInit, OnDestroy {
   }
 
   private updateChatViewportHeight(): void {
+    if (!this.isBrowser) return;
+
     const vv = window.visualViewport;
     if (!vv) return;
 
-    document.documentElement.style.setProperty(
-      '--chat-vh',
-      `${vv.height}px`
-    );
-
-    document.documentElement.style.setProperty(
-      '--chat-offset-top',
-      `${vv.offsetTop}px`
-    );
+    document.documentElement.style.setProperty('--chat-vh', `${vv.height}px`);
+    document.documentElement.style.setProperty('--chat-offset-top', `${vv.offsetTop}px`);
   }
-
-  // ============================================================
-  // 🚚 ნივთის წაღების მოთხოვნა
-  // ============================================================
 
   requestPickup(): void {
     if (!this.isAuthenticated) {
@@ -315,10 +305,6 @@ export class RequestDetailComponent implements OnInit, OnDestroy {
       });
   }
 
-  // ============================================================
-  // ✅ ფოტოების Lightbox
-  // ============================================================
-
   openLightbox(index: number): void {
     this.lightboxIndex = index;
     this.lightboxOpen = true;
@@ -343,7 +329,7 @@ export class RequestDetailComponent implements OnInit, OnDestroy {
   private loadUnifiedRequest(requestId: string): void {
     this.isLoading = true;
     this.errorMessage = '';
-    this.currentRequestId = requestId; // ✅ ვინახავთ refresh-ისთვის
+    this.currentRequestId = requestId;
 
     this.parcelService.getParcelRequest(requestId)
       .pipe(
@@ -358,6 +344,7 @@ export class RequestDetailComponent implements OnInit, OnDestroy {
           if (res.success && res.data) {
             this.unifiedRequest.originalRequest = res.data;
             this.updateRequestStatus(res.data.status);
+            this.setSeoForRequest(res.data); // ⬅️ SEO — მონაცემი ჩამოსულია, ახლა ვაყენებთ meta/JSON-LD-ს
 
             const requestStatus = res.data.status || '';
             if (['accepted', 'in-transit', 'delivered'].includes(requestStatus)) {
@@ -365,6 +352,11 @@ export class RequestDetailComponent implements OnInit, OnDestroy {
             }
           } else {
             this.errorMessage = res.message || 'განცხადება ვერ მოიძებნა';
+            this.seo.update({ // ⬅️ SEO
+              title: 'განცხადება ვერ მოიძებნა | გგზავნა',
+              description: 'მოთხოვნილი განცხადება არ არსებობს ან წაშლილია.',
+              noindex: true
+            });
           }
         },
         error: (err) => {
@@ -377,8 +369,57 @@ export class RequestDetailComponent implements OnInit, OnDestroy {
           } else {
             this.errorMessage = `განცხადების ჩატვირთვა ვერ ხერხდა (კოდი: ${err.status})`;
           }
+
+          this.seo.update({ // ⬅️ SEO — შეცდომაზეც noindex, არ გვინდა 404/500 გვერდები დაინდექსდეს
+            title: 'გვერდი ვერ მოიძებნა | გგზავნა',
+            description: 'მოთხოვნილი გვერდი ამჟამად მიუწვდომელია.',
+            noindex: true
+          });
         }
       });
+  }
+
+  // ⬅️ SEO — ახალი მეთოდი: აყენებს title/description/OG/JSON-LD მარშრუტის მიხედვით
+  private setSeoForRequest(request: ParcelRequest): void {
+    const from = request.from || '';
+    const to = request.to || '';
+    const weight = request.weight ?? '';
+    const value = request.value ?? '';
+    const url = `https://ggzavna.ge/request/${request._id}`;
+
+    const title = `ამანათის გაგზავნა ${from}-დან ${to}-ში — ${weight} კგ | გგზავნა`;
+    const description =
+      `გააგზავნეთ ამანათი ${from}-დან ${to}-ში სწრაფად და უსაფრთხოდ. ` +
+      `წონა: ${weight} კგ, ღირებულება: ${value} ₾. იპოვეთ სანდო მძღოლი გგზავნაზე.`;
+
+    this.seo.update({
+      title,
+      description,
+      url,
+      image: request.images?.[0],
+      type: 'article'
+    });
+
+    this.seo.setJsonLd({
+      '@context': 'https://schema.org',
+      '@type': 'Service',
+      serviceType: 'ამანათის გადაზიდვა',
+      provider: { '@type': 'Organization', name: 'გგზავნა', url: 'https://ggzavna.ge' },
+      areaServed: [
+        { '@type': 'City', name: from },
+        { '@type': 'City', name: to }
+      ],
+      offers: {
+        '@type': 'Offer',
+        price: value,
+        priceCurrency: 'GEL'
+      }
+    });
+
+    this.seo.setBreadcrumb([
+      { name: 'მთავარი', url: 'https://ggzavna.ge/' },
+      { name: `${from} → ${to}`, url }
+    ]);
   }
 
   private loadAcceptedShippingAndTrip(requestId: string): void {
@@ -466,6 +507,7 @@ export class RequestDetailComponent implements OnInit, OnDestroy {
   }
 
   goBack(): void {
+    if (!this.isBrowser) return;
     window.history.back();
   }
 

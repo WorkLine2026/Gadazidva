@@ -6,18 +6,17 @@
       <p class="subtitle">ადმინისტრატორის პანელში შესასვლელად გაიარეთ ავტორიზაცია</p>
     </div>
 
-    <form (ngSubmit)="onSubmit()" #loginForm="ngForm" class="login-form">
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
       <div class="form-group">
         <label for="email">ელფოსტა</label>
         <input
           id="email"
           type="email"
-          name="email"
-          [(ngModel)]="email"
+          formControlName="email"
           placeholder="admin@example.com"
           autocomplete="username"
-          [disabled]="isLoading"
-          required />
+          [class.invalid]="email?.invalid && email?.touched"
+          [attr.disabled]="isLoading ? true : null" />
       </div>
 
       <div class="form-group">
@@ -26,12 +25,11 @@
           <input
             id="password"
             [type]="showPassword ? 'text' : 'password'"
-            name="password"
-            [(ngModel)]="password"
+            formControlName="password"
             placeholder="••••••••"
             autocomplete="current-password"
-            [disabled]="isLoading"
-            required />
+            [class.invalid]="password?.invalid && password?.touched"
+            [attr.disabled]="isLoading ? true : null" />
           <button
             type="button"
             class="toggle-visibility"

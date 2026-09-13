@@ -5,9 +5,11 @@ import {
   ViewEncapsulation,
   OnInit,
   OnDestroy,
-  ChangeDetectorRef
+  ChangeDetectorRef,
+  Inject,
+  PLATFORM_ID
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { Subscription } from 'rxjs';
 
@@ -40,13 +42,21 @@ export class NavbarComponent implements OnInit, OnDestroy {
 
   private subscriptions: Subscription[] = [];
 
+  // ✅ SSR-გუარდი — document/window მხოლოდ ბრაუზერშია ხელმისაწვდომი.
+  // ეს კომპონენტი root template-შია ჩართული, ამიტომ ყოველი
+  // prerender-route-ის ngOnDestroy-ზეც გამოიძახება სერვერზეც.
+  private readonly isBrowser: boolean;
+
   constructor(
     private router: Router,
     private smsService: SmsVerificationService,
     private notificationService: SocketNotificationService,
     private cdr: ChangeDetectorRef,
-    private elementRef: ElementRef
-  ) {}
+    private elementRef: ElementRef,
+    @Inject(PLATFORM_ID) platformId: Object
+  ) {
+    this.isBrowser = isPlatformBrowser(platformId);
+  }
 
   ngOnInit(): void {
     this.subscriptions.push(
@@ -88,7 +98,10 @@ export class NavbarComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.subscriptions.forEach((sub) => sub.unsubscribe());
-    document.body.style.overflow = '';
+
+    if (this.isBrowser) {
+      document.body.style.overflow = '';
+    }
   }
 
   getUserInitials(): string {
@@ -110,10 +123,10 @@ export class NavbarComponent implements OnInit, OnDestroy {
     if (this.isMenuOpen) {
       this.isNotifOpen = false;
 
-      if (window.innerWidth <= 900) {
+      if (this.isBrowser && window.innerWidth <= 900) {
         document.body.style.overflow = 'hidden';
       }
-    } else {
+    } else if (this.isBrowser) {
       document.body.style.overflow = '';
     }
 
@@ -122,7 +135,11 @@ export class NavbarComponent implements OnInit, OnDestroy {
 
   closeMenu(): void {
     this.isMenuOpen = false;
-    document.body.style.overflow = '';
+
+    if (this.isBrowser) {
+      document.body.style.overflow = '';
+    }
+
     this.cdr.detectChanges();
   }
 
@@ -273,7 +290,7 @@ toggleNotifications(event: Event): void {
 
   @HostListener('window:resize')
   onWindowResize(): void {
-    if (window.innerWidth > 900) {
+    if (this.isBrowser && window.innerWidth > 900) {
       this.closeMenu();
     }
   }

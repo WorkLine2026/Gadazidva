@@ -1,6 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, Inject, PLATFORM_ID } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
-import { CommonModule } from '@angular/common';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 
 @Component({
   selector: 'app-howtowork',
@@ -10,11 +10,20 @@ import { CommonModule } from '@angular/common';
   styleUrls: ['./howtowork.scss'],
 })
 export class HowToWorkComponent implements OnInit {
-  constructor(private router: Router) {}
+  private readonly isBrowser: boolean;
+
+  constructor(
+    private router: Router,
+    @Inject(PLATFORM_ID) platformId: Object
+  ) {
+    this.isBrowser = isPlatformBrowser(platformId);
+  }
 
   ngOnInit(): void {
     // კომპონენტის ჩატვირთვისას გვერდი ავტომატურად ავა თავში
-    window.scrollTo(0, 0);
+    if (this.isBrowser) {
+      window.scrollTo(0, 0);
+    }
   }
 
   /**
@@ -28,9 +37,11 @@ export class HowToWorkComponent implements OnInit {
    * გვერდის თავში რბილად (smooth) აყოლება
    */
   scrollToTop(): void {
-    window.scrollTo({
-      top: 0,
-      behavior: 'smooth',
-    });
+    if (this.isBrowser) {
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth',
+      });
+    }
   }
 }

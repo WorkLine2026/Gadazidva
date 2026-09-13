@@ -1,11 +1,11 @@
 import {
   Component, OnInit, OnDestroy, ChangeDetectorRef,
   ViewChild, TemplateRef, ViewContainerRef, EmbeddedViewRef,
-  Renderer2
+  Renderer2, PLATFORM_ID, Inject
 } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { CommonModule } from '@angular/common';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { SmsVerificationService, UserProfile } from '../../services/smsverifikation.service';
@@ -109,8 +109,14 @@ export class SenderProfileComponent implements OnInit, OnDestroy {
     private socketService: SocketNotificationService,
     private cdr: ChangeDetectorRef,
     private vcRef: ViewContainerRef,
-    private renderer: Renderer2
+    private renderer: Renderer2,
+    @Inject(PLATFORM_ID) private platformId: Object
   ) {}
+
+  // ✅ SSR-დაცვა: true მხოლოდ ბრაუზერში
+  private get isBrowser(): boolean {
+    return isPlatformBrowser(this.platformId);
+  }
 
   toggleSection(key: string): void {
     this.openSections[key] = !this.openSections[key];
@@ -121,6 +127,10 @@ export class SenderProfileComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    // ✅ ფორმა თავიდანვე ცარიელი შაბლონით ვქმნით, რომ template-ს
+    // (prerender-ის დროსაც) ყოველთვის ჰქონდეს ვალიდური FormGroup
+    this.initProfileForm();
+
     if (!this.smsService.isAuthenticated()) {
       this.router.navigate(['/login']);
       return;
@@ -154,14 +164,18 @@ export class SenderProfileComponent implements OnInit, OnDestroy {
     this.destroy$.next();
     this.destroy$.complete();
     this.unmountChatFromBody();
-    if (window.visualViewport) {
-      window.visualViewport.removeEventListener('resize', this.viewportResizeHandler);
-      window.visualViewport.removeEventListener('scroll', this.viewportResizeHandler);
+
+    // ✅ window/document მხოლოდ ბრაუზერში
+    if (this.isBrowser) {
+      if (window.visualViewport) {
+        window.visualViewport.removeEventListener('resize', this.viewportResizeHandler);
+        window.visualViewport.removeEventListener('scroll', this.viewportResizeHandler);
+      }
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.width = '';
+      document.body.style.top = '';
     }
-    document.body.style.overflow = '';
-    document.body.style.position = '';
-    document.body.style.width = '';
-    document.body.style.top = '';
   }
 
   private loadUserData(): void {
@@ -169,13 +183,14 @@ export class SenderProfileComponent implements OnInit, OnDestroy {
     this.errorMessage = null;
     this.cdr.detectChanges();
 
-    this.smsService.getProfile().subscribe({
+    this.smsService.getProfile()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
       next: (res) => {
         this.isLoading = false;
 
         if (res.success && res.user) {
           this.applyUserData(res.user);
-          this.initProfileForm();
           this.loadUserRequests();
           this.loadPickupOffers();
           this.loadOutgoingTripRequests();
@@ -204,7 +219,9 @@ export class SenderProfileComponent implements OnInit, OnDestroy {
     this.isLoadingRequests = true;
     this.cdr.detectChanges();
 
-    this.parcelService.getUserRequests().subscribe({
+    this.parcelService.getUserRequests()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
       next: (res: any) => {
         this.isLoadingRequests = false;
         this.userRequests = res.success && res.requests ? res.requests : [];
@@ -220,7 +237,9 @@ export class SenderProfileComponent implements OnInit, OnDestroy {
   }
 
   private loadPickupOffers(): void {
-    this.parcelService.getIncomingOffers().subscribe({
+    this.parcelService.getIncomingOffers()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
       next: (res) => {
         this.incomingOffers = res.success && res.offers ? res.offers : [];
         this.cdr.detectChanges();
@@ -232,7 +251,9 @@ export class SenderProfileComponent implements OnInit, OnDestroy {
       }
     });
 
-    this.parcelService.getMyInProgressOffers().subscribe({
+    this.parcelService.getMyInProgressOffers()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
       next: (res) => {
         this.inProgressOffers = res.success && res.offers ? res.offers : [];
         this.cdr.detectChanges();
@@ -244,7 +265,9 @@ export class SenderProfileComponent implements OnInit, OnDestroy {
       }
     });
 
-    this.parcelService.getMySentCompleted().subscribe({
+    this.parcelService.getMySentCompleted()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
       next: (res) => {
         this.sentCompleted = res.success && res.offers ? res.offers : [];
         this.cdr.detectChanges();
@@ -259,7 +282,9 @@ export class SenderProfileComponent implements OnInit, OnDestroy {
 
   // ✅ ჩემი გაგზავნილი trip-მოთხოვნების ჩატვირთვა
   private loadOutgoingTripRequests(): void {
-    this.parcelService.getMyTripPickupRequests().subscribe({
+    this.parcelService.getMyTripPickupRequests()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
       next: (res) => {
         this.outgoingTripRequests = res.success && res.requests ? res.requests : [];
         this.cdr.detectChanges();
@@ -286,7 +311,9 @@ export class SenderProfileComponent implements OnInit, OnDestroy {
     this.respondingOfferId = offer._id;
     this.cdr.detectChanges();
 
-    this.parcelService.respondToOffer(offer._id, accept).subscribe({
+    this.parcelService.respondToOffer(offer._id, accept)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
       next: (res) => {
         this.respondingOfferId = null;
         if (res.success) {
@@ -310,7 +337,9 @@ export class SenderProfileComponent implements OnInit, OnDestroy {
     this.completingOfferId = offer._id;
     this.cdr.detectChanges();
 
-    this.parcelService.confirmPickupCompleteBySender(offer._id).subscribe({
+    this.parcelService.confirmPickupCompleteBySender(offer._id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
       next: (res) => {
         this.completingOfferId = null;
         if (res.success) {
@@ -379,6 +408,18 @@ export class SenderProfileComponent implements OnInit, OnDestroy {
     this.phone = user.phone;
     this.personalNumber = user.personalNumber;
     this.phoneVerified = user.phoneVerified;
+
+    // ✅ ფორმის ხელახლა შექმნის ნაცვლად — არსებული ფორმის განახლება
+    if (this.profileForm) {
+      this.profileForm.patchValue({
+        firstName: this.firstName,
+        lastName: this.lastName,
+        email: this.email,
+        personalNumber: this.personalNumber
+      });
+    } else {
+      this.initProfileForm();
+    }
   }
 
   private initProfileForm(): void {
@@ -433,13 +474,18 @@ export class SenderProfileComponent implements OnInit, OnDestroy {
   toggleEditMode(): void {
     this.isEditing = !this.isEditing;
     this.errorMessage = null;
-    if (this.isEditing) this.initProfileForm();
   }
 
   cancelEdit(): void {
     this.isEditing = false;
     this.errorMessage = null;
-    this.initProfileForm();
+    // ✅ ცვლილებების გაუქმება ფორმის ხელახლა შექმნის გარეშე
+    this.profileForm?.patchValue({
+      firstName: this.firstName,
+      lastName: this.lastName,
+      email: this.email,
+      personalNumber: this.personalNumber
+    });
   }
 
   saveProfile(): void {
@@ -454,7 +500,9 @@ export class SenderProfileComponent implements OnInit, OnDestroy {
 
     const updateData = this.profileForm.getRawValue();
 
-    this.smsService.updateProfile(updateData).subscribe({
+    this.smsService.updateProfile(updateData)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
       next: (res) => {
         this.isSaving = false;
 
@@ -539,16 +587,18 @@ export class SenderProfileComponent implements OnInit, OnDestroy {
     // შემდეგ ვხსნით ჩატს
     this.showChatModal = true;
 
-    // body scroll lock
-    document.body.style.overflow = 'hidden';
-    document.body.style.position = 'fixed';
-    document.body.style.width = '100%';
-    document.body.style.top = `-${window.scrollY}px`;
+    // ✅ body scroll lock — მხოლოდ ბრაუზერში
+    if (this.isBrowser) {
+      document.body.style.overflow = 'hidden';
+      document.body.style.position = 'fixed';
+      document.body.style.width = '100%';
+      document.body.style.top = `-${window.scrollY}px`;
 
-    this.updateChatViewportHeight();
-    if (window.visualViewport) {
-      window.visualViewport.addEventListener('resize', this.viewportResizeHandler);
-      window.visualViewport.addEventListener('scroll', this.viewportResizeHandler);
+      this.updateChatViewportHeight();
+      if (window.visualViewport) {
+        window.visualViewport.addEventListener('resize', this.viewportResizeHandler);
+        window.visualViewport.addEventListener('scroll', this.viewportResizeHandler);
+      }
     }
 
     this.cdr.detectChanges();
@@ -566,23 +616,26 @@ export class SenderProfileComponent implements OnInit, OnDestroy {
     this.selectedConversation = null;
     this.unmountChatFromBody();
 
-    if (window.visualViewport) {
-      window.visualViewport.removeEventListener('resize', this.viewportResizeHandler);
-      window.visualViewport.removeEventListener('scroll', this.viewportResizeHandler);
-    }
+    if (this.isBrowser) {
+      if (window.visualViewport) {
+        window.visualViewport.removeEventListener('resize', this.viewportResizeHandler);
+        window.visualViewport.removeEventListener('scroll', this.viewportResizeHandler);
+      }
 
-    // scroll restore
-    const scrollY = document.body.style.top;
-    document.body.style.overflow = '';
-    document.body.style.position = '';
-    document.body.style.width = '';
-    document.body.style.top = '';
-    window.scrollTo(0, parseInt(scrollY || '0') * -1);
+      // scroll restore
+      const scrollY = document.body.style.top;
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.width = '';
+      document.body.style.top = '';
+      window.scrollTo(0, parseInt(scrollY || '0') * -1);
+    }
 
     this.cdr.detectChanges();
   }
 
   private mountChatToBody(): void {
+    if (!this.isBrowser) return;
     if (this.chatPortalView || !this.chatPortalTemplate) return;
     this.chatPortalView = this.vcRef.createEmbeddedView(this.chatPortalTemplate);
     this.chatPortalView.detectChanges();
@@ -598,6 +651,7 @@ export class SenderProfileComponent implements OnInit, OnDestroy {
   }
 
   private updateChatViewportHeight(): void {
+    if (!this.isBrowser) return;
     const vv = window.visualViewport;
     if (!vv) return;
     document.documentElement.style.setProperty('--chat-vh', `${vv.height}px`);
@@ -634,7 +688,9 @@ export class SenderProfileComponent implements OnInit, OnDestroy {
     this.deletingRequestId = requestId;
     this.cdr.detectChanges();
 
-    this.parcelService.deleteParcelRequest(requestId).subscribe({
+    this.parcelService.deleteParcelRequest(requestId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
       next: (res) => {
         this.deletingRequestId = null;
 
@@ -684,7 +740,9 @@ export class SenderProfileComponent implements OnInit, OnDestroy {
     this.deleteAccountError = null;
     this.cdr.detectChanges();
 
-    this.smsService.deleteAccount().subscribe({
+    this.smsService.deleteAccount()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
       next: () => {
         this.isDeletingAccount = false;
         this.socketService.disconnect?.();
@@ -710,7 +768,9 @@ export class SenderProfileComponent implements OnInit, OnDestroy {
     this.dismissingRequestId = request._id;
     this.cdr.detectChanges();
 
-    this.parcelService.deleteMyTripPickupRequest(request._id).subscribe({
+    this.parcelService.deleteMyTripPickupRequest(request._id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
       next: (res) => {
         this.dismissingRequestId = null;
         if (res.success) {

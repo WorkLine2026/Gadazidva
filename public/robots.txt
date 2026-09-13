@@ -1,0 +1,26 @@
+User-agent: *
+Allow: /
+Disallow: /profile
+Disallow: /login
+Disallow: /register
+Disallow: /forgot-password
+
+Sitemap: https://ggzavna.ge/sitemap.xmlUser-agent: *
+Allow: /
+
+# კერძო/ავტორიზაციასთან დაკავშირებული გვერდები — არ გვინდა ინდექსაცია
+Disallow: /profile
+Disallow: /login
+Disallow: /register
+Disallow: /forgot-password
+Disallow: /reset-password
+Disallow: /verify
+
+# API endpoint-ები — ესენი მონაცემებია, არა გვერდები
+Disallow: /api/
+
+# ჩატის/შეტყობინებების შიდა ეკრანები (თუ ცალკე route-ებია)
+Disallow: /messages
+Disallow: /notifications
+
+Sitemap: https://ggzavna.ge/sitemap.xml

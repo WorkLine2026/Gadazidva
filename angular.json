@@ -25,15 +25,25 @@
             "polyfills": ["zone.js"],
             "tsConfig": "tsconfig.app.json",
             "inlineStyleLanguage": "scss",
+            "allowedCommonJsDependencies": [
+              "debug",
+              "xmlhttprequest-ssl"
+            ],
             "assets": [
               {
                 "glob": "**/*",
                 "input": "public"
               }
             ],
-            "styles": [
-              "src/styles.scss"
-            ]
+            "styles": ["src/styles.scss"],
+            "server": "src/main.server.ts",
+            "outputMode": "server",
+            "security": {
+              "allowedHosts": ["localhost:4000", "ggzavna.ge", "www.ggzavna.ge"]
+            },
+            "ssr": {
+              "entry": "src/server.ts"
+            }
           },
           "configurations": {
             "production": {
@@ -55,8 +65,8 @@
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "30kB",
-                  "maximumError": "50kB"
+                  "maximumWarning": "40kB",
+                  "maximumError": "60kB"
                 }
               ],
               "outputHashing": "all"

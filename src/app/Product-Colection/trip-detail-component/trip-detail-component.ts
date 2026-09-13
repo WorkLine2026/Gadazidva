@@ -1,16 +1,17 @@
 import {
   Component, OnInit, OnDestroy, ChangeDetectorRef,
   ViewChild, TemplateRef, ViewContainerRef, EmbeddedViewRef,
-  Renderer2
+  Renderer2, PLATFORM_ID, Inject
 } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { CommonModule } from '@angular/common';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subject } from 'rxjs';
 import { takeUntil, finalize } from 'rxjs/operators';
 import { ParcelService, DriverTrip } from '../../services/Parcel.service';
 import { SmsVerificationService } from '../../services/smsverifikation.service';
 import { ChatModalImprovedComponent } from '../../chat/chat-modal-component/chat-modal-component';
+import { SeoService } from '../../services/seo.service'; // ⬅️ SEO — დააზუსტე გზა
 
 @Component({
   selector: 'app-trip-detail',
@@ -25,22 +26,20 @@ export class TripDetailComponent implements OnInit, OnDestroy {
   isAuthenticated = false;
   trip: DriverTrip | null = null;
 
-  // 💬 ჩატი
   isChatOpen = false;
   currentUserId = '';
 
-  // 📷 Lightbox
   lightboxOpen = false;
   lightboxIndex = 0;
 
-  // 🚚 ნივთის შეკვეთა
   isSendingPickupRequest = false;
   pickupRequestSent = false;
 
-  // 💬 Portal
   @ViewChild('chatPortal') chatPortalTemplate!: TemplateRef<any>;
   private chatPortalView: EmbeddedViewRef<any> | null = null;
   private viewportResizeHandler = () => this.updateChatViewportHeight();
+
+  private isBrowser: boolean;
 
   private destroy$ = new Subject<void>();
   public router: Router;
@@ -52,9 +51,12 @@ export class TripDetailComponent implements OnInit, OnDestroy {
     private smsService: SmsVerificationService,
     private cdr: ChangeDetectorRef,
     private vcRef: ViewContainerRef,
-    private renderer: Renderer2
+    private renderer: Renderer2,
+    private seo: SeoService, // ⬅️ SEO
+    @Inject(PLATFORM_ID) platformId: Object
   ) {
     this.router = router;
+    this.isBrowser = isPlatformBrowser(platformId);
   }
 
   ngOnInit(): void {
@@ -75,6 +77,11 @@ export class TripDetailComponent implements OnInit, OnDestroy {
           console.error('❌ tripId არ მოვიდა route-დან. params:', params);
           this.errorMessage = 'არასწორი ბმული — მგზავრობის ID ვერ მოიძებნა';
           this.cdr.detectChanges();
+          this.seo.update({ // ⬅️ SEO
+            title: 'გვერდი ვერ მოიძებნა | გგზავნა',
+            description: 'მოთხოვნილი გვერდი არ არსებობს ან წაშლილია.',
+            noindex: true
+          });
         }
       });
   }
@@ -83,6 +90,11 @@ export class TripDetailComponent implements OnInit, OnDestroy {
     this.destroy$.next();
     this.destroy$.complete();
     this.unmountChatFromBody();
+
+    if (!this.isBrowser) {
+      return;
+    }
+
     if (window.visualViewport) {
       window.visualViewport.removeEventListener('resize', this.viewportResizeHandler);
       window.visualViewport.removeEventListener('scroll', this.viewportResizeHandler);
@@ -110,8 +122,14 @@ export class TripDetailComponent implements OnInit, OnDestroy {
         next: (res) => {
           if (res.success && res.data) {
             this.trip = res.data;
+            this.setSeoForTrip(res.data); // ⬅️ SEO — მონაცემი ჩამოსულია
           } else {
             this.errorMessage = res.message || 'მგზავრობა ვერ მოიძებნა';
+            this.seo.update({ // ⬅️ SEO
+              title: 'მგზავრობა ვერ მოიძებნა | გგზავნა',
+              description: 'მოთხოვნილი მგზავრობა არ არსებობს ან წაშლილია.',
+              noindex: true
+            });
           }
           this.cdr.detectChanges();
         },
@@ -126,12 +144,64 @@ export class TripDetailComponent implements OnInit, OnDestroy {
           } else {
             this.errorMessage = 'მგზავრობის ჩატვირთვა ვერ ხერხდა (კოდი: ' + err.status + ')';
           }
+
+          this.seo.update({ // ⬅️ SEO
+            title: 'გვერდი ვერ მოიძებნა | გგზავნა',
+            description: 'მოთხოვნილი გვერდი ამჟამად მიუწვდომელია.',
+            noindex: true
+          });
+
           this.cdr.detectChanges();
         }
       });
   }
 
+  // ⬅️ SEO — ახალი მეთოდი: აყენებს title/description/OG/JSON-LD მარშრუტის მიხედვით
+  private setSeoForTrip(trip: DriverTrip): void {
+    const from = trip.from || '';
+    const to = trip.to || '';
+    const pricePerKg = trip.pricePerKg ?? '';
+    const availableSpace = trip.availableSpace ?? '';
+    const url = `https://ggzavna.ge/trip/${trip._id}`;
+
+    const title = `მგზავრობა ${from}-დან ${to}-ში — ტვირთის გადაზიდვა | გგზავნა`;
+    const description =
+      `მძღოლი მიემგზავრება ${from}-დან ${to}-ში და იღებს ამანათებს. ` +
+      `თავისუფალი ადგილი: ${availableSpace} კგ, ფასი: ${pricePerKg} ₾/კგ.`;
+
+    this.seo.update({
+      title,
+      description,
+      url,
+      image: trip.images?.[0],
+      type: 'article'
+    });
+
+    this.seo.setJsonLd({
+      '@context': 'https://schema.org',
+      '@type': 'Service',
+      serviceType: 'ამანათის გადაზიდვა მძღოლის მიერ',
+      provider: { '@type': 'Organization', name: 'გგზავნა', url: 'https://ggzavna.ge' },
+      areaServed: [
+        { '@type': 'City', name: from },
+        { '@type': 'City', name: to }
+      ],
+      offers: {
+        '@type': 'Offer',
+        price: pricePerKg,
+        priceCurrency: 'GEL',
+        description: '₾/კგ ტარიფი'
+      }
+    });
+
+    this.seo.setBreadcrumb([
+      { name: 'მთავარი', url: 'https://ggzavna.ge/' },
+      { name: `${from} → ${to}`, url }
+    ]);
+  }
+
   goBack(): void {
+    if (!this.isBrowser) return;
     window.history.back();
   }
 
@@ -149,9 +219,6 @@ export class TripDetailComponent implements OnInit, OnDestroy {
     return recipientId === currentId && recipientId !== '';
   }
 
-  // ============================================================
-  // 💬 ჩატი — portal + body lock
-  // ============================================================
   openChat(): void {
     if (!this.isAuthenticated) {
       alert('⚠️ შეტყობინების გასაგზავნად გთხოვთ დალოგინდით');
@@ -165,21 +232,21 @@ export class TripDetailComponent implements OnInit, OnDestroy {
 
     this.isChatOpen = true;
 
-    // body scroll lock
-    document.body.style.overflow = 'hidden';
-    document.body.style.position = 'fixed';
-    document.body.style.width = '100%';
-    document.body.style.top = `-${window.scrollY}px`;
+    if (this.isBrowser) {
+      document.body.style.overflow = 'hidden';
+      document.body.style.position = 'fixed';
+      document.body.style.width = '100%';
+      document.body.style.top = `-${window.scrollY}px`;
 
-    this.updateChatViewportHeight();
-    if (window.visualViewport) {
-      window.visualViewport.addEventListener('resize', this.viewportResizeHandler);
-      window.visualViewport.addEventListener('scroll', this.viewportResizeHandler);
+      this.updateChatViewportHeight();
+      if (window.visualViewport) {
+        window.visualViewport.addEventListener('resize', this.viewportResizeHandler);
+        window.visualViewport.addEventListener('scroll', this.viewportResizeHandler);
+      }
     }
 
     this.cdr.detectChanges();
 
-    // portal body-ში
     setTimeout(() => {
       this.mountChatToBody();
     });
@@ -189,23 +256,25 @@ export class TripDetailComponent implements OnInit, OnDestroy {
     this.isChatOpen = false;
     this.unmountChatFromBody();
 
-    if (window.visualViewport) {
-      window.visualViewport.removeEventListener('resize', this.viewportResizeHandler);
-      window.visualViewport.removeEventListener('scroll', this.viewportResizeHandler);
-    }
+    if (this.isBrowser) {
+      if (window.visualViewport) {
+        window.visualViewport.removeEventListener('resize', this.viewportResizeHandler);
+        window.visualViewport.removeEventListener('scroll', this.viewportResizeHandler);
+      }
 
-    // scroll restore
-    const scrollY = document.body.style.top;
-    document.body.style.overflow = '';
-    document.body.style.position = '';
-    document.body.style.width = '';
-    document.body.style.top = '';
-    window.scrollTo(0, parseInt(scrollY || '0') * -1);
+      const scrollY = document.body.style.top;
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.width = '';
+      document.body.style.top = '';
+      window.scrollTo(0, parseInt(scrollY || '0') * -1);
+    }
 
     this.cdr.detectChanges();
   }
 
   private mountChatToBody(): void {
+    if (!this.isBrowser) return;
     if (this.chatPortalView || !this.chatPortalTemplate) return;
     this.chatPortalView = this.vcRef.createEmbeddedView(this.chatPortalTemplate);
     this.chatPortalView.detectChanges();
@@ -221,15 +290,14 @@ export class TripDetailComponent implements OnInit, OnDestroy {
   }
 
   private updateChatViewportHeight(): void {
+    if (!this.isBrowser) return;
+
     const vv = window.visualViewport;
     if (!vv) return;
     document.documentElement.style.setProperty('--chat-vh', `${vv.height}px`);
     document.documentElement.style.setProperty('--chat-offset-top', `${vv.offsetTop}px`);
   }
 
-  // ============================================================
-  // 🚚 ნივთის შეკვეთა
-  // ============================================================
   sendPickupRequest(): void {
     if (!this.trip || !this.trip._id) return;
 
@@ -270,9 +338,6 @@ export class TripDetailComponent implements OnInit, OnDestroy {
       });
   }
 
-  // ============================================================
-  // 📷 Lightbox
-  // ============================================================
   openLightbox(index: number): void {
     this.lightboxIndex = index;
     this.lightboxOpen = true;
@@ -294,9 +359,10 @@ export class TripDetailComponent implements OnInit, OnDestroy {
     this.lightboxIndex = (this.lightboxIndex - 1 + images.length) % images.length;
   }
 
-  // ===== 📧 იმეილი =====
   sendEmail(): void {
     if (!this.trip || this.isOwnTrip) return;
+    if (!this.isBrowser) return;
+
     const email = (this.trip as any).driverEmail;
     if (!email) return;
     const subject = encodeURIComponent(`მგზავრობა: ${this.trip.from} → ${this.trip.to}`);
@@ -308,9 +374,10 @@ export class TripDetailComponent implements OnInit, OnDestroy {
     return !!(this.trip as any)?.driverEmail;
   }
 
-  // ===== 📞 დარეკვა =====
   call(): void {
     if (!this.trip || this.isOwnTrip) return;
+    if (!this.isBrowser) return;
+
     const phone = this.trip?.senderPhone || (this.trip as any)?.personalNumber;
     if (!phone) return;
     window.location.href = `tel:${phone}`;

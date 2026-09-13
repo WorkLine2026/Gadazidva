@@ -8,10 +8,12 @@ import {
   ViewChild,
   ElementRef,
   AfterViewChecked,
-  ChangeDetectorRef
+  ChangeDetectorRef,
+  PLATFORM_ID,
+  Inject
 } from '@angular/core';
 
-import { CommonModule } from '@angular/common';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
 import { Subject } from 'rxjs';
@@ -76,6 +78,15 @@ export class ChatModalImprovedComponent
   private lastMessagesLength = 0;
 
   // ============================================================
+  // 🖥️ SSR/PRERENDER SAFETY
+  // ============================================================
+  // ეს კომპონენტი prerender-ის დროსაც ინსტანცირდება (Node.js-ში),
+  // სადაც window/document არ არსებობს. ყველა ბრაუზერზე
+  // დამოკიდებული კოდი დაცულია `isBrowser`-ით.
+
+  private isBrowser: boolean;
+
+  // ============================================================
   // 💬 KEYBOARD-AWARE VIEWPORT (mobile fix)
   // ============================================================
   // visualViewport-ი ერთადერთია, რომელიც რეალურად აღრიცხავს
@@ -87,6 +98,10 @@ export class ChatModalImprovedComponent
   private viewportResizeHandler = () => this.updateViewportHeight();
 
   private updateViewportHeight(): void {
+    if (!this.isBrowser) {
+      return;
+    }
+
     const vv = (window as any).visualViewport;
 
     if (!vv) {
@@ -106,8 +121,11 @@ export class ChatModalImprovedComponent
 
   constructor(
     private socketService: SocketNotificationService,
-    private cdr: ChangeDetectorRef
-  ) {}
+    private cdr: ChangeDetectorRef,
+    @Inject(PLATFORM_ID) platformId: Object
+  ) {
+    this.isBrowser = isPlatformBrowser(platformId);
+  }
 
   // ============================================================
   // INIT
@@ -162,33 +180,36 @@ export class ChatModalImprovedComponent
     );
 
     // ----------------------------------------------------------
-    // 💬 keyboard-aware viewport — ჩართვა
+    // 💬 keyboard-aware viewport — ჩართვა (მხოლოდ ბრაუზერში)
     // ----------------------------------------------------------
 
-    this.updateViewportHeight();
+    if (this.isBrowser) {
 
-    if ((window as any).visualViewport) {
+      this.updateViewportHeight();
 
-      (window as any).visualViewport.addEventListener(
-        'resize',
-        this.viewportResizeHandler
-      );
+      if ((window as any).visualViewport) {
 
-      (window as any).visualViewport.addEventListener(
-        'scroll',
-        this.viewportResizeHandler
-      );
+        (window as any).visualViewport.addEventListener(
+          'resize',
+          this.viewportResizeHandler
+        );
+
+        (window as any).visualViewport.addEventListener(
+          'scroll',
+          this.viewportResizeHandler
+        );
+      }
+
+      // --------------------------------------------------------
+      // 💬 body scroll lock — მთავარი გვერდი აღარ იძვრება,
+      // სანამ ჩატი ღიაა
+      // --------------------------------------------------------
+
+      document.body.style.overflow = 'hidden';
+      document.body.style.position = 'fixed';
+      document.body.style.width = '100%';
+      document.body.style.top = `-${window.scrollY}px`;
     }
-
-    // ----------------------------------------------------------
-    // 💬 body scroll lock — მთავარი გვერდი აღარ იძვრება,
-    // სანამ ჩატი ღიაა
-    // ----------------------------------------------------------
-
-    document.body.style.overflow = 'hidden';
-    document.body.style.position = 'fixed';
-    document.body.style.width = '100%';
-    document.body.style.top = `-${window.scrollY}px`;
 
     // ----------------------------------------------------------
     // safety-net: თუ socket ჯერ არ შექმნილა (constructor-ის პირველი
@@ -444,36 +465,39 @@ export class ChatModalImprovedComponent
       this.scrollTimeout = null;
     }
 
-    // ----------------------------------------------------------
-    // 💬 keyboard-aware viewport — გამორთვა
-    // ----------------------------------------------------------
+    if (this.isBrowser) {
 
-    if ((window as any).visualViewport) {
+      // --------------------------------------------------------
+      // 💬 keyboard-aware viewport — გამორთვა
+      // --------------------------------------------------------
 
-      (window as any).visualViewport.removeEventListener(
-        'resize',
-        this.viewportResizeHandler
-      );
+      if ((window as any).visualViewport) {
 
-      (window as any).visualViewport.removeEventListener(
-        'scroll',
-        this.viewportResizeHandler
-      );
-    }
+        (window as any).visualViewport.removeEventListener(
+          'resize',
+          this.viewportResizeHandler
+        );
 
-    // ----------------------------------------------------------
-    // 💬 body scroll lock — აღდგენა
-    // ----------------------------------------------------------
+        (window as any).visualViewport.removeEventListener(
+          'scroll',
+          this.viewportResizeHandler
+        );
+      }
 
-    const scrollY = document.body.style.top;
+      // --------------------------------------------------------
+      // 💬 body scroll lock — აღდგენა
+      // --------------------------------------------------------
 
-    document.body.style.overflow = '';
-    document.body.style.position = '';
-    document.body.style.width = '';
-    document.body.style.top = '';
+      const scrollY = document.body.style.top;
 
-    if (scrollY) {
-      window.scrollTo(0, parseInt(scrollY, 10) * -1);
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.width = '';
+      document.body.style.top = '';
+
+      if (scrollY) {
+        window.scrollTo(0, parseInt(scrollY, 10) * -1);
+      }
     }
 
     this.socketService.clearActiveConversation();

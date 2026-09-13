@@ -77,8 +77,8 @@ export class RegisterComponent implements OnInit, OnDestroy {
   licensePreviewUrl: string | null = null;
   licenseFileError: string | null = null;
   isProcessingLicenseFile = false; // ✅ compression მიმდინარეობის indicator
-showConfirmPassword: any;
-showPassword: any;
+  showConfirmPassword: any;
+  showPassword: any;
 
   constructor(
     private fb: FormBuilder,
@@ -168,32 +168,31 @@ showPassword: any;
     licensePhoto?.updateValueAndValidity();
   }
 
+  // ✅ FIX: აღარ ვცვლით confirmPassword-ის errors-ს ამ ვალიდატორის შიგნიდან.
+  // group-validator-ში sibling-კონტროლზე setErrors()-ის გამოძახება რეენტრანტულად
+  // არღვევს Angular-ის ვალიდატორების კომპოზიციის state-ს (_rawValidators),
+  // რაც browser-ში ჩუმად "გადის", მაგრამ SSR prerender-ზე crash-ს იძლევა.
+  // ამის ნაცვლად mismatch-ს group-level error-ად ვაბრუნებთ.
   private passwordMatchValidator(control: AbstractControl): ValidationErrors | null {
     const password = control.get('password');
     const confirmPassword = control.get('confirmPassword');
 
     if (!password || !confirmPassword) return null;
 
-    if (confirmPassword.value && password.value !== confirmPassword.value) {
-      confirmPassword.setErrors({ passwordMismatch: true });
-      return { passwordMismatch: true };
-    }
-
-    if (confirmPassword.hasError('passwordMismatch')) {
-      const errors = { ...confirmPassword.errors };
-      delete errors['passwordMismatch'];
-      confirmPassword.setErrors(Object.keys(errors).length ? errors : null);
-    }
-
-    return null;
+    return confirmPassword.value && password.value !== confirmPassword.value
+      ? { passwordMismatch: true }
+      : null;
   }
 
   isFieldInvalid(fieldName: string): boolean {
     const control = this.registerForm.get(fieldName);
     if (!control) return false;
 
-    if (fieldName === 'confirmPassword' && control.hasError('passwordMismatch')) {
-      return control.touched || control.dirty;
+    // ✅ FIX: confirmPassword-ის mismatch ახლა group-ის errors-შია,
+    // ამიტომ ორივეს ვამოწმებთ — თავად control-ის validity-ს და group-ის passwordMismatch-ს
+    if (fieldName === 'confirmPassword') {
+      const mismatch = this.registerForm.hasError('passwordMismatch');
+      return (control.invalid || mismatch) && (control.dirty || control.touched);
     }
 
     return control.invalid && (control.dirty || control.touched);

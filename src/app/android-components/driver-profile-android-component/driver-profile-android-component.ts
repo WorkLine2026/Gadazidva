@@ -6,11 +6,13 @@ import {
   ViewEncapsulation,
   ViewChild,
   ElementRef,
-  Renderer2
+  Renderer2,
+  PLATFORM_ID,
+  Inject
 } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { CommonModule } from '@angular/common';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
@@ -55,6 +57,11 @@ export class DriverProfileAndroidComponent implements OnInit, OnDestroy {
   isSaving = false;
   errorMessage: string | null = null;
 
+  // 🛠️ FIX: profileForm ახლა იქმნება ერთხელ, სინქრონულად ngOnInit-ში
+  // (იხ. constructor-ის ქვემოთ initProfileForm()-ის გამოძახება).
+  // FormGroup-ის ობიექტი აღარასდროს იცვლება ახლით — მხოლოდ patchValue-ით
+  // ახლდება, რაც არ არღვევს უკვე bound [formGroup] დირექტივას და
+  // ხსნის prerender-ის დროს "_rawValidators of undefined" შეცდომას.
   profileForm!: FormGroup;
 
   // ===== TRIPS & OFFERS =====
@@ -89,16 +96,15 @@ export class DriverProfileAndroidComponent implements OnInit, OnDestroy {
   deleteAccountError: string | null = null;
 
   // ===== CHAT MODAL PORTAL =====
-  // ჩატის fullscreen მოდალის root ელემენტი — გახსნისას გადააქვს document.body-ში,
-  // რომ არ ეყრდნობოდეს არცერთ მშობელ ელემენტს (მაგ. transform-ის მქონე route-wrapper-ს),
-  // რომელსაც შეუძლია position:fixed-ის containing block შეცვალოს და მოდალი ეკრანის
-  // თავზე/არასწორ ადგილას გამოაჩინოს.
   @ViewChild('chatModalRoot') chatModalRoot?: ElementRef<HTMLElement>;
   private chatModalOriginalParent: Node | null = null;
   private chatModalOriginalNextSibling: Node | null = null;
   private chatModalMovedToBody = false;
   private injectedPortalStyles: HTMLStyleElement[] = [];
   private bodyOverflowBeforeLock: string | null = null;
+
+  // 🖥️ SSR/PRERENDER SAFETY — document.body/document.head მხოლოდ ბრაუზერშია უსაფრთხო
+  private isBrowser: boolean;
 
   private destroy$ = new Subject<void>();
   private lastHandledNotification: any = null;
@@ -111,14 +117,21 @@ export class DriverProfileAndroidComponent implements OnInit, OnDestroy {
     private socketService: SocketNotificationService,
     private cdr: ChangeDetectorRef,
     private renderer: Renderer2,
-    private hostEl: ElementRef<HTMLElement>
-  ) {}
+    private hostEl: ElementRef<HTMLElement>,
+    @Inject(PLATFORM_ID) platformId: Object
+  ) {
+    this.isBrowser = isPlatformBrowser(platformId);
+  }
 
   ngOnInit(): void {
     if (!this.smsService.isAuthenticated()) {
       this.router.navigate(['/login']);
       return;
     }
+
+    // 🛠️ FIX: FormGroup-ის ინსტანცია იქმნება ერთხელ და დაუყოვნებლივ,
+    // სანამ template-მა [formGroup]="profileForm" პირველად დააბაინდოს.
+    this.initProfileForm();
 
     this.loadUserData();
 
@@ -160,106 +173,127 @@ export class DriverProfileAndroidComponent implements OnInit, OnDestroy {
   }
 
   // ===== DATA LOADING =====
+  // ✅ FIX: ყველა HTTP subscription-ს ახლა აქვს takeUntil(this.destroy$).
+  // Prerender-ის დროს route-ები სწრაფად იცვლება — თუ HTTP პასუხი
+  // კომპონენტის განადგურების შემდეგ დაბრუნდება, callback-ში მოთავსებული
+  // cdr.detectChanges() ცდილობს CD-ის გაშვებას უკვე დანგრეულ view-ზე,
+  // რაც არღვევს FormGroupDirective-ს შიდა მდგომარეობას და იწვევს
+  // "_rawValidators of undefined" შეცდომას. takeUntil წყვეტს ამ callback-ს
+  // მანამ, სანამ ის საერთოდ გაეშვება.
   private loadUserData(): void {
     this.isLoading = true;
     this.cdr.detectChanges();
 
-    this.smsService.getProfile().subscribe({
-      next: (res) => {
-        this.isLoading = false;
-        if (res.success && res.user) {
-          this.applyUserData(res.user);
-          this.initProfileForm();
-          this.loadDriverTrips();
-          this.loadPickupOffers();
-          this.loadIncomingTripRequests();
-          this.loadMyOutgoingOffers();
-        } else {
-          this.errorMessage = res.message ?? 'ინფორმაცია ვერ ჩაიტვირთა';
+    this.smsService.getProfile()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (res) => {
+          this.isLoading = false;
+          if (res.success && res.user) {
+            this.applyUserData(res.user);
+            this.initProfileForm();
+            this.loadDriverTrips();
+            this.loadPickupOffers();
+            this.loadIncomingTripRequests();
+            this.loadMyOutgoingOffers();
+          } else {
+            this.errorMessage = res.message ?? 'ინფორმაცია ვერ ჩაიტვირთა';
+          }
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          this.isLoading = false;
+          if (err.status === 401) {
+            this.smsService.clearAuthToken();
+            this.router.navigate(['/login']);
+            return;
+          }
+          this.errorMessage = 'ინფორმაცია ვერ ჩაიტვირთა';
+          this.cdr.detectChanges();
         }
-        this.cdr.detectChanges();
-      },
-      error: (err) => {
-        this.isLoading = false;
-        if (err.status === 401) {
-          this.smsService.clearAuthToken();
-          this.router.navigate(['/login']);
-          return;
-        }
-        this.errorMessage = 'ინფორმაცია ვერ ჩაიტვირთა';
-        this.cdr.detectChanges();
-      }
-    });
+      });
   }
 
   private loadDriverTrips(): void {
     this.isLoadingTrips = true;
     this.cdr.detectChanges();
-    this.parcelService.getDriverTrips().subscribe({
-      next: (res: any) => {
-        this.isLoadingTrips = false;
-        this.driverTrips = res.success && res.trips ? res.trips : [];
-        this.cdr.detectChanges();
-      },
-      error: () => {
-        this.isLoadingTrips = false;
-        this.driverTrips = [];
-        this.cdr.detectChanges();
-      }
-    });
+    this.parcelService.getDriverTrips()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (res: any) => {
+          this.isLoadingTrips = false;
+          this.driverTrips = res.success && res.trips ? res.trips : [];
+          this.cdr.detectChanges();
+        },
+        error: () => {
+          this.isLoadingTrips = false;
+          this.driverTrips = [];
+          this.cdr.detectChanges();
+        }
+      });
   }
 
   private loadPickupOffers(): void {
-    this.parcelService.getIncomingOffers().subscribe({
-      next: (res) => {
-        this.incomingOffers = res.success && res.offers ? res.offers : [];
-        this.cdr.detectChanges();
-      },
-      error: () => { this.incomingOffers = []; this.cdr.detectChanges(); }
-    });
+    this.parcelService.getIncomingOffers()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (res) => {
+          this.incomingOffers = res.success && res.offers ? res.offers : [];
+          this.cdr.detectChanges();
+        },
+        error: () => { this.incomingOffers = []; this.cdr.detectChanges(); }
+      });
 
-    this.parcelService.getMyInProgressOffers().subscribe({
-      next: (res) => {
-        this.inProgressOffers = res.success && res.offers ? res.offers : [];
-        this.cdr.detectChanges();
-      },
-      error: () => { this.inProgressOffers = []; this.cdr.detectChanges(); }
-    });
+    this.parcelService.getMyInProgressOffers()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (res) => {
+          this.inProgressOffers = res.success && res.offers ? res.offers : [];
+          this.cdr.detectChanges();
+        },
+        error: () => { this.inProgressOffers = []; this.cdr.detectChanges(); }
+      });
 
-    this.parcelService.getMyPickedUpCompleted().subscribe({
-      next: (res) => {
-        this.pickedUpCompleted = res.success && res.offers ? res.offers : [];
-        this.cdr.detectChanges();
-      },
-      error: () => { this.pickedUpCompleted = []; this.cdr.detectChanges(); }
-    });
+    this.parcelService.getMyPickedUpCompleted()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (res) => {
+          this.pickedUpCompleted = res.success && res.offers ? res.offers : [];
+          this.cdr.detectChanges();
+        },
+        error: () => { this.pickedUpCompleted = []; this.cdr.detectChanges(); }
+      });
   }
 
   private loadMyOutgoingOffers(): void {
-    this.parcelService.getMyOutgoingPickupOffers().subscribe({
-      next: (res) => {
-        const all = res.success && res.offers ? res.offers : [];
-        this.rejectedPickupOffers = all.filter(o => o.status === 'rejected');
-        this.cdr.detectChanges();
-      },
-      error: () => { this.rejectedPickupOffers = []; this.cdr.detectChanges(); }
-    });
+    this.parcelService.getMyOutgoingPickupOffers()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (res) => {
+          const all = res.success && res.offers ? res.offers : [];
+          this.rejectedPickupOffers = all.filter(o => o.status === 'rejected');
+          this.cdr.detectChanges();
+        },
+        error: () => { this.rejectedPickupOffers = []; this.cdr.detectChanges(); }
+      });
   }
 
   private loadIncomingTripRequests(): void {
-    this.parcelService.getIncomingTripRequests().subscribe({
-      next: (res) => {
-        const all = res.success && res.requests ? res.requests : [];
-        this.incomingTripRequests = all.filter(r => r.status === 'pending');
-        this.rejectedTripRequests = all.filter(r => r.status === 'rejected');
-        this.cdr.detectChanges();
-      },
-      error: () => {
-        this.incomingTripRequests = [];
-        this.rejectedTripRequests = [];
-        this.cdr.detectChanges();
-      }
-    });
+    this.parcelService.getIncomingTripRequests()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (res) => {
+          const all = res.success && res.requests ? res.requests : [];
+          this.incomingTripRequests = all.filter(r => r.status === 'pending');
+          this.rejectedTripRequests = all.filter(r => r.status === 'rejected');
+          this.cdr.detectChanges();
+        },
+        error: () => {
+          this.incomingTripRequests = [];
+          this.rejectedTripRequests = [];
+          this.cdr.detectChanges();
+        }
+      });
   }
 
   // ===== HELPERS =====
@@ -276,16 +310,40 @@ export class DriverProfileAndroidComponent implements OnInit, OnDestroy {
     this.driverLicenseNumber = user.driverLicenseNumber ?? '';
   }
 
+  /**
+   * 🛠️ FIX: აღარ ქმნის ახალ FormGroup ინსტანციას ყოველ გამოძახებაზე.
+   * პირველი გამოძახება (ngOnInit-იდან, მონაცემების ჩატვირთვამდე) ქმნის
+   * ცარიელ ფორმას სწორი validator-ებით — ეს არის ის, რასაც template
+   * პირველივე რენდერისას ხედავს (`profileForm` არასდროს არის undefined).
+   * ყოველი შემდგომი გამოძახება (loadUserData-ის success, toggleEditMode,
+   * cancelEdit) მხოლოდ patchValue-ით ანახლებს უკვე არსებულ ინსტანციას.
+   */
   private initProfileForm(): void {
-    this.profileForm = this.fb.group({
-      firstName: [this.firstName, [Validators.required, Validators.minLength(2)]],
-      lastName: [this.lastName, [Validators.required, Validators.minLength(2)]],
-      email: [this.email, [Validators.required, Validators.email]],
-      personalNumber: [{ value: this.personalNumber, disabled: true }],
-      carModel: [this.carModel, [Validators.required]],
-      carPlate: [this.carPlate, [Validators.required, Validators.pattern(/^[A-Z]{2}-\d{3}-[A-Z]{2}$/i)]],
-      driverLicenseNumber: [this.driverLicenseNumber, [Validators.required]]
+    if (!this.profileForm) {
+      this.profileForm = this.fb.group({
+        firstName: ['', [Validators.required, Validators.minLength(2)]],
+        lastName: ['', [Validators.required, Validators.minLength(2)]],
+        email: ['', [Validators.required, Validators.email]],
+        personalNumber: [{ value: '', disabled: true }],
+        carModel: ['', [Validators.required]],
+        carPlate: ['', [Validators.required, Validators.pattern(/^[A-Z]{2}-\d{3}-[A-Z]{2}$/i)]],
+        driverLicenseNumber: ['', [Validators.required]]
+      });
+      return;
+    }
+
+    this.profileForm.patchValue({
+      firstName: this.firstName,
+      lastName: this.lastName,
+      email: this.email,
+      personalNumber: this.personalNumber,
+      carModel: this.carModel,
+      carPlate: this.carPlate,
+      driverLicenseNumber: this.driverLicenseNumber
     });
+
+    this.profileForm.markAsPristine();
+    this.profileForm.markAsUntouched();
   }
 
   getUserInitials(): string {
@@ -370,23 +428,25 @@ export class DriverProfileAndroidComponent implements OnInit, OnDestroy {
     this.errorMessage = null;
     this.cdr.detectChanges();
 
-    this.smsService.updateProfile(this.profileForm.getRawValue()).subscribe({
-      next: (res) => {
-        this.isSaving = false;
-        if (res.success && res.user) {
-          this.applyUserData(res.user);
-          this.isEditing = false;
-        } else {
-          this.errorMessage = res.message ?? 'შენახვა ვერ მოხერხდა';
+    this.smsService.updateProfile(this.profileForm.getRawValue())
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (res) => {
+          this.isSaving = false;
+          if (res.success && res.user) {
+            this.applyUserData(res.user);
+            this.isEditing = false;
+          } else {
+            this.errorMessage = res.message ?? 'შენახვა ვერ მოხერხდა';
+          }
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          this.isSaving = false;
+          this.errorMessage = err.error?.message || 'შენახვა ვერ მოხერხდა';
+          this.cdr.detectChanges();
         }
-        this.cdr.detectChanges();
-      },
-      error: (err) => {
-        this.isSaving = false;
-        this.errorMessage = err.error?.message || 'შენახვა ვერ მოხერხდა';
-        this.cdr.detectChanges();
-      }
-    });
+      });
   }
 
   openPickupFlow(): void {
@@ -401,22 +461,24 @@ export class DriverProfileAndroidComponent implements OnInit, OnDestroy {
     if (!confirm('დარწმუნებული ხართ რომ გსურთ მგზავრობის წაშლა?')) return;
     this.deletingTripId = id;
     this.cdr.detectChanges();
-    this.parcelService.deleteTrip(id).subscribe({
-      next: (res) => {
-        this.deletingTripId = null;
-        if (res.success) {
-          this.driverTrips = this.driverTrips.filter(t => t._id !== id);
-        } else {
-          alert(res.message ?? 'წაშლა ვერ მოხერხდა');
+    this.parcelService.deleteTrip(id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (res) => {
+          this.deletingTripId = null;
+          if (res.success) {
+            this.driverTrips = this.driverTrips.filter(t => t._id !== id);
+          } else {
+            alert(res.message ?? 'წაშლა ვერ მოხერხდა');
+          }
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          this.deletingTripId = null;
+          alert(err.error?.message || 'წაშლა ვერ მოხერხდა');
+          this.cdr.detectChanges();
         }
-        this.cdr.detectChanges();
-      },
-      error: (err) => {
-        this.deletingTripId = null;
-        alert(err.error?.message || 'წაშლა ვერ მოხერხდა');
-        this.cdr.detectChanges();
-      }
-    });
+      });
   }
 
   openOfferDetails(offer: PickupOffer): void {
@@ -432,104 +494,114 @@ export class DriverProfileAndroidComponent implements OnInit, OnDestroy {
   respondToOffer(offer: PickupOffer, accept: boolean): void {
     this.respondingOfferId = offer._id;
     this.cdr.detectChanges();
-    this.parcelService.respondToOffer(offer._id, accept).subscribe({
-      next: (res) => {
-        this.respondingOfferId = null;
-        if (res.success) {
-          this.closeOfferDetails();
-          this.loadPickupOffers();
-          alert(accept ? '✅ დათანხმდით' : 'მოთხოვნა უარყოფილია');
-        } else {
-          alert(res.message || 'შეცდომა');
+    this.parcelService.respondToOffer(offer._id, accept)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (res) => {
+          this.respondingOfferId = null;
+          if (res.success) {
+            this.closeOfferDetails();
+            this.loadPickupOffers();
+            alert(accept ? '✅ დათანხმდით' : 'მოთხოვნა უარყოფილია');
+          } else {
+            alert(res.message || 'შეცდომა');
+          }
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          this.respondingOfferId = null;
+          alert(err.error?.message || 'შეცდომა');
+          this.cdr.detectChanges();
         }
-        this.cdr.detectChanges();
-      },
-      error: (err) => {
-        this.respondingOfferId = null;
-        alert(err.error?.message || 'შეცდომა');
-        this.cdr.detectChanges();
-      }
-    });
+      });
   }
 
   markDriverComplete(offer: PickupOffer): void {
     this.completingOfferId = offer._id;
     this.cdr.detectChanges();
-    this.parcelService.markPickupCompleteByDriver(offer._id).subscribe({
-      next: (res) => {
-        this.completingOfferId = null;
-        if (res.success) {
-          alert('✅ მიწოდება დასრულებულია — ველოდებით გამგზავნის დადასტურებას');
-          this.loadPickupOffers();
-        } else {
-          alert(res.message || 'შეცდომა');
+    this.parcelService.markPickupCompleteByDriver(offer._id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (res) => {
+          this.completingOfferId = null;
+          if (res.success) {
+            alert('✅ მიწოდება დასრულებულია — ველოდებით გამგზავნის დადასტურებას');
+            this.loadPickupOffers();
+          } else {
+            alert(res.message || 'შეცდომა');
+          }
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          this.completingOfferId = null;
+          alert(err.error?.message || 'შეცდომა');
+          this.cdr.detectChanges();
         }
-        this.cdr.detectChanges();
-      },
-      error: (err) => {
-        this.completingOfferId = null;
-        alert(err.error?.message || 'შეცდომა');
-        this.cdr.detectChanges();
-      }
-    });
+      });
   }
 
   respondToTripRequest(req: TripPickupRequest, accept: boolean): void {
     this.respondingTripRequestId = req._id;
     this.cdr.detectChanges();
-    this.parcelService.respondToTripPickupRequest(req._id, accept).subscribe({
-      next: (res) => {
-        this.respondingTripRequestId = null;
-        if (res.success) {
-          this.loadIncomingTripRequests();
-          alert(accept ? '✅ დათანხმდით' : 'მოთხოვნა უარყოფილია');
-        } else {
-          alert(res.message || 'შეცდომა');
+    this.parcelService.respondToTripPickupRequest(req._id, accept)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (res) => {
+          this.respondingTripRequestId = null;
+          if (res.success) {
+            this.loadIncomingTripRequests();
+            alert(accept ? '✅ დათანხმდით' : 'მოთხოვნა უარყოფილია');
+          } else {
+            alert(res.message || 'შეცდომა');
+          }
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          this.respondingTripRequestId = null;
+          alert(err.error?.message || 'შეცდომა');
+          this.cdr.detectChanges();
         }
-        this.cdr.detectChanges();
-      },
-      error: (err) => {
-        this.respondingTripRequestId = null;
-        alert(err.error?.message || 'შეცდომა');
-        this.cdr.detectChanges();
-      }
-    });
+      });
   }
 
   dismissRejectedOffer(offer: PickupOffer): void {
     this.dismissingOfferId = offer._id;
     this.cdr.detectChanges();
-    this.parcelService.deletePickupOffer(offer._id).subscribe({
-      next: (res) => {
-        this.dismissingOfferId = null;
-        if (res.success) {
-          this.rejectedPickupOffers = this.rejectedPickupOffers.filter(o => o._id !== offer._id);
+    this.parcelService.deletePickupOffer(offer._id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (res) => {
+          this.dismissingOfferId = null;
+          if (res.success) {
+            this.rejectedPickupOffers = this.rejectedPickupOffers.filter(o => o._id !== offer._id);
+          }
+          this.cdr.detectChanges();
+        },
+        error: () => {
+          this.dismissingOfferId = null;
+          this.cdr.detectChanges();
         }
-        this.cdr.detectChanges();
-      },
-      error: () => {
-        this.dismissingOfferId = null;
-        this.cdr.detectChanges();
-      }
-    });
+      });
   }
 
   dismissRejectedTripRequest(req: TripPickupRequest): void {
     this.dismissingRequestId = req._id;
     this.cdr.detectChanges();
-    this.parcelService.deleteMyTripPickupRequest(req._id).subscribe({
-      next: (res) => {
-        this.dismissingRequestId = null;
-        if (res.success) {
-          this.rejectedTripRequests = this.rejectedTripRequests.filter(r => r._id !== req._id);
+    this.parcelService.deleteMyTripPickupRequest(req._id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (res) => {
+          this.dismissingRequestId = null;
+          if (res.success) {
+            this.rejectedTripRequests = this.rejectedTripRequests.filter(r => r._id !== req._id);
+          }
+          this.cdr.detectChanges();
+        },
+        error: () => {
+          this.dismissingRequestId = null;
+          this.cdr.detectChanges();
         }
-        this.cdr.detectChanges();
-      },
-      error: () => {
-        this.dismissingRequestId = null;
-        this.cdr.detectChanges();
-      }
-    });
+      });
   }
 
   toggleConversations(): void {
@@ -549,10 +621,6 @@ export class DriverProfileAndroidComponent implements OnInit, OnDestroy {
     this.showConversations = false;
     this.cdr.detectChanges();
 
-    // ჩატის მოდალი ახლახან *ngIf-მა შექმნა DOM-ში — ერთი tick-ის მოცდის
-    // შემდეგ ვიღებთ მის root ელემენტს და გადავაქვს document.body-ში,
-    // რომ ის სრულ ეკრანზე, ზუსტად თავიდან იხსნებოდეს, დამოუკიდებლად
-    // იმისგან, თუ როგორ არის პოზიციონირებული მშობელი კონტეინერები.
     setTimeout(() => this.moveChatModalToBody(), 0);
   }
 
@@ -563,12 +631,11 @@ export class DriverProfileAndroidComponent implements OnInit, OnDestroy {
   }
 
   private moveChatModalToBody(): void {
+    if (!this.isBrowser) return;
+
     const el = this.chatModalRoot?.nativeElement;
     if (!el || this.chatModalMovedToBody) return;
 
-    // ShadowDom-ს იყენებს ეს კომპონენტი — ჩატის მოდალის სტილები არსებობს
-    // მხოლოდ ამ კომპონენტის shadowRoot-ში. ელემენტის body-ში გატანამდე
-    // იმავე <style> ტეგებს ვაკლონირებთ <head>-ში, რომ სტილი არ დაიკარგოს.
     this.injectPortalStyles();
 
     this.chatModalOriginalParent = el.parentNode;
@@ -577,13 +644,14 @@ export class DriverProfileAndroidComponent implements OnInit, OnDestroy {
     this.renderer.appendChild(document.body, el);
     this.chatModalMovedToBody = true;
 
-    // scroll lock — ფონის გვერდი აღარ იძვრება ჩატის ღიად ყოფნისას
     this.bodyOverflowBeforeLock = document.body.style.overflow || '';
     this.renderer.setStyle(document.body, 'overflow', 'hidden');
   }
 
   private restoreChatModalFromBody(): void {
+    if (!this.isBrowser) return;
     if (!this.chatModalMovedToBody) return;
+
     const el = this.chatModalRoot?.nativeElement;
 
     if (el && this.chatModalOriginalParent) {
@@ -605,6 +673,8 @@ export class DriverProfileAndroidComponent implements OnInit, OnDestroy {
   }
 
   private injectPortalStyles(): void {
+    if (!this.isBrowser) return;
+
     const shadowRoot = this.hostEl.nativeElement.shadowRoot;
     if (!shadowRoot) return;
 
@@ -618,6 +688,8 @@ export class DriverProfileAndroidComponent implements OnInit, OnDestroy {
   }
 
   private removePortalStyles(): void {
+    if (!this.isBrowser) return;
+
     this.injectedPortalStyles.forEach(styleEl => styleEl.remove());
     this.injectedPortalStyles = [];
   }
@@ -646,22 +718,24 @@ export class DriverProfileAndroidComponent implements OnInit, OnDestroy {
     this.deleteAccountError = null;
     this.cdr.detectChanges();
 
-    this.smsService.deleteAccount().subscribe({
-      next: () => {
-        this.isDeletingAccount = false;
-        this.socketService.disconnect?.();
-        this.smsService.clearAuthToken();
-        this.smsService.clearState();
-        this.showDeleteAccountModal = false;
-        alert('ანგარიში წაიშალა');
-        this.router.navigate(['/login']);
-      },
-      error: (err) => {
-        this.isDeletingAccount = false;
-        this.deleteAccountError = err.error?.message || 'წაშლა ვერ მოხერხდა';
-        this.cdr.detectChanges();
-      }
-    });
+    this.smsService.deleteAccount()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.isDeletingAccount = false;
+          this.socketService.disconnect?.();
+          this.smsService.clearAuthToken();
+          this.smsService.clearState();
+          this.showDeleteAccountModal = false;
+          alert('ანგარიში წაიშალა');
+          this.router.navigate(['/login']);
+        },
+        error: (err) => {
+          this.isDeletingAccount = false;
+          this.deleteAccountError = err.error?.message || 'წაშლა ვერ მოხერხდა';
+          this.cdr.detectChanges();
+        }
+      });
   }
 
   goBack(): void {

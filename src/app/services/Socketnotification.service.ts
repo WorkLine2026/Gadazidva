@@ -1,4 +1,5 @@
-import { Injectable } from '@angular/core';
+import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { BehaviorSubject, Observable, Subject } from 'rxjs';
 import { take } from 'rxjs/operators';
 import { io, Socket } from 'socket.io-client';
@@ -131,6 +132,12 @@ export class SocketNotificationService {
 
   private initialized = false;
 
+  // ✅ SSR-გუარდი — true მხოლოდ ბრაუზერში; სერვერზე (prerender/SSR)
+  // socket.io-client-ის შექმნა/გაშვება საერთოდ არ ხდება, რადგან
+  // მისი შიდა transport-ები `window`/`XMLHttpRequest`-ზეა დამოკიდებული
+  // და ეს არის root-cause "window/document is not defined" შეცდომების.
+  private isBrowser: boolean;
+
   private chatMessages$ =
     new BehaviorSubject<ChatMessage[]>([]);
 
@@ -223,9 +230,16 @@ export class SocketNotificationService {
   constructor(
     private smsService: SmsVerificationService,
     private chatService: ChatService,
-    private http: HttpClient
+    private http: HttpClient,
+    @Inject(PLATFORM_ID) private platformId: Object
   ) {
-    this.initializeSocket();
+    this.isBrowser = isPlatformBrowser(this.platformId);
+
+    // ✅ SSR-ზე (prerender) socket-ის ინიციალიზაციას საერთოდ არ ვიწყებთ.
+    // ბრაუზერში, ჰიდრაციის შემდეგ, ეს კვლავ ჩვეულებრივად გაეშვება.
+    if (this.isBrowser) {
+      this.initializeSocket();
+    }
   }
 
   // ============================================================
@@ -265,6 +279,13 @@ export class SocketNotificationService {
   // ============================================================
 
   private initializeSocket(): void {
+
+    // ✅ ორმაგი დაცვა — თუნდაც ეს მეთოდი პირდაპირ გამოიძახონ
+    // (მაგ. connect()/reconnect()/joinRoom()-დან), სერვერზე მაინც
+    // არაფერი მოხდება.
+    if (!this.isBrowser) {
+      return;
+    }
 
     const token =
       this.smsService.getAuthToken();
@@ -385,6 +406,10 @@ export class SocketNotificationService {
   // ============================================================
 
   reinitializeAfterLogin(): void {
+
+    if (!this.isBrowser) {
+      return;
+    }
 
     const token =
       this.smsService.getAuthToken();
@@ -794,6 +819,7 @@ export class SocketNotificationService {
   private registerVisibilityReconnect(): void {
 
     if (
+      !this.isBrowser ||
       typeof document === 'undefined'
     ) {
       return;
@@ -872,6 +898,10 @@ export class SocketNotificationService {
 
   connect(userId?: string): void {
 
+    if (!this.isBrowser) {
+      return;
+    }
+
     const token =
       this.smsService.getAuthToken();
 
@@ -914,6 +944,10 @@ export class SocketNotificationService {
   }
 
   reconnect(): void {
+
+    if (!this.isBrowser) {
+      return;
+    }
 
     const token =
       this.smsService.getAuthToken();
@@ -2296,6 +2330,7 @@ export class SocketNotificationService {
   private restoreNotificationsFromStorage(): void {
 
     if (
+      !this.isBrowser ||
       typeof window === 'undefined' ||
       !window.localStorage
     ) {
@@ -2373,6 +2408,7 @@ export class SocketNotificationService {
   ): void {
 
     if (
+      !this.isBrowser ||
       typeof window === 'undefined' ||
       !window.localStorage
     ) {
@@ -2405,6 +2441,7 @@ export class SocketNotificationService {
   private clearNotificationsStorage(): void {
 
     if (
+      !this.isBrowser ||
       typeof window === 'undefined' ||
       !window.localStorage
     ) {
@@ -3329,6 +3366,7 @@ export class SocketNotificationService {
   ): void {
 
     if (
+      !this.isBrowser ||
       typeof window ===
       'undefined'
     ) {
@@ -3445,6 +3483,10 @@ private markNotificationsSeen(ids: string[]): void {
 
 
 ensureConnected(): void {
+  if (!this.isBrowser) {
+    return;
+  }
+
   const token = this.smsService.getAuthToken();
 
   if (!token) {

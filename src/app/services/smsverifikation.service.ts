@@ -1,4 +1,5 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { BehaviorSubject, Observable, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
@@ -88,6 +89,10 @@ export class SmsVerificationService {
   private resetToken: string = '';
   private userPhone: string = '';
   private authToken: string = '';
+  private platformId = inject(PLATFORM_ID);
+  private get isBrowser(): boolean {
+    return isPlatformBrowser(this.platformId);
+  }
 
   // ✅ რეაქტიული auth state — navbar-ი და სხვა კომპონენტები ამას მოუსმენენ
   private isLoggedInSubject = new BehaviorSubject<boolean>(false);
@@ -130,7 +135,9 @@ export class SmsVerificationService {
 
   setAuthToken(token: string): void {
     this.authToken = token;
-    localStorage.setItem('authToken', token);
+    if (this.isBrowser) {
+      localStorage.setItem('authToken', token);
+    }
     this.isLoggedInSubject.next(true);
   }
 
@@ -142,6 +149,9 @@ export class SmsVerificationService {
   }
 
   private loadAuthToken(): void {
+    if (!this.isBrowser) {
+      return;
+    }
     const token = localStorage.getItem('authToken');
     if (token) {
       this.authToken = token;
@@ -163,7 +173,9 @@ export class SmsVerificationService {
 
   clearAuthToken(): void {
     this.authToken = '';
-    localStorage.removeItem('authToken');
+    if (this.isBrowser) {
+      localStorage.removeItem('authToken');
+    }
     this.isLoggedInSubject.next(false);
     this.currentUserSubject.next(null);
   }
@@ -378,6 +390,8 @@ export class SmsVerificationService {
   }
 
   storeRegistrationData(data: any): void {
-    (window as any)._regData = data;
+    if (this.isBrowser) {
+      (window as any)._regData = data;
+    }
   }
 }

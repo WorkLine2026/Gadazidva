@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, ChangeDetectorRef } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
@@ -11,8 +11,8 @@ import { SmsVerificationService } from '../../services/smsverifikation.service';
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule]
 })
-export class LoginComponent implements OnInit {
-  loginForm!: FormGroup;
+export class LoginComponent {
+  loginForm: FormGroup;
   isLoading = false;
   errorMessage = '';
 
@@ -21,13 +21,7 @@ export class LoginComponent implements OnInit {
     private router: Router,
     private smsService: SmsVerificationService,
     private cdr: ChangeDetectorRef
-  ) {}
-
-  ngOnInit(): void {
-    this.initializeForm();
-  }
-
-  private initializeForm(): void {
+  ) {
     this.loginForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]]
