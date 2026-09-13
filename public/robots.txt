@@ -1,12 +1,5 @@
 User-agent: *
 Allow: /
-Disallow: /profile
-Disallow: /login
-Disallow: /register
-Disallow: /forgot-password
-
-Sitemap: https://ggzavna.ge/sitemap.xmlUser-agent: *
-Allow: /
 
 # კერძო/ავტორიზაციასთან დაკავშირებული გვერდები — არ გვინდა ინდექსაცია
 Disallow: /profile
@@ -23,4 +16,4 @@ Disallow: /api/
 Disallow: /messages
 Disallow: /notifications
 
-Sitemap: https://ggzavna.ge/sitemap.xml
+Sitemap: https://www.ggzavna.ge/sitemap.xml
