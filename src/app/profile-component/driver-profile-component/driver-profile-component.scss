@@ -1,43 +1,53 @@
 @import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap');
 
 // ---- Design tokens (Sass vars) ------------------------------------------------
-// ---- პალიტრა ოდნავ დარბილებულია (ნაკლები კონტრასტი/გაჯერება, უფრო რბილი ჩრდილები)
-$paper:         #F6F8FC;
-$paper-alt:     #EDF1F9;
-$card:          #FFFFFF;
-$ink:           #202B45;
-$ink-soft:      #56628A;
-$muted:         #838da0;
-$line:          #E2E7F1;
+// ---- მუქი თემა: ფონი = მოწითალო-ყავისფერი (მარცხნივ ზემოთ) → მუქი ლურჯი (მარჯვნივ ქვემოთ)
+$paper:         #221F2A;   // "ამოჭრილი" წრეებისთვის (perforation / tear)
+$paper-alt:     #353142;   // შიდა ბლოკების ფონი
+$card:          #2A2733;   // ქარდების ფონი
+$ink:           #F4F0F7;   // მთავარი ტექსტი
+$ink-soft:      #C9C3D6;   // მეორადი ტექსტი
+$muted:         #9A93AB;   // მიჩუმებული ტექსტი
+$line:          #453F55;   // ხაზები / საზღვრები
 
-$primary:       #3B6FE0;
-$primary-dark:  #2C57C4;
-$primary-soft:  #E9F0FD;
+$primary:       #4F7FF0;
+$primary-dark:  #3A63CF;
+$primary-soft:  #27335C;
+$primary-text:  #9DBBFF;   // ლურჯი ტექსტი მუქ ფონზე
 
 $accent:        #F0873A;
 $accent-dark:   #DE7523;
-$accent-soft:   #FFF1E2;
+$accent-soft:   #3F2C24;
 
-$teal:          #17998C;
-$teal-soft:     #E4F6F3;
+$teal:          #1AA093;
+$teal-text:     #4FD6C6;
+$teal-soft:     #1F3A3D;
 
-$red:           #DC3B5D;
-$red-soft:      #FCE7EC;
+$red:           #FF6B86;
+$red-soft:      #432733;
 
-$amber:         #D69A2D;
-$amber-soft:    #FCF2DD;
+$amber:         #E0A93A;
+$amber-soft:    #40341F;
 
 $radius-lg: 22px;
 $radius-md: 16px;
 $radius-sm: 10px;
 
-$shadow-card:       0 8px 24px -14px rgba(32, 43, 69, 0.16);
-$shadow-card-hover: 0 16px 32px -16px rgba(32, 43, 69, 0.22);
+$shadow-card:       0 10px 28px -14px rgba(0, 0, 0, 0.55);
+$shadow-card-hover: 0 18px 36px -16px rgba(0, 0, 0, 0.65);
 $transition: all 0.28s cubic-bezier(0.4, 0, 0.2, 1);
 
 $font-display: 'Bricolage Grotesque', 'Inter', system-ui, sans-serif;
 $font-body:    'Inter', system-ui, -apple-system, sans-serif;
 $font-mono:    'JetBrains Mono', 'SFMono-Regular', monospace;
+
+// ---- გვერდის ფონი (ბადე + გრადიენტები) --------------------------------------
+$page-bg:
+  linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+  linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+  radial-gradient(ellipse 75% 65% at 35% 8%, rgba(78, 40, 40, 0.8) 0%, rgba(78, 40, 40, 0) 70%),
+  radial-gradient(ellipse 75% 65% at 92% 100%, rgba(26, 36, 60, 0.95) 0%, rgba(26, 36, 60, 0) 70%),
+  linear-gradient(135deg, #2F2328 0%, #231F2B 50%, #1A2030 100%);
 
 // ---- ბრეიქფოინთები (დამატებულია --small-mobile ვიწრო ეკრანებისთვის) --------
 $bp-tablet:       900px;
@@ -74,7 +84,7 @@ $bp-small-mobile: 400px;
   &::after  { right: -7px; }
 }
 
-@mixin eyebrow($color: $primary) {
+@mixin eyebrow($color: $primary-text) {
   display: block;
   font-size: 11px;
   font-weight: 700;
@@ -92,7 +102,7 @@ $bp-small-mobile: 400px;
 
   &:hover:not(:disabled) {
     transform: translateY(-2px);
-    box-shadow: 0 10px 20px -8px rgba($shadow-color, 0.38);
+    box-shadow: 0 10px 20px -8px rgba($shadow-color, 0.5);
   }
   &:disabled {
     opacity: 0.6;
@@ -142,11 +152,41 @@ $bp-small-mobile: 400px;
   --radius-sm: #{$radius-sm};
 
   display: block;
+  position: relative;
+  isolation: isolate;
+  min-height: 100vh;
+  min-height: 100dvh;
+  color: $ink;
+  color-scheme: dark;
+  background: #231F2B;
+
+  // მთელი ეკრანის ფონი: გრადიენტი + ბადე (სქროლზე უძრავია)
+  &::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background: $page-bg;
+    background-size: 60px 60px, 60px 60px, auto, auto, auto;
+    background-position: 0 0, 0 0, 0 0, 0 0, 0 0;
+    background-repeat: repeat, repeat, no-repeat, no-repeat, no-repeat;
+  }
 
   // ყველა ჩაშენებული ელემენტისთვის ერთიანი box-sizing — ავირიდოთ overflow
   // ვიწრო ეკრანებზე padding/border-ის გამო.
   *, *::before, *::after {
     box-sizing: border-box;
+  }
+
+  ::placeholder {
+    color: $muted;
+    opacity: 0.8;
+  }
+
+  ::selection {
+    background: rgba($primary, 0.45);
+    color: #fff;
   }
 }
 
@@ -205,7 +245,7 @@ $bp-small-mobile: 400px;
   }
 
   &__eyebrow {
-    @include eyebrow($primary);
+    @include eyebrow($primary-text);
     margin-bottom: 4px;
   }
 
@@ -261,7 +301,7 @@ $bp-small-mobile: 400px;
 
   &:hover {
     background: $primary-soft;
-    color: $primary-dark;
+    color: $primary-text;
     border-color: $primary;
   }
 
@@ -339,7 +379,7 @@ $bp-small-mobile: 400px;
     font-size: 28px;
     font-weight: 700;
     color: #fff;
-    box-shadow: 0 8px 18px -6px rgba(23, 153, 140, 0.4), 0 0 0 5px $accent-soft;
+    box-shadow: 0 8px 18px -6px rgba(26, 160, 147, 0.5), 0 0 0 5px $accent-soft;
     border: 3px solid $card;
     outline: 1px solid $line;
   }
@@ -370,67 +410,6 @@ $bp-small-mobile: 400px;
     letter-spacing: 0.6px;
     border: 1.5px dashed currentColor;
   }
-
-
-  /* Accordion — თითოეული სექციის დამოუკიდებელი ღილაკი */
-.accordion-section {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.section-head__buttons {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-
-  @include mobile-down {
-    width: 100%;
-
-    .btn-cta,
-    .btn-toggle {
-      flex: 1;
-    }
-  }
-}
-
-.btn-toggle {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  background: $card;
-  border: 1.5px solid $line;
-  color: $ink;
-  padding: 10px 16px;
-  border-radius: $radius-sm;
-  font-weight: 700;
-  font-size: 13.5px;
-  cursor: pointer;
-  transition: $transition;
-  white-space: nowrap;
-
-  &:hover {
-    border-color: $primary;
-    color: $primary-dark;
-    background: $primary-soft;
-  }
-
-  &__count {
-    background: $paper-alt;
-    color: $ink-soft;
-    font-size: 11px;
-    font-weight: 800;
-    padding: 2px 8px;
-    border-radius: 10px;
-    min-width: 20px;
-    text-align: center;
-  }
-
-  @include mobile-down {
-    width: 100%;
-    justify-content: center;
-  }
-}
 
   &__perforation {
     margin: 20px -22px;
@@ -476,7 +455,7 @@ $bp-small-mobile: 400px;
 }
 
 .stamp {
-  &--driver { color: $teal; background: $teal-soft; }
+  &--driver { color: $teal-text; background: $teal-soft; }
 }
 
 .status-line {
@@ -490,8 +469,8 @@ $bp-small-mobile: 400px;
   flex-wrap: wrap;
   text-align: center;
 
-  &--ok   { color: $teal; .status-dot { background: $teal; } }
-  &--warn { color: $red;  .status-dot { background: $red; } }
+  &--ok   { color: $teal-text; .status-dot { background: $teal-text; } }
+  &--warn { color: $red;       .status-dot { background: $red; } }
 }
 
 .status-dot {
@@ -523,13 +502,13 @@ $bp-small-mobile: 400px;
   position: relative;
 
   &--outline {
-    background: $card;
+    background: $paper-alt;
     color: $ink;
     border: 1.5px solid $line;
 
     &:hover {
       border-color: $primary;
-      color: $primary-dark;
+      color: $primary-text;
     }
   }
 
@@ -540,7 +519,7 @@ $bp-small-mobile: 400px;
 
 .unread-badge {
   background: #fff;
-  color: $accent;
+  color: $accent-dark;
   font-size: 11px;
   padding: 2px 7px;
   border-radius: 10px;
@@ -562,11 +541,12 @@ $bp-small-mobile: 400px;
   gap: 10px;
   padding: 14px 40px 14px 16px;
   border-radius: 12px;
+  color: $ink;
   animation: fadeIn 0.25s ease both;
 
   &--rejected {
-    background: rgba(220, 59, 93, 0.07);
-    border: 1px solid rgba(220, 59, 93, 0.22);
+    background: rgba(255, 107, 134, 0.12);
+    border: 1px solid rgba(255, 107, 134, 0.35);
   }
 
   &__body {
@@ -585,7 +565,7 @@ $bp-small-mobile: 400px;
     font-size: 16px;
     cursor: pointer;
     color: $red;
-    opacity: 0.7;
+    opacity: 0.8;
 
     &:hover { opacity: 1; }
     &:disabled { opacity: 0.4; cursor: default; }
@@ -673,13 +653,14 @@ $bp-small-mobile: 400px;
 
 .plate-chip {
   display: inline-block;
-  background: $ink;
+  background: #12111A;
   color: #fff;
   padding: 2px 8px 4px;
   border-radius: 5px;
   font-family: $font-mono;
   font-weight: 700;
   letter-spacing: 0.5px;
+  border: 1px solid $line;
   border-bottom: 2px solid $accent;
 }
 
@@ -724,6 +705,108 @@ $bp-small-mobile: 400px;
     margin: 0;
     color: $ink;
   }
+
+  &__buttons {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+
+    @include mobile-down {
+      width: 100%;
+
+      .btn-cta,
+      .btn-toggle {
+        flex: 1;
+      }
+    }
+  }
+}
+
+/* Accordion — თითოეული სექციის დამოუკიდებელი ღილაკი */
+.accordion-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ===== "ნახვა / დამალვა" ღილაკი ======================================= */
+.btn-toggle {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 8px 10px 8px 18px;
+  background: linear-gradient(180deg, lighten($card, 7%) 0%, $card 100%);
+  border: 1.5px solid $line;
+  border-radius: 999px;
+  color: $ink-soft;
+  font-family: $font-body;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+  cursor: pointer;
+  box-shadow: 0 2px 8px -3px rgba(0, 0, 0, 0.5);
+  transition: $transition;
+  -webkit-tap-highlight-color: transparent;
+
+  &:hover {
+    background: linear-gradient(135deg, $primary 0%, $primary-dark 100%);
+    border-color: $primary;
+    color: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px -8px rgba($primary, 0.6);
+
+    .btn-toggle__count {
+      background: #fff;
+      color: $primary-dark;
+      box-shadow: none;
+    }
+  }
+
+  &:active {
+    transform: translateY(0) scale(0.97);
+    box-shadow: 0 3px 8px -4px rgba($primary, 0.5);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px $primary-soft, 0 0 0 5px rgba($primary, 0.7);
+  }
+
+  &__count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 24px;
+    height: 24px;
+    padding: 0 8px;
+    border-radius: 999px;
+    background: $primary-soft;
+    color: $primary-text;
+    font-family: $font-mono;
+    font-size: 11.5px;
+    font-weight: 700;
+    line-height: 1;
+    box-shadow: inset 0 0 0 1px rgba($primary, 0.3);
+    transition: $transition;
+  }
+
+  // თუ ღილაკს მხოლოდ ტექსტი აქვს (counter-ის გარეშე), padding სიმეტრიული იყოს
+  &:not(:has(.btn-toggle__count)) {
+    padding: 10px 18px;
+  }
+
+  @include mobile-down {
+    width: 100%;
+    padding: 10px 14px 10px 18px;
+
+    &:not(:has(.btn-toggle__count)) {
+      padding: 11px 18px;
+    }
+  }
 }
 
 .btn-cta {
@@ -763,7 +846,7 @@ $bp-small-mobile: 400px;
   }
 
   &__eyebrow {
-    @include eyebrow($primary);
+    @include eyebrow($primary-text);
   }
 
   &__actions {
@@ -793,7 +876,7 @@ $bp-small-mobile: 400px;
   &__divider {
     font-size: 13px;
     font-weight: 700;
-    color: $primary;
+    color: $primary-text;
     margin: 22px 0 12px 0;
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -829,8 +912,8 @@ $bp-small-mobile: 400px;
 
     &:focus {
       border-color: $primary;
-      background: $card;
-      box-shadow: 0 0 0 3px $primary-soft;
+      background: lighten($paper-alt, 3%);
+      box-shadow: 0 0 0 3px rgba($primary, 0.3);
     }
 
     &:disabled {
@@ -866,7 +949,7 @@ $bp-small-mobile: 400px;
   border: 1.5px solid $line;
 
   &:hover {
-    background: $card;
+    background: lighten($paper-alt, 5%);
     border-color: $muted;
   }
 }
@@ -875,7 +958,7 @@ $bp-small-mobile: 400px;
   margin-top: 16px;
   padding: 12px 14px;
   background: $red-soft;
-  border: 1px solid rgba(220, 59, 93, 0.22);
+  border: 1px solid rgba(255, 107, 134, 0.35);
   border-radius: $radius-sm;
   color: $red;
   font-size: 14px;
@@ -909,13 +992,23 @@ $bp-small-mobile: 400px;
   flex-direction: column;
   position: relative;
   min-width: 0;
+  color: $ink;
   animation: cardAppear 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards;
   opacity: 0;
+
+  p {
+    color: $ink-soft;
+    margin: 6px 0;
+    font-size: 14px;
+    line-height: 1.5;
+
+    strong { color: $ink; }
+  }
 
   &:hover {
     transform: translateY(-4px);
     border-color: $primary;
-    box-shadow: $shadow-card-hover, 0 0 0 1px rgba(240, 135, 58, 0.1);
+    box-shadow: $shadow-card-hover, 0 0 0 1px rgba(240, 135, 58, 0.18);
 
     .stub-card__media img {
       transform: scale(1.05);
@@ -942,14 +1035,14 @@ $bp-small-mobile: 400px;
       align-items: center;
       justify-content: center;
       font-size: 42px;
-      opacity: 0.7;
+      opacity: 0.8;
     }
 
     &-count {
       position: absolute;
       bottom: 10px;
       right: 10px;
-      background: rgba(32, 43, 69, 0.68);
+      background: rgba(10, 8, 16, 0.7);
       color: #fff;
       padding: 3px 10px;
       border-radius: 12px;
@@ -1000,11 +1093,11 @@ $bp-small-mobile: 400px;
     align-items: center;
     gap: 8px;
     font-size: 12px;
-    color: $teal;
+    color: $teal-text;
     font-weight: 700;
 
     &-value {
-      color: $accent-dark;
+      color: $accent;
       font-weight: 800;
     }
   }
@@ -1022,6 +1115,8 @@ $bp-small-mobile: 400px;
     align-items: center;
     gap: 10px;
     background: $paper-alt;
+    color: $ink-soft;
+    font-size: 13px;
 
     &-actions {
       display: flex;
@@ -1098,7 +1193,7 @@ $bp-small-mobile: 400px;
 
   &--accent {
     .info-cell__value {
-      color: $accent-dark;
+      color: $accent;
       font-weight: 800;
     }
     .info-cell__label {
@@ -1107,23 +1202,44 @@ $bp-small-mobile: 400px;
   }
 }
 
+/* ===== "დეტალები →" ღილაკი ============================================ */
 .btn-details {
-  background: $card;
-  border: 1.5px solid $primary-soft;
-  color: $primary-dark;
-  padding: 6px 14px;
-  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: $primary-soft;
+  border: 1.5px solid rgba($primary, 0.25);
+  color: $primary-text;
+  padding: 7px 14px;
+  border-radius: 999px;
+  font-family: $font-body;
   font-size: 12px;
   font-weight: 700;
+  letter-spacing: 0.2px;
   cursor: pointer;
   transition: $transition;
   white-space: nowrap;
 
-  &:hover {
-    background: $primary;
-    border-color: $primary;
+  &:hover:not(:disabled) {
+    background: linear-gradient(135deg, $primary 0%, $primary-dark 100%);
+    border-color: transparent;
     color: #fff;
-    transform: translateX(2px);
+    transform: translateX(3px);
+    box-shadow: 0 8px 16px -8px rgba($primary, 0.7);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateX(0) scale(0.97);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px $primary-soft, 0 0 0 5px rgba($primary, 0.7);
+  }
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
   }
 }
 
@@ -1139,7 +1255,7 @@ $bp-small-mobile: 400px;
   white-space: nowrap;
 
   &:hover:not(:disabled) {
-    background: rgba(220, 59, 93, 0.08);
+    background: rgba(255, 107, 134, 0.14);
   }
 
   &:disabled {
@@ -1151,7 +1267,7 @@ $bp-small-mobile: 400px;
 .empty-panel {
   text-align: center;
   padding: clamp(28px, 6vw, 44px) 20px;
-  background: $card;
+  background: rgba($card, 0.75);
   border: 1.5px dashed $line;
   border-radius: $radius-lg;
   @include reveal(0.45s, 0.1s);
@@ -1265,7 +1381,7 @@ $bp-small-mobile: 400px;
   inset: 0;
   height: 100vh;
   height: 100dvh;
-  background: rgba(32, 43, 69, 0.42);
+  background: rgba(10, 8, 16, 0.62);
   backdrop-filter: blur(6px);
   display: flex;
   align-items: center;
@@ -1285,6 +1401,7 @@ $bp-small-mobile: 400px;
   background: $card;
   border: 1px solid $line;
   border-radius: $radius-lg;
+  color: $ink;
   width: 100%;
   max-width: 600px;
   max-height: 80vh;
@@ -1292,9 +1409,15 @@ $bp-small-mobile: 400px;
   position: relative;
   overflow: auto;
   overscroll-behavior: contain;
-  box-shadow: 0 24px 48px -14px rgba(32, 43, 69, 0.3);
+  box-shadow: 0 24px 48px -14px rgba(0, 0, 0, 0.7);
   padding: 24px;
   animation: modalPop 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
+
+  h3 {
+    font-family: $font-display;
+    color: $ink;
+    margin: 0 0 12px;
+  }
 
   @include mobile-down {
     max-height: 80vh;
