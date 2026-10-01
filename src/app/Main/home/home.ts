@@ -27,7 +27,6 @@ interface Badge {
 })
 export class HomeComponent implements OnInit, OnDestroy {
   // ============ Steps და Badges ============
-  // ⚠️ steps1 წაშლილია — იყო იდენტური steps-ის დუბლირება, ორივე გამოჩნდებოდა template-ში
   steps: Step[] = [
     {
       id: 1,
@@ -106,10 +105,10 @@ export class HomeComponent implements OnInit, OnDestroy {
   // ============ SEO ============
   private setSeo(): void {
     this.seo.update({
-      title: 'გგზავნა — გააგზავნე ნებისმიერი ნივთი საქართველოს ნებისმიერ ქალაქში',
+      title: 'ამანათის გაგზავნა და გადაზიდვა საქართველოში | გგზავნა',
       description:
-        'იპოვე მძღოლი რამდენიმე წუთში და გააგზავნე ამანათი, ავეჯი, ტექნიკა თუ ველოსიპედი — სწრაფად, უსაფრთხოდ და დაბალ ფასად მთელს საქართველოში.',
-      url: 'https://ggzavna.ge/',
+        'ამანათის, ნივთის, ავეჯის, ტექნიკისა და ტვირთის გაგზავნა და გადაზიდვა საქართველოს ნებისმიერ ქალაქში. იპოვე მძღოლი რამდენიმე წუთში — სწრაფად, უსაფრთხოდ და დაბალ ფასად.',
+      url: 'https://www.ggzavna.ge/',
     });
 
     this.seo.setJsonLd([
@@ -117,9 +116,48 @@ export class HomeComponent implements OnInit, OnDestroy {
         '@context': 'https://schema.org',
         '@type': 'Organization',
         name: 'გგზავნა',
-        url: 'https://ggzavna.ge',
-        logo: 'https://ggzavna.ge/assets/logo.png',
-        description: 'P2P ამანათების გადაზიდვის პლატფორმა საქართველოში',
+        url: 'https://www.ggzavna.ge',
+        logo: 'https://www.ggzavna.ge/assets/logo.png',
+        description: 'ამანათის გაგზავნისა და ნივთის გადაზიდვის P2P პლატფორმა საქართველოში',
+      },
+      {
+        '@context': 'https://schema.org',
+        '@type': 'Service',
+        name: 'ამანათის გაგზავნა და გადაზიდვა',
+        url: 'https://www.ggzavna.ge/',
+        provider: { '@type': 'Organization', name: 'გგზავნა' },
+        areaServed: { '@type': 'Country', name: 'საქართველო' },
+        serviceType: [
+          'ამანათის გაგზავნა',
+          'ამანათის გადაგზავნა',
+          'ნივთის გაგზავნა',
+          'ნივთის გადაზიდვა',
+          'ტვირთის გადაზიდვა',
+          'ტვირთის გაგზავნა',
+          'ავეჯის გადაზიდვა',
+          'ტექნიკის გადაზიდვა',
+          'ტელევიზორის გაგზავნა',
+          'ველოსიპედის გაგზავნა',
+          'დოკუმენტის გაგზავნა',
+          'ბარგის გაგზავნა',
+          'საკურიერო მომსახურება',
+          'ამანათის მიტანა რეგიონებში',
+        ],
+        description:
+          'ამანათის გაგზავნა, ნივთის გადაზიდვა და ტვირთის გადაგზავნა თბილისიდან, ბათუმში, ქუთაისში, გორში და საქართველოს ყველა ქალაქში მძღოლებთან ერთად, რომლებიც უკვე მიემგზავრებიან ამ მიმართულებით.',
+        hasOfferCatalog: {
+          '@type': 'OfferCatalog',
+          name: 'გაგზავნისა და გადაზიდვის სერვისები',
+          itemListElement: [
+            { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'ამანათის გაგზავნა' } },
+            { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'ნივთის გაგზავნა' } },
+            { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'ავეჯის გადაზიდვა' } },
+            { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'ტექნიკის გადაზიდვა' } },
+            { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'ტვირთის გადაზიდვა' } },
+            { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'ველოსიპედის გაგზავნა' } },
+            { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'დოკუმენტის გაგზავნა' } },
+          ],
+        },
       },
       {
         '@context': 'https://schema.org',

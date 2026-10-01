@@ -12,7 +12,7 @@ Disallow: /verify
 # API endpoint-ები — ესენი მონაცემებია, არა გვერდები
 Disallow: /api/
 
-# ჩატის/შეტყობინებების შიდა ეკრანები (თუ ცალკე route-ებია)
+# ჩატის/შეტყობინებების შიდა ეკრანები
 Disallow: /messages
 Disallow: /notifications
 
