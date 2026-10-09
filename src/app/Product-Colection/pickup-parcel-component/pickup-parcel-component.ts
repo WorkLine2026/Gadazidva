@@ -25,6 +25,10 @@ export class PickupParcelComponent implements OnInit {
   errorMessage: string | null = null;
   successMessage: string | null = null;
 
+  // ✅ გამგზავრების დრო — 24-საათიანი ფორმატი: საათები 00–23, წუთები 5 წუთის ბიჯით
+  readonly hours: string[] = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'));
+  readonly minutes: string[] = Array.from({ length: 12 }, (_, i) => String(i * 5).padStart(2, '0'));
+
   // ✅ ავტოკომპლიტისთვის — გახსნილია თუ არა dropdown და გაფილტრული სია თითოეული ველისთვის
   showFromDropdown = false;
   showToDropdown = false;
@@ -104,9 +108,12 @@ export class PickupParcelComponent implements OnInit {
       from: ['', [Validators.required]],
       to: ['', [Validators.required]],
       departureDate: ['', [Validators.required]],
-      departureTime: ['', [Validators.required]],
+      // ✅ დრო ორ ველად: საათი და წუთი (24-საათიანი ფორმატი)
+      departureHour: ['', [Validators.required]],
+      departureMinute: ['', [Validators.required]],
       availableSpace: ['', [Validators.required, Validators.min(1)]],
-      pricePerKg: ['', [Validators.required, Validators.min(0.1)]],
+      // ✅ ფასი სურვილისამებრ — required მოხსნილია (ცარიელზე min ვალიდატორი არ მუშაობს)
+      pricePerKg: ['', [Validators.min(0.1)]],
       personalNumber: ['', [Validators.required, Validators.minLength(11), Validators.maxLength(11)]],
       senderPhone: ['', [Validators.required]],
       carModel: [''],
@@ -340,15 +347,20 @@ export class PickupParcelComponent implements OnInit {
     this.errorMessage = null;
     this.cdr.detectChanges();
 
+    // ✅ ფასი სურვილისამებრია — ცარიელის შემთხვევაში undefined იგზავნება
+    const priceRaw = this.tripForm.get('pricePerKg')!.value;
+    const pricePerKg = priceRaw !== null && priceRaw !== '' ? Number(priceRaw) : undefined;
+
     const tripData: DriverTrip = {
       from: this.tripForm.get('from')!.value,
       to: this.tripForm.get('to')!.value,
       departureDate: this.combineDateAndTime(
         this.tripForm.get('departureDate')!.value,
-        this.tripForm.get('departureTime')!.value
+        this.tripForm.get('departureHour')!.value,
+        this.tripForm.get('departureMinute')!.value
       ),
       availableSpace: Number(this.tripForm.get('availableSpace')!.value),
-      pricePerKg: Number(this.tripForm.get('pricePerKg')!.value),
+      pricePerKg: pricePerKg,
       personalNumber: this.tripForm.get('personalNumber')!.value,
       senderPhone: this.tripForm.get('senderPhone')!.value,
       carModel: this.tripForm.get('carModel')!.value || undefined,
@@ -405,8 +417,9 @@ export class PickupParcelComponent implements OnInit {
     return formData;
   }
 
-  private combineDateAndTime(date: string, time: string): string {
-    return `${date}T${time}`;
+  // ✅ თარიღი + საათი + წუთი => "YYYY-MM-DDTHH:mm"
+  private combineDateAndTime(date: string, hour: string, minute: string): string {
+    return `${date}T${hour}:${minute}`;
   }
 
   private markFormAsTouched(): void {
@@ -421,7 +434,7 @@ export class PickupParcelComponent implements OnInit {
   formatDateTime(dateString?: string | null): string {
     if (!dateString) return '—';
     const date = new Date(dateString);
-    return date.toLocaleDateString('ka-GE') + ' ' + date.toLocaleTimeString('ka-GE', { hour: '2-digit', minute: '2-digit' });
+    return date.toLocaleDateString('ka-GE') + ' ' + date.toLocaleTimeString('ka-GE', { hour: '2-digit', minute: '2-digit', hour12: false });
   }
 
   goBack(): void {

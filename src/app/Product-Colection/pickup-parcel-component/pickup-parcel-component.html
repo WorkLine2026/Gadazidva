@@ -111,15 +111,31 @@
             <span class="error-text" *ngIf="isFieldInvalid('departureDate')">თარიღი აუცილებელია</span>
           </div>
 
+          <!-- ✅ გამგზავრების დრო — 24-საათიანი ფორმატი (საათი + წუთი), AM/PM-ის გარეშე -->
           <div class="form-group">
-            <label class="form-label">გამგზავრების დრო</label>
-            <input
-              type="time"
-              class="form-input"
-              formControlName="departureTime"
-              [class.has-error]="isFieldInvalid('departureTime')"
-            />
-            <span class="error-text" *ngIf="isFieldInvalid('departureTime')">დრო აუცილებელია</span>
+            <label class="form-label">გამგზავრების დრო (24 საათი)</label>
+            <div class="time-select-row">
+              <select
+                class="form-input time-select"
+                formControlName="departureHour"
+                [class.has-error]="isFieldInvalid('departureHour')"
+              >
+                <option value="" disabled>სთ</option>
+                <option *ngFor="let h of hours" [value]="h">{{ h }}</option>
+              </select>
+
+              <span class="time-separator">:</span>
+
+              <select
+                class="form-input time-select"
+                formControlName="departureMinute"
+                [class.has-error]="isFieldInvalid('departureMinute')"
+              >
+                <option value="" disabled>წთ</option>
+                <option *ngFor="let m of minutes" [value]="m">{{ m }}</option>
+              </select>
+            </div>
+            <span class="error-text" *ngIf="isFieldInvalid('departureHour') || isFieldInvalid('departureMinute')">დრო აუცილებელია</span>
           </div>
         </div>
 
@@ -137,8 +153,9 @@
             <span class="error-text" *ngIf="isFieldInvalid('availableSpace')">ადგილი აუცილებელია</span>
           </div>
 
+          <!-- ✅ ფასი — სურვილისამებრ -->
           <div class="form-group">
-            <label class="form-label">ფასი კილოგრამზე (₾)</label>
+            <label class="form-label">ფასი კილოგრამზე (₾) (სურვილისამებრ)</label>
             <input
               type="number"
               class="form-input"
@@ -148,7 +165,7 @@
               step="0.01"
               [class.has-error]="isFieldInvalid('pricePerKg')"
             />
-            <span class="error-text" *ngIf="isFieldInvalid('pricePerKg')">ფასი აუცილებელია</span>
+            <span class="error-text" *ngIf="isFieldInvalid('pricePerKg')">ფასი უნდა იყოს მინიმუმ 0.1 ₾</span>
           </div>
         </div>
 
@@ -203,7 +220,7 @@
           </div>
         </div>
 
-        <!-- ✅ NEW: მანქანის ფოტოს ატვირთვა -->
+        <!-- ✅ მანქანის ფოტოს ატვირთვა -->
         <div class="form-group">
           <label class="form-label">მანქანის ფოტო (არასავალდებულო, მაქს. 3)</label>
 
@@ -282,7 +299,6 @@
         <div class="trip-info-card" *ngIf="createdTrip">
           <h3>📋 განთავსებული ქარდი</h3>
 
-          <!-- ✅ NEW: მანქანის ფოტოს thumbnail-ები -->
           <div class="summary-images" *ngIf="imagePreviews.length > 0">
             <img
               *ngFor="let preview of imagePreviews"
@@ -307,7 +323,9 @@
             </div>
             <div class="info-row">
               <span class="label">ფასი:</span>
-              <span class="value">{{ createdTrip.pricePerKg }} ₾/კგ</span>
+              <span class="value">
+                {{ createdTrip.pricePerKg ? (createdTrip.pricePerKg + ' ₾/კგ') : 'შეთანხმებით' }}
+              </span>
             </div>
             <div class="info-row" *ngIf="createdTrip.carModel">
               <span class="label">მანქანა:</span>

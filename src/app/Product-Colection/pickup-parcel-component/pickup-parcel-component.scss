@@ -1,1102 +1,1185 @@
-// ===============================================
-// COLOR PALETTE
-// ===============================================
+/* =========================================================
+   PICKUP PARCEL — 2026 MODERN DARK UI
+   ========================================================= */
 
-$color-primary: #2563eb;
-$color-primary-dark: #1e40af;
-$color-primary-light: #eff6ff;
-$color-accent: #f97316;
-$color-accent-light: #ffedd5;
+:host {
+  --bg: #080f20;
+  --bg-deep: #070d19;
+  --card: #111b32;
+  --card-light: #17233d;
+  --input: #17233d;
 
-$color-success: #10b981;
-$color-error: #ef4444;
-$color-warning: #f59e0b;
+  --orange: #ff5a1f;
+  --orange-light: #ff7136;
+  --orange-soft: rgba(255, 90, 31, 0.10);
 
-$color-bg: #f8fafc;
-$color-bg-light: #f1f5f9;
-$color-border: #e2e8f0;
-$color-border-light: #f1f5f9;
-$color-text-primary: #0f172a;
-$color-text-secondary: #475569;
-$color-text-tertiary: #64748b;
+  --green: #22c55e;
+  --green-soft: rgba(34, 197, 94, 0.10);
 
-// ===============================================
-// SPACING & TYPOGRAPHY
-// ===============================================
+  --white: #f8faff;
+  --text: #d9e1f2;
+  --muted: #75839f;
 
-$spacing-xs: 4px;
-$spacing-sm: 8px;
-$spacing-md: 12px;
-$spacing-lg: 16px;
-$spacing-xl: 24px;
-$spacing-2xl: 32px;
+  --border: rgba(255, 255, 255, 0.09);
+  --border-light: rgba(255, 255, 255, 0.13);
+  --border-orange: rgba(255, 90, 31, 0.42);
 
-$border-radius-sm: 4px;
-$border-radius-md: 8px;
-$border-radius-lg: 12px;
+  --radius: 16px;
+}
 
-$font-size-sm: 12px;
-$font-size-base: 14px;
-$font-size-lg: 16px;
-$font-size-xl: 18px;
-$font-size-2xl: 24px;
 
-$font-weight-light: 300;
-$font-weight-regular: 400;
-$font-weight-semibold: 600;
-$font-weight-bold: 700;
-
-// ===============================================
-// TRANSITIONS & ANIMATIONS
-// ===============================================
-
-$transition-fast: 150ms ease;
-$transition-normal: 250ms ease;
-$transition-slow: 350ms ease;
-
-// ===============================================
-// MAIN CONTAINER
-// ===============================================
+/* =========================================================
+   PAGE
+   ========================================================= */
 
 .pickup-parcel-wrapper {
   min-height: 100vh;
-  background: linear-gradient(135deg, $color-bg-light 0%, $color-bg 100%);
-  padding: $spacing-lg;
+  padding: 35px 20px 80px;
+  box-sizing: border-box;
+  color: var(--white);
 
-  @media (max-width: 768px) {
-    padding: $spacing-md;
-  }
+  background:
+    radial-gradient(circle at 8% 4%, rgba(255, 90, 31, 0.10), transparent 27%),
+    radial-gradient(circle at 92% 18%, rgba(41, 103, 190, 0.13), transparent 32%),
+    linear-gradient(135deg, #080d1b 0%, #10182b 48%, #0a1728 100%);
+
+  font-family: 'Noto Sans Georgian', 'Segoe UI', Arial, sans-serif;
+  overflow-x: hidden;
 }
+
+
+/* =========================================================
+   MAIN CONTAINER
+   ========================================================= */
 
 .pickup-parcel-container {
-  max-width: 900px;
+  width: min(1080px, 100%);
   margin: 0 auto;
+  padding: 32px;
+  box-sizing: border-box;
+  border: 1px solid var(--border);
+  border-radius: 28px;
+
+  background: linear-gradient(145deg, rgba(23, 35, 61, 0.94), rgba(9, 17, 33, 0.96));
+
+  box-shadow:
+    0 30px 80px rgba(0, 0, 0, 0.40),
+    inset 0 1px 0 rgba(255, 255, 255, 0.035);
+
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
 }
 
-// ===============================================
-// HEADER
-// ===============================================
+
+/* =========================================================
+   HEADER
+   ========================================================= */
 
 .pickup-header {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  margin-bottom: $spacing-2xl;
-  padding-bottom: $spacing-lg;
-  border-bottom: 1px solid $color-border;
-
-  @media (max-width: 768px) {
-    margin-bottom: $spacing-xl;
-  }
-}
-
-.autocomplete-wrapper {
-  position: relative;
-}
-
-.autocomplete-dropdown {
-  position: absolute;
-  top: calc(100% + 4px);
-  left: 0;
-  right: 0;
-  max-height: 220px;
-  overflow-y: auto;
-  background: #fff;
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
-  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
-  z-index: 50;
-  list-style: none;
-  margin: 0;
-  padding: 6px;
-}
-
-.autocomplete-item {
-  padding: 10px 12px;
-  border-radius: 8px;
-  font-size: 14px;
-  color: #0f172a;
-  cursor: pointer;
-  transition: background 0.15s ease;
-
-  &:hover {
-    background: #f1f5f9;
-  }
-}
-
-.autocomplete-empty {
-  padding: 10px 12px;
-  font-size: 13px;
-  color: #94a3b8;
-  text-align: center;
-}
-
-// ✅ დაამატეთ pickup-parcel-component.scss ფაილის ბოლოში
-// (მანქანის ფოტოს ატვირთვის სტილები)
-
-.image-upload-area {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  align-items: flex-start;
-}
-
-.file-input-hidden {
-  display: none;
-}
-
-.upload-trigger-btn {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  width: 90px;
-  height: 90px;
-  border: 2px dashed #2563eb;
-  border-radius: 12px;
-  cursor: pointer;
-  color: #2563eb;
-  font-size: 12px;
-  text-align: center;
-  transition: background-color 0.2s ease, border-color 0.2s ease;
-
-  &:hover {
-    background-color: rgba(37, 99, 235, 0.06);
-    border-color: #f97316;
-    color: #f97316;
-  }
-
-  .upload-icon {
-    font-size: 22px;
-  }
-
-  .upload-hint {
-    font-size: 10px;
-    opacity: 0.7;
-  }
-}
-
-.image-previews {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-}
-
-.image-preview-item {
-  position: relative;
-  width: 90px;
-  height: 90px;
-  border-radius: 12px;
-  overflow: hidden;
-  border: 1px solid rgba(0, 0, 0, 0.1);
-
-  img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-  }
-
-  .remove-image-btn {
-    position: absolute;
-    top: 4px;
-    right: 4px;
-    width: 20px;
-    height: 20px;
-    border: none;
-    border-radius: 50%;
-    background: rgba(0, 0, 0, 0.65);
-    color: #fff;
-    font-size: 12px;
-    line-height: 1;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    &:hover {
-      background: #f97316;
-    }
-  }
-}
-
-// ✅ Success ეკრანზე მანქანის ფოტოს thumbnail-ები
-.summary-images {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 16px;
-  flex-wrap: wrap;
-}
-
-.summary-image-thumb {
-  width: 64px;
-  height: 64px;
-  object-fit: cover;
-  border-radius: 8px;
-  border: 1px solid rgba(0, 0, 0, 0.1);
-}
-
-// დამატებით: dark mode-ისთვის (თუ თქვენს ფაილში აქვს @media (prefers-color-scheme: dark) ბლოკი,
-// გადაიტანეთ ეს იქ და მიუსადაგეთ)
-@media (prefers-color-scheme: dark) {
-  .upload-trigger-btn {
-    color: #60a5fa;
-    border-color: #60a5fa;
-  }
-
-  .image-preview-item {
-    border-color: rgba(255, 255, 255, 0.15);
-  }
-}
-.back-btn {
-  display: flex;
-  align-items: center;
-  gap: $spacing-sm;
-  padding: $spacing-md $spacing-lg;
-  background: $color-primary;
-  color: white;
-  border: none;
-  border-radius: $border-radius-md;
-  font-size: $font-size-base;
-  font-weight: $font-weight-semibold;
-  cursor: pointer;
-  transition: all $transition-normal;
-
-  &:hover:not(:disabled) {
-    background: $color-primary-dark;
-    transform: translateX(-2px);
-  }
-
-  &:active:not(:disabled) {
-    transform: translateX(-1px);
-  }
-
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-
-  span:first-child {
-    font-size: $font-size-xl;
-  }
+  margin-bottom: 38px;
 }
 
 .pickup-title {
-  font-size: $font-size-2xl;
-  font-weight: $font-weight-bold;
-  color: $color-text-primary;
   margin: 0;
-  flex: 1;
+  color: #ffffff;
   text-align: center;
-
-  @media (max-width: 768px) {
-    font-size: $font-size-xl;
-  }
+  font-size: clamp(23px, 3vw, 34px);
+  font-weight: 900;
+  letter-spacing: -0.7px;
 }
 
-// ===============================================
-// PROGRESS STEPS
-// ===============================================
+
+/* =========================================================
+   BACK BUTTON
+   ========================================================= */
+
+.back-btn {
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 43px;
+  padding: 0 15px;
+  border: 1px solid var(--border);
+  border-radius: 13px;
+  background: rgba(255, 255, 255, 0.045);
+  color: #c7d0e2;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+
+  transition:
+    transform 0.25s ease,
+    background 0.25s ease,
+    border-color 0.25s ease,
+    color 0.25s ease;
+}
+
+.back-btn:hover {
+  transform: translateX(-3px);
+  border-color: var(--border-orange);
+  background: var(--orange-soft);
+  color: #ffffff;
+}
+
+
+/* =========================================================
+   STEPS
+   ========================================================= */
 
 .steps-progress {
   display: flex;
   align-items: center;
-  margin-bottom: $spacing-2xl;
-  padding: $spacing-lg;
-  background: white;
-  border-radius: $border-radius-lg;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-
-  @media (max-width: 768px) {
-    margin-bottom: $spacing-xl;
-    padding: $spacing-md;
-  }
+  justify-content: center;
+  width: min(600px, 100%);
+  margin: 0 auto 40px;
 }
 
 .step-indicator {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: $spacing-md;
-  flex: 0 0 auto;
-
-  &.active {
-    .step-circle {
-      background: $color-primary;
-      color: white;
-      box-shadow: 0 0 0 4px $color-primary-light;
-      font-weight: $font-weight-bold;
-    }
-
-    .step-label {
-      color: $color-primary;
-      font-weight: $font-weight-semibold;
-    }
-  }
-
-  &.completed {
-    .step-circle {
-      background: $color-success;
-      color: white;
-      font-weight: $font-weight-bold;
-    }
-
-    .step-label {
-      color: $color-success;
-      font-weight: $font-weight-semibold;
-    }
-  }
+  gap: 8px;
+  min-width: 105px;
+  color: var(--muted);
+  transition: 0.25s ease;
 }
 
 .step-circle {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: $color-bg-light;
-  color: $color-text-tertiary;
-  font-size: $font-size-lg;
-  font-weight: $font-weight-semibold;
-  transition: all $transition-normal;
-  border: 2px solid $color-border;
+  width: 45px;
+  height: 45px;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.035);
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 900;
+
+  transition:
+    background 0.3s ease,
+    border-color 0.3s ease,
+    box-shadow 0.3s ease,
+    color 0.3s ease;
 }
 
 .step-label {
-  font-size: $font-size-sm;
-  color: $color-text-secondary;
-  text-align: center;
-  min-width: 50px;
-  transition: all $transition-normal;
+  font-size: 12px;
+  font-weight: 800;
 }
+
+
+/* Active */
+
+.step-indicator.active {
+  color: #ffffff;
+}
+
+.step-indicator.active .step-circle {
+  border-color: transparent;
+  background: linear-gradient(135deg, var(--orange), var(--orange-light));
+  color: #ffffff;
+
+  box-shadow:
+    0 10px 30px rgba(255, 90, 31, 0.30),
+    0 0 0 5px rgba(255, 90, 31, 0.08);
+}
+
+
+/* Completed */
+
+.step-indicator.completed {
+  color: #dce6f7;
+}
+
+.step-indicator.completed .step-circle {
+  border-color: rgba(34, 197, 94, 0.35);
+  background: var(--green-soft);
+  color: #49df7c;
+}
+
+
+/* Line */
 
 .step-line {
   flex: 1;
+  max-width: 180px;
   height: 2px;
-  background: $color-border;
-  margin: 0 $spacing-md;
-  transition: all $transition-normal;
-
-  &.completed {
-    background: $color-success;
-  }
-
-  @media (max-width: 768px) {
-    margin: 0 $spacing-sm;
-  }
+  margin: 0 8px 26px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.08);
+  transition: 0.35s ease;
 }
 
-// ===============================================
-// ALERTS
-// ===============================================
+.step-line.completed {
+  background: linear-gradient(90deg, var(--green), var(--orange));
+}
+
+
+/* =========================================================
+   ALERTS
+   ========================================================= */
 
 .alert {
   display: flex;
   align-items: center;
-  gap: $spacing-md;
-  padding: $spacing-md $spacing-lg;
-  border-radius: $border-radius-md;
-  margin-bottom: $spacing-lg;
-  font-size: $font-size-base;
-  font-weight: $font-weight-semibold;
-  animation: slideDown $transition-normal ease;
+  gap: 10px;
+  margin-bottom: 20px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  font-size: 13px;
+  font-weight: 700;
+  animation: alertIn 0.25s ease;
+}
 
-  @media (max-width: 768px) {
-    padding: $spacing-md;
+@keyframes alertIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
 .alert-error {
-  background: rgba($color-error, 0.1);
-  color: $color-error;
-  border: 1px solid rgba($color-error, 0.3);
-
-  .alert-icon {
-    font-size: $font-size-lg;
-  }
+  border: 1px solid rgba(255, 77, 94, 0.20);
+  background: rgba(255, 77, 94, 0.07);
+  color: #ff9ca6;
 }
 
 .alert-success {
-  background: rgba($color-success, 0.1);
-  color: $color-success;
-  border: 1px solid rgba($color-success, 0.3);
-
-  .alert-icon {
-    font-size: $font-size-lg;
-  }
+  border: 1px solid rgba(34, 197, 94, 0.20);
+  background: rgba(34, 197, 94, 0.07);
+  color: #77e99b;
 }
 
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.alert-icon {
+  font-size: 16px;
 }
 
-// ===============================================
-// STEP CONTENT
-// ===============================================
 
-.step-content {
-  animation: fadeIn $transition-normal ease;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-// ===============================================
-// SECTION HEADER
-// ===============================================
+/* =========================================================
+   SECTION HEADER
+   ========================================================= */
 
 .section-header {
-  margin-bottom: $spacing-2xl;
-
-  @media (max-width: 768px) {
-    margin-bottom: $spacing-xl;
-  }
-
-  h2 {
-    font-size: $font-size-xl;
-    font-weight: $font-weight-bold;
-    color: $color-text-primary;
-    margin: 0 0 $spacing-md 0;
-
-    @media (max-width: 768px) {
-      font-size: $font-size-lg;
-    }
-  }
-
-  p {
-    font-size: $font-size-base;
-    color: $color-text-secondary;
-    margin: 0;
-  }
+  margin-bottom: 27px;
 }
 
-// ===============================================
-// FORMS
-// ===============================================
+.section-header h2 {
+  margin: 0 0 7px;
+  color: #ffffff;
+  font-size: 27px;
+  font-weight: 900;
+  letter-spacing: -0.4px;
+}
 
-.trip-form,
-.details-form {
-  background: white;
-  padding: $spacing-2xl;
-  border-radius: $border-radius-lg;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  margin-bottom: $spacing-2xl;
+.section-header p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
 
-  @media (max-width: 768px) {
-    padding: $spacing-lg;
-    margin-bottom: $spacing-xl;
-  }
+
+/* =========================================================
+   FORM
+   ========================================================= */
+
+.trip-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
 .form-row-2 {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: $spacing-lg;
-
-  @media (max-width: 768px) {
-    grid-template-columns: 1fr;
-    gap: $spacing-md;
-  }
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: $spacing-sm;
-}
-
-.form-label {
-  font-size: $font-size-base;
-  font-weight: $font-weight-semibold;
-  color: $color-text-primary;
-}
-
-.form-input,
-.form-textarea {
-  padding: $spacing-md $spacing-lg;
-  border: 1px solid $color-border;
-  border-radius: $border-radius-md;
-  font-size: $font-size-base;
-  font-family: inherit;
-  color: $color-text-primary;
-  background: white;
-  transition: all $transition-normal;
-
-  &:focus {
-    outline: none;
-    border-color: $color-primary;
-    box-shadow: 0 0 0 3px $color-primary-light;
-  }
-
-  &::placeholder {
-    color: $color-text-tertiary;
-  }
-
-  &.has-error {
-    border-color: $color-error;
-    background: rgba($color-error, 0.05);
-
-    &:focus {
-      box-shadow: 0 0 0 3px rgba($color-error, 0.1);
-    }
-  }
-
-  @media (max-width: 768px) {
-    padding: $spacing-md;
-    font-size: $font-size-base;
-  }
-}
-
-.form-textarea {
-  resize: vertical;
-  min-height: 80px;
-}
-
-.error-text {
-  font-size: $font-size-sm;
-  color: $color-error;
-  font-weight: $font-weight-semibold;
-}
-
-.form-actions {
-  display: flex;
-  gap: $spacing-lg;
-  justify-content: flex-end;
-  margin-top: $spacing-2xl;
-
-  @media (max-width: 768px) {
-    flex-direction: column;
-    gap: $spacing-md;
-    margin-top: $spacing-xl;
-  }
-}
-
-// ===============================================
-// BUTTONS
-// ===============================================
-
-.btn {
-  padding: $spacing-md $spacing-2xl;
-  border: none;
-  border-radius: $border-radius-md;
-  font-size: $font-size-base;
-  font-weight: $font-weight-semibold;
-  cursor: pointer;
-  transition: all $transition-normal;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: $spacing-sm;
-
-  &:hover:not(:disabled) {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  }
-
-  &:active:not(:disabled) {
-    transform: translateY(0);
-  }
-
-  &:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
-
-  @media (max-width: 768px) {
-    padding: $spacing-md $spacing-lg;
-    width: 100%;
-  }
-}
-
-.btn-primary {
-  background: $color-primary;
-  color: white;
-
-  &:hover:not(:disabled) {
-    background: $color-primary-dark;
-  }
-}
-
-.btn-secondary {
-  background: $color-bg-light;
-  color: $color-text-primary;
-  border: 1px solid $color-border;
-
-  &:hover:not(:disabled) {
-    background: $color-bg;
-    border-color: $color-primary;
-  }
-}
-
-.btn-small {
-  padding: $spacing-md $spacing-lg;
-  font-size: $font-size-sm;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 16px;
   width: 100%;
 }
 
-// ===============================================
-// INFO CARD
-// ===============================================
 
-.info-card {
-  background: $color-accent-light;
-  border-left: 4px solid $color-accent;
-  padding: $spacing-lg;
-  border-radius: $border-radius-md;
-  margin-top: $spacing-2xl;
+/* =========================================================
+   FORM GROUP
+   ========================================================= */
 
-  h3 {
-    font-size: $font-size-base;
-    font-weight: $font-weight-bold;
-    color: $color-text-primary;
-    margin: 0 0 $spacing-md 0;
-  }
-
-  p {
-    font-size: $font-size-sm;
-    color: $color-text-secondary;
-    margin: 0;
-    line-height: 1.6;
-  }
-
-  @media (max-width: 768px) {
-    padding: $spacing-md;
-  }
-}
-
-// ===============================================
-// TRIP SUMMARY
-// ===============================================
-
-.trip-summary {
-  background: white;
-  padding: $spacing-2xl;
-  border-radius: $border-radius-lg;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  margin-bottom: $spacing-2xl;
-
-  @media (max-width: 768px) {
-    padding: $spacing-lg;
-    margin-bottom: $spacing-xl;
-  }
-
-  h3 {
-    font-size: $font-size-lg;
-    font-weight: $font-weight-bold;
-    color: $color-text-primary;
-    margin: 0 0 $spacing-lg 0;
-
-    @media (max-width: 768px) {
-      font-size: $font-size-base;
-      margin: 0 0 $spacing-md 0;
-    }
-  }
-}
-
-.summary-grid,
-.info-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: $spacing-lg;
-
-  @media (max-width: 768px) {
-    grid-template-columns: 1fr;
-    gap: $spacing-md;
-  }
-}
-
-.summary-row,
-.info-row {
+.form-group {
+  position: relative;
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.form-label {
+  padding-left: 2px;
+  color: #dbe3f3;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.4;
+}
+
+
+/* =========================================================
+   INPUT
+   ========================================================= */
+
+.form-input {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  min-height: 52px;
+  box-sizing: border-box;
+  padding: 0 16px;
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 14px;
+  outline: none;
+
+  background: linear-gradient(145deg, rgba(27, 40, 68, 0.92), rgba(20, 31, 53, 0.92));
+
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+
+.form-input:hover {
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+.form-input:focus {
+  border-color: rgba(255, 90, 31, 0.65);
+
+  background: linear-gradient(145deg, rgba(31, 44, 72, 0.98), rgba(20, 31, 53, 0.98));
+
+  box-shadow: 0 0 0 4px rgba(255, 90, 31, 0.08);
+}
+
+.form-input::placeholder {
+  color: #6f7d99;
+  opacity: 1;
+}
+
+
+/* Date / time / select — ბნელი სისტემური კონტროლები */
+
+.form-input[type='date'],
+.form-input[type='time'],
+select.form-input {
+  color-scheme: dark;
+}
+
+
+/* Textarea */
+
+.form-textarea {
+  min-height: 110px;
+  padding: 15px 16px;
+  resize: vertical;
+  line-height: 1.65;
+}
+
+
+/* =========================================================
+   TIME SELECT (24 საათი: საათი : წუთი)
+   ========================================================= */
+
+.time-select-row {
+  display: flex;
   align-items: center;
-  padding: $spacing-md;
-  background: $color-bg-light;
-  border-radius: $border-radius-md;
-  border: 1px solid $color-border;
+  gap: 8px;
 
-  @media (max-width: 768px) {
-    padding: $spacing-md;
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  &.highlight {
-    background: $color-primary-light;
-    border-color: $color-primary;
-
-    .label {
-      color: $color-primary;
-      font-weight: $font-weight-bold;
-    }
-
-    .value {
-      color: $color-primary;
-      font-weight: $font-weight-bold;
-      font-size: $font-size-lg;
-    }
-  }
-}
-
-.summary-label,
-.label {
-  font-size: $font-size-sm;
-  font-weight: $font-weight-semibold;
-  color: $color-text-secondary;
-
-  @media (max-width: 768px) {
-    margin-bottom: $spacing-sm;
-  }
-}
-
-.summary-value,
-.value {
-  font-size: $font-size-base;
-  font-weight: $font-weight-semibold;
-  color: $color-text-primary;
-
-  @media (max-width: 768px) {
-    font-size: $font-size-base;
-  }
-}
-
-// ===============================================
-// SHIPPINGS SECTION
-// ===============================================
-
-.shippings-section {
-  margin-bottom: $spacing-2xl;
-
-  @media (max-width: 768px) {
-    margin-bottom: $spacing-xl;
-  }
-
-  h3 {
-    font-size: $font-size-lg;
-    font-weight: $font-weight-bold;
-    color: $color-text-primary;
-    margin: 0 0 $spacing-lg 0;
-
-    @media (max-width: 768px) {
-      font-size: $font-size-base;
-      margin: 0 0 $spacing-md 0;
-    }
-  }
-}
-
-.no-shippings {
-  background: $color-warning;
-  opacity: 0.15;
-  padding: $spacing-2xl;
-  text-align: center;
-  border-radius: $border-radius-md;
-  color: $color-text-primary;
-  font-weight: $font-weight-semibold;
-
-  p {
-    margin: 0;
-  }
-}
-
-.shippings-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: $spacing-lg;
-
-  @media (max-width: 768px) {
-    grid-template-columns: 1fr;
-    gap: $spacing-md;
-  }
-}
-
-.shipping-card {
-  background: white;
-  border: 1px solid $color-border;
-  border-radius: $border-radius-lg;
-  padding: $spacing-lg;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  transition: all $transition-normal;
-  display: flex;
-  flex-direction: column;
-  gap: $spacing-md;
-
-  &:hover {
-    border-color: $color-primary;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    transform: translateY(-2px);
-  }
-
-  @media (max-width: 768px) {
-    padding: $spacing-md;
-  }
-}
-
-.shipping-header {
-  display: flex;
-  flex-direction: column;
-  gap: $spacing-sm;
-  border-bottom: 1px solid $color-border-light;
-  padding-bottom: $spacing-md;
-}
-
-.shipping-from-to {
-  font-size: $font-size-base;
-  font-weight: $font-weight-bold;
-  color: $color-primary;
-  margin: 0;
-}
-
-.shipping-date {
-  font-size: $font-size-sm;
-  color: $color-text-tertiary;
-}
-
-.shipping-details {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: $spacing-md;
-}
-
-.detail-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  font-size: $font-size-sm;
-
-  .label {
-    color: $color-text-secondary;
-    font-weight: $font-weight-semibold;
-    min-width: 100px;
-  }
-
-  .value {
-    color: $color-text-primary;
-    font-weight: $font-weight-semibold;
-    text-align: right;
+  .time-select {
     flex: 1;
+    cursor: pointer;
   }
 
-  &.highlight {
-    background: $color-primary-light;
-    padding: $spacing-md;
-    border-radius: $border-radius-sm;
-    border: 1px solid $color-primary;
-
-    .label {
-      color: $color-primary;
-      font-weight: $font-weight-bold;
-      min-width: auto;
-    }
-
-    .value {
-      color: $color-primary;
-      font-weight: $font-weight-bold;
-      font-size: $font-size-base;
-    }
+  .time-separator {
+    font-weight: 700;
+    font-size: 18px;
   }
 }
 
-// ===============================================
-// ACCEPTED SECTION
-// ===============================================
+/* select-ის სტილი: საკუთარი ისარი, ბნელი dropdown, ხილული ოპციები */
+select.form-input {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
 
-.accepted-section {
-  background: white;
-  padding: $spacing-2xl;
-  border-radius: $border-radius-lg;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  padding-right: 40px;
 
-  @media (max-width: 768px) {
-    padding: $spacing-lg;
-  }
-
-  h3 {
-    font-size: $font-size-lg;
-    font-weight: $font-weight-bold;
-    color: $color-success;
-    margin: 0 0 $spacing-lg 0;
-
-    @media (max-width: 768px) {
-      font-size: $font-size-base;
-      margin: 0 0 $spacing-md 0;
-    }
-  }
+  background-image:
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'><path d='M1 1l5 5 5-5' fill='none' stroke='%23c7d0e2' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/></svg>"),
+    linear-gradient(145deg, rgba(27, 40, 68, 0.92), rgba(20, 31, 53, 0.92));
+  background-repeat: no-repeat, no-repeat;
+  background-position: right 16px center, 0 0;
+  background-size: 12px 8px, 100% 100%;
 }
 
-.accepted-list {
+/* ფოკუსზე .form-input:focus-ის background shorthand ისარს შლიდა — ვაბრუნებთ */
+select.form-input:focus {
+  background-image:
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'><path d='M1 1l5 5 5-5' fill='none' stroke='%23c7d0e2' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/></svg>"),
+    linear-gradient(145deg, rgba(31, 44, 72, 0.98), rgba(20, 31, 53, 0.98));
+  background-repeat: no-repeat, no-repeat;
+  background-position: right 16px center, 0 0;
+  background-size: 12px 8px, 100% 100%;
+}
+
+select.form-input option {
+  background-color: #111b32;
+  color: #ffffff;
+  padding: 10px 14px;
+}
+
+select.form-input option:checked,
+select.form-input option:hover {
+  background-color: #ff5a1f;
+  color: #ffffff;
+}
+
+select.form-input option:disabled {
+  color: #6f7d99;
+}
+
+
+/* =========================================================
+   ERRORS
+   ========================================================= */
+
+.form-input.has-error {
+  border-color: rgba(255, 77, 94, 0.65);
+  box-shadow: 0 0 0 3px rgba(255, 77, 94, 0.07);
+}
+
+.error-text {
+  padding-left: 2px;
+  color: #ff8995;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+
+/* =========================================================
+   AUTOCOMPLETE
+   ========================================================= */
+
+.autocomplete-wrapper {
+  z-index: 30;
+}
+
+.autocomplete-dropdown {
+  position: absolute;
+  z-index: 100;
+  top: calc(100% + 3px);
+  left: 0;
+  right: 0;
+  max-height: 235px;
+  margin: 0;
+  padding: 7px;
+  overflow-y: auto;
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 14px;
+  background: rgba(10, 19, 37, 0.98);
+  box-shadow: 0 22px 55px rgba(0, 0, 0, 0.48);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  list-style: none;
+  scrollbar-width: thin;
+}
+
+.autocomplete-item {
+  padding: 12px 13px;
+  border-radius: 10px;
+  color: #dce5f6;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+
+  transition:
+    background 0.18s ease,
+    color 0.18s ease;
+}
+
+.autocomplete-item:hover {
+  background: rgba(255, 90, 31, 0.12);
+  color: #ffffff;
+}
+
+.autocomplete-empty {
+  padding: 13px;
+  color: #74829c;
+  font-size: 12px;
+  text-align: center;
+}
+
+
+/* =========================================================
+   PHOTO UPLOAD — MAIN DESIGN
+   ========================================================= */
+
+.image-upload-area {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 18px;
+  width: 100%;
+  min-height: 205px;
+  box-sizing: border-box;
+  padding: 18px;
+  border: 1px dashed rgba(255, 255, 255, 0.16);
+  border-radius: 18px;
+
+  background: linear-gradient(145deg, rgba(20, 32, 55, 0.76), rgba(12, 22, 40, 0.74));
+
+  transition:
+    border-color 0.25s ease,
+    background 0.25s ease;
+}
+
+.image-upload-area:hover {
+  border-color: rgba(255, 90, 31, 0.25);
+}
+
+
+/* Hidden file input */
+
+.file-input-hidden {
+  display: none;
+}
+
+
+/* Upload button */
+
+.upload-trigger-btn {
   display: flex;
   flex-direction: column;
-  gap: $spacing-md;
-  margin-bottom: $spacing-2xl;
-
-  @media (max-width: 768px) {
-    margin-bottom: $spacing-xl;
-  }
-}
-
-.accepted-item {
-  display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: $spacing-md $spacing-lg;
-  background: $color-bg-light;
-  border-left: 4px solid $color-success;
-  border-radius: $border-radius-sm;
-  font-size: $font-size-sm;
-  color: $color-text-primary;
+  justify-content: center;
+  gap: 10px;
+  min-width: 0;
+  min-height: 165px;
+  box-sizing: border-box;
+  padding: 20px;
+  border: 1px dashed rgba(255, 90, 31, 0.48);
+  border-radius: 16px;
 
-  @media (max-width: 768px) {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: $spacing-sm;
-    padding: $spacing-md;
+  background: linear-gradient(145deg, rgba(255, 90, 31, 0.09), rgba(255, 90, 31, 0.025));
+
+  color: #ff9b76;
+  font-size: 14px;
+  font-weight: 800;
+  text-align: center;
+  cursor: pointer;
+
+  transition:
+    transform 0.25s ease,
+    border-color 0.25s ease,
+    background 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+.upload-trigger-btn:hover {
+  transform: translateY(-2px);
+  border-color: var(--orange);
+
+  background: linear-gradient(145deg, rgba(255, 90, 31, 0.15), rgba(255, 90, 31, 0.05));
+
+  color: #ffffff;
+  box-shadow: 0 15px 35px rgba(255, 90, 31, 0.10);
+}
+
+.upload-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 55px;
+  height: 55px;
+  border-radius: 15px;
+  background: rgba(255, 90, 31, 0.10);
+  font-size: 27px;
+}
+
+.upload-hint {
+  color: #7d8ba6;
+  font-size: 11px;
+}
+
+
+/* Processing */
+
+.image-processing-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 165px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.025);
+  color: #a0adc1;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+
+/* Image previews */
+
+.image-previews {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  min-width: 0;
+  min-height: 165px;
+  align-content: stretch;
+}
+
+/* მხოლოდ 1 ფოტო → მთელ მარჯვენა სივრცეს იკავებს */
+.image-preview-item:first-child:last-child {
+  grid-column: 1 / -1;
+}
+
+.image-preview-item {
+  position: relative;
+  min-width: 0;
+  min-height: 165px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 16px;
+  background: #0b1426;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.28);
+  animation: imageAppear 0.3s ease;
+}
+
+@keyframes imageAppear {
+  from {
+    opacity: 0;
+    transform: scale(0.97);
   }
 
-  .price {
-    font-weight: $font-weight-bold;
-    color: $color-success;
-    font-size: $font-size-base;
-
-    @media (max-width: 768px) {
-      align-self: flex-end;
-    }
+  to {
+    opacity: 1;
+    transform: scale(1);
   }
 }
 
-// ===============================================
-// SUCCESS CONTAINER
-// ===============================================
+.image-preview-item img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 165px;
+  object-fit: cover;
+  transition: transform 0.35s ease;
+}
+
+.image-preview-item:hover img {
+  transform: scale(1.045);
+}
+
+
+/* Remove image */
+
+.remove-image-btn {
+  position: absolute;
+  top: 9px;
+  right: 9px;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 50%;
+  background: rgba(7, 13, 25, 0.82);
+  color: #ffffff;
+  font-size: 13px;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+
+  transition:
+    transform 0.2s ease,
+    background 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.remove-image-btn:hover {
+  transform: scale(1.06);
+  border-color: #ff4d5e;
+  background: #ff4d5e;
+}
+
+.remove-image-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+
+/* =========================================================
+   ACTIONS
+   ========================================================= */
+
+.form-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.btn {
+  min-height: 52px;
+  padding: 0 25px;
+  border-radius: 14px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease,
+    background 0.25s ease,
+    border-color 0.25s ease;
+}
+
+.btn-primary {
+  min-width: 190px;
+  border: none;
+  background: linear-gradient(135deg, #ff5a1f, #ff6d31);
+  color: #ffffff;
+  box-shadow: 0 12px 30px rgba(255, 90, 31, 0.22);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 18px 40px rgba(255, 90, 31, 0.32);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none;
+}
+
+
+/* =========================================================
+   SUCCESS SCREEN
+   ========================================================= */
 
 .success-container {
-  background: white;
-  padding: $spacing-2xl;
-  border-radius: $border-radius-lg;
+  max-width: 700px;
+  margin: 30px auto;
+  padding: 45px 30px;
   text-align: center;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(34, 197, 94, 0.15);
+  border-radius: 25px;
 
-  @media (max-width: 768px) {
-    padding: $spacing-lg;
-  }
+  background: linear-gradient(145deg, rgba(34, 197, 94, 0.05), rgba(255, 255, 255, 0.015));
+
+  box-shadow: 0 25px 70px rgba(0, 0, 0, 0.22);
 }
 
 .success-icon {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   justify-content: center;
-  width: 80px;
-  height: 80px;
-  background: $color-success;
-  color: white;
-  font-size: $font-size-2xl;
-  font-weight: $font-weight-bold;
+  width: 82px;
+  height: 82px;
+  margin: 0 auto 22px;
+  border: 1px solid rgba(34, 197, 94, 0.30);
   border-radius: 50%;
-  margin: 0 auto $spacing-lg;
-  animation: scaleIn $transition-normal ease;
-
-  @media (max-width: 768px) {
-    width: 60px;
-    height: 60px;
-    font-size: $font-size-xl;
-    margin-bottom: $spacing-md;
-  }
-}
-
-@keyframes scaleIn {
-  from {
-    transform: scale(0);
-    opacity: 0;
-  }
-  to {
-    transform: scale(1);
-    opacity: 1;
-  }
+  background: rgba(34, 197, 94, 0.10);
+  color: #42dd79;
+  font-size: 38px;
+  font-weight: 900;
+  box-shadow: 0 0 0 8px rgba(34, 197, 94, 0.035);
 }
 
 .success-container h2 {
-  font-size: $font-size-xl;
-  font-weight: $font-weight-bold;
-  color: $color-text-primary;
-  margin: 0 0 $spacing-lg 0;
-
-  @media (max-width: 768px) {
-    font-size: $font-size-lg;
-    margin-bottom: $spacing-md;
-  }
+  margin: 0 0 10px;
+  color: #ffffff;
+  font-size: 29px;
+  font-weight: 900;
 }
 
-// ===============================================
-// TRIP INFO CARD
-// ===============================================
+
+/* =========================================================
+   TRIP INFO CARD
+   ========================================================= */
 
 .trip-info-card {
-  background: $color-primary-light;
-  border-left: 4px solid $color-primary;
-  padding: $spacing-2xl;
-  border-radius: $border-radius-lg;
-  margin: $spacing-2xl 0;
+  margin-top: 28px;
+  padding: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 20px;
 
-  @media (max-width: 768px) {
-    padding: $spacing-lg;
-    margin: $spacing-xl 0;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.012));
+
+  text-align: left;
+}
+
+.trip-info-card h3 {
+  margin: 0 0 20px;
+  color: #ffffff;
+  font-size: 18px;
+  font-weight: 900;
+}
+
+
+/* Success photos */
+
+.summary-images {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.summary-image-thumb {
+  display: block;
+  width: 100%;
+  height: 115px;
+  object-fit: cover;
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 13px;
+  transition: transform 0.25s ease;
+}
+
+.summary-image-thumb:hover {
+  transform: scale(1.025);
+}
+
+
+/* Info grid */
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 15px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.info-row {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+  padding: 14px 15px;
+  background: rgba(10, 17, 31, 0.76);
+}
+
+.info-row .label {
+  color: #71809b;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.info-row .value {
+  color: #edf2fc;
+  font-size: 13px;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+
+/* =========================================================
+   TABLET
+   ========================================================= */
+
+@media (max-width: 800px) {
+
+  .pickup-parcel-wrapper {
+    padding: 25px 14px 60px;
   }
 
-  h3 {
-    font-size: $font-size-lg;
-    font-weight: $font-weight-bold;
-    color: $color-primary;
-    margin: 0 0 $spacing-lg 0;
+  .pickup-parcel-container {
+    padding: 25px;
+    border-radius: 24px;
+  }
 
-    @media (max-width: 768px) {
-      font-size: $font-size-base;
-      margin-bottom: $spacing-md;
-    }
+  .image-upload-area {
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    gap: 12px;
+    padding: 13px;
+  }
+
+  .upload-trigger-btn,
+  .image-processing-indicator {
+    min-height: 145px;
+  }
+
+  .image-previews {
+    min-height: 145px;
+  }
+
+  .image-preview-item,
+  .image-preview-item img {
+    min-height: 145px;
   }
 }
 
-// ===============================================
-// SUCCESS INFO
-// ===============================================
 
-.success-info {
-  background: $color-bg-light;
-  padding: $spacing-2xl;
-  border-radius: $border-radius-md;
-  margin: $spacing-2xl 0;
+/* =========================================================
+   MOBILE
+   ========================================================= */
 
-  @media (max-width: 768px) {
-    padding: $spacing-lg;
-    margin: $spacing-xl 0;
+@media (max-width: 600px) {
+
+  .pickup-parcel-wrapper {
+    padding: 12px 8px calc(35px + env(safe-area-inset-bottom));
   }
 
-  p {
-    font-size: $font-size-base;
-    color: $color-text-secondary;
-    margin: 0 0 $spacing-md 0;
-    line-height: 1.6;
+  .pickup-parcel-container {
+    width: 100%;
+    padding: 19px 13px;
+    border-radius: 21px;
+  }
 
-    &:last-child {
-      margin-bottom: 0;
-    }
+  /* Header */
 
-    @media (max-width: 768px) {
-      font-size: $font-size-sm;
-      margin-bottom: $spacing-sm;
-    }
+  .pickup-header {
+    grid-template-columns: auto 1fr;
+    gap: 10px;
+    margin-bottom: 27px;
+  }
+
+  .pickup-header > div:last-child {
+    display: none;
+  }
+
+  .pickup-title {
+    text-align: right;
+    font-size: 19px;
+  }
+
+  .back-btn {
+    height: 40px;
+    padding: 0 11px;
+    font-size: 11px;
+  }
+
+  /* Progress */
+
+  .steps-progress {
+    margin-bottom: 30px;
+  }
+
+  .step-indicator {
+    min-width: 72px;
+  }
+
+  .step-circle {
+    width: 39px;
+    height: 39px;
+  }
+
+  .step-label {
+    font-size: 9px;
+  }
+
+  .step-line {
+    margin: 0 3px 24px;
+  }
+
+  /* Section */
+
+  .section-header h2 {
+    font-size: 21px;
+  }
+
+  .section-header p {
+    font-size: 11px;
+  }
+
+  /* Form */
+
+  .form-row-2 {
+    grid-template-columns: 1fr;
+    gap: 17px;
+  }
+
+  .trip-form {
+    gap: 17px;
+  }
+
+  /* Inputs */
+
+  .form-input {
+    min-height: 50px;
+    font-size: 16px;
+    border-radius: 13px;
+  }
+
+  .form-textarea {
+    min-height: 105px;
+  }
+
+  /* Mobile photo area */
+
+  .image-upload-area {
+    grid-template-columns: 1fr;
+    min-height: auto;
+    gap: 12px;
+    padding: 12px;
+  }
+
+  .upload-trigger-btn,
+  .image-processing-indicator {
+    min-height: 125px;
+  }
+
+  .image-previews {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    min-height: 0;
+    gap: 9px;
+  }
+
+  .image-preview-item {
+    min-height: 150px;
+  }
+
+  .image-preview-item img {
+    min-height: 150px;
+  }
+
+  /* 1 ფოტო → სრული სიგანე */
+  .image-preview-item:first-child:last-child {
+    grid-column: 1 / -1;
+  }
+
+  /* Buttons */
+
+  .form-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .form-actions .btn {
+    width: 100%;
+  }
+
+  .btn {
+    width: 100%;
+    min-height: 50px;
+  }
+
+  /* Success */
+
+  .success-container {
+    margin-top: 10px;
+    padding: 35px 17px;
+  }
+
+  .success-container h2 {
+    font-size: 22px;
+  }
+
+  .success-icon {
+    width: 70px;
+    height: 70px;
+    font-size: 31px;
+  }
+
+  /* Trip card */
+
+  .trip-info-card {
+    padding: 15px;
+  }
+
+  .summary-images {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 7px;
+  }
+
+  .summary-image-thumb {
+    height: auto;
+    aspect-ratio: 1 / 0.82;
+  }
+
+  .info-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* =========================================================
+   SMALL PHONES
+   ========================================================= */
+
+@media (max-width: 390px) {
+
+  .pickup-parcel-container {
+    padding: 17px 10px;
+  }
+
+  .pickup-title {
+    font-size: 17px;
+  }
+
+  .step-indicator {
+    min-width: 65px;
+  }
+
+  .step-circle {
+    width: 36px;
+    height: 36px;
+  }
+
+  .step-label {
+    font-size: 8px;
+  }
+
+  .section-header h2 {
+    font-size: 19px;
+  }
+
+  .image-preview-item,
+  .image-preview-item img {
+    min-height: 125px;
+  }
+
+  .trip-info-card h3 {
+    font-size: 16px;
+  }
+}
+
+
+/* =========================================================
+   REDUCED MOTION
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
   }
 }

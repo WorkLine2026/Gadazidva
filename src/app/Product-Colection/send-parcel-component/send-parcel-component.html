@@ -38,8 +38,8 @@
     <!-- ===== STEP 1: PARCEL DETAILS ===== -->
     <div *ngIf="currentStep === 'details'" class="step-content">
       <div class="section-header">
-        <h2>რა გსურთ გაგზავნა?</h2>
-        <p>შეავსეთ ძირითადი ინფორმაცია</p>
+        <h2>რისი გაგზავნა გსურთ?</h2>
+        <p>შეაეთ ძირითადი ინფორმაცია</p>
       </div>
 
       <form [formGroup]="detailsForm" class="details-form">
@@ -116,7 +116,7 @@
 
         <!-- Description (What to send) -->
         <div class="form-group">
-          <label class="form-label">რა გზავნით? (აღწერა)</label>
+          <label class="form-label">რას გზავნით? (აღწერა)</label>
           <textarea 
             class="form-input form-textarea" 
             formControlName="description"
