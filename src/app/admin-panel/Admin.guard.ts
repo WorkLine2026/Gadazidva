@@ -1,22 +1,27 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
-import { SmsVerificationService } from '../services/smsverifikation.service';
+import { of } from 'rxjs';
+import { map, catchError } from 'rxjs/operators';
+import { SmsVerificationService, UserProfile } from '../services/smsverifikation.service';
 
 export const adminGuard: CanActivateFn = () => {
   const smsService = inject(SmsVerificationService);
   const router = inject(Router);
 
   if (!smsService.isAuthenticated()) {
-    router.navigate(['/admin/login']);
-    return false;
+    return router.createUrlTree(['/admin/login']);
   }
 
-  const user = smsService.getCurrentUser();
+  const check = (user: UserProfile | null | undefined) =>
+    user?.role === 'admin' ? true : router.createUrlTree(['/home']);
 
-  if (user?.role !== 'admin') {
-    router.navigate(['/home']);
-    return false;
-  }
+  const current = smsService.getCurrentUser();
+  if (current) return check(current);
 
-  return true;
+  // ✅ გვერდის განახლებისას token არსებობს, მაგრამ user ჯერ არ ჩატვირთულა —
+  // ამიტომ პროფილს ველოდებით, სანამ role-ს შევამოწმებთ
+  return smsService.getProfile().pipe(
+    map((res) => check(res.user)),
+    catchError(() => of(router.createUrlTree(['/admin/login'])))
+  );
 };

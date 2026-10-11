@@ -1,77 +1,93 @@
 <div class="admin-page">
   <div class="page-header">
-    <h2>📦 განცხადებების მართვა</h2>
+    <h2>📦 განცხადებები <span class="muted">({{ total }})</span></h2>
     <button class="btn-secondary" (click)="loadRequests()">🔄 განახლება</button>
   </div>
 
-  <!-- Filters -->
   <div class="filters-bar">
-    <input
-      type="text"
-      class="search-input"
-      placeholder="ძებნა (ქალაქი, სახელი, ტელეფონი)..."
-      [(ngModel)]="searchTerm"
-      (ngModelChange)="onSearchChange()" />
-
+    <input type="text" class="search-input" placeholder="ძებნა (ქალაქი, სახელი, ტელეფონი, აღწერა)..."
+      [(ngModel)]="searchTerm" (ngModelChange)="onSearchChange()" />
     <select class="status-select" [(ngModel)]="statusFilter" (ngModelChange)="onStatusFilterChange()">
       <option value="all">ყველა სტატუსი</option>
-      <option value="pending">⏳ მოლოდინი</option>
-      <option value="accepted">✅ მიღებული</option>
-      <option value="in-transit">🚚 გზაში</option>
-      <option value="delivered">📍 ჩაბარებული</option>
+      <option *ngFor="let s of statuses" [value]="s">{{ meta(s).label }}</option>
     </select>
   </div>
 
-  <!-- Loading -->
-  <div *ngIf="isLoading" class="loading-state">
-    <div class="spinner">⏳</div>
-    <p>ჩატვირთვა...</p>
-  </div>
+  <div *ngIf="isLoading" class="loading-state"><div>⏳</div><p>ჩატვირთვა...</p></div>
+  <div *ngIf="!isLoading && errorMessage" class="error-state"><p>⚠️ {{ errorMessage }}</p></div>
 
-  <!-- Error -->
-  <div *ngIf="!isLoading && errorMessage" class="error-state">
-    <p>⚠️ {{ errorMessage }}</p>
-  </div>
-
-  <!-- Table -->
   <div *ngIf="!isLoading && !errorMessage" class="table-wrapper">
-    <table class="admin-table" *ngIf="filteredRequests.length > 0; else emptyState">
+    <table class="admin-table" *ngIf="requests.length > 0; else emptyState">
       <thead>
         <tr>
           <th>მარშრუტი</th>
           <th>გამგზავნი</th>
+          <th>მიმღები</th>
           <th>წონა / ღირებულება</th>
           <th>სტატუსი</th>
-          <th>შექმნის თარიღი</th>
+          <th>გაგზავნის თარიღი</th>
+          <th>შექმნა</th>
           <th>მოქმედება</th>
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let req of filteredRequests">
+        <tr *ngFor="let req of requests">
           <td>{{ req.from }} → {{ req.to }}</td>
           <td>
             <div>{{ req.senderName || '—' }}</div>
             <div class="muted">{{ req.senderPhone || '—' }}</div>
           </td>
+          <td>{{ req.recipientPhone || '—' }}</td>
           <td>{{ req.weight }} კგ / {{ req.value }} ₾</td>
           <td>
-            <span class="status-badge" [style.background-color]="getStatusColor(req.status)">
-              {{ getStatusLabel(req.status) }}
-            </span>
+            <select class="mini-select" [ngModel]="req.status" (ngModelChange)="changeStatus(req, $event)"
+              [style.border-color]="meta(req.status).color">
+              <option *ngFor="let s of statuses" [value]="s">{{ meta(s).label }}</option>
+            </select>
           </td>
+          <td>{{ req.shipDate | date: 'dd.MM.yyyy' }}</td>
           <td>{{ req.createdAt | date: 'dd.MM.yyyy HH:mm' }}</td>
           <td class="actions-cell">
-            <a class="btn-link" [routerLink]="['/request', req._id]" target="_blank">👁 ნახვა</a>
-            <button class="btn-danger" (click)="deleteRequest(req._id)">🗑 წაშლა</button>
+            <button class="btn-secondary" (click)="selected = req">🔎 დეტალები</button>
+            <a class="btn-link" [routerLink]="['/request', req._id]" target="_blank">👁</a>
+            <button class="btn-danger" (click)="deleteRequest(req)">🗑</button>
           </td>
         </tr>
       </tbody>
     </table>
+    <ng-template #emptyState><div class="empty-state"><p>განცხადებები ვერ მოიძებნა</p></div></ng-template>
+  </div>
 
-    <ng-template #emptyState>
-      <div class="empty-state">
-        <p>განცხადებები ვერ მოიძებნა</p>
-      </div>
-    </ng-template>
+  <div class="pagination" *ngIf="pages > 1">
+    <button class="btn-page" [disabled]="page === 1" (click)="goToPage(page - 1)">← წინა</button>
+    <span>{{ page }} / {{ pages }}</span>
+    <button class="btn-page" [disabled]="page === pages" (click)="goToPage(page + 1)">შემდეგი →</button>
+  </div>
+</div>
+
+<div class="modal-backdrop" *ngIf="selected" (click)="selected = null">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>📦 {{ selected.from }} → {{ selected.to }}</h3>
+      <button class="close-btn" (click)="selected = null">✕</button>
+    </div>
+    <div class="detail-grid">
+      <div class="detail-item"><span>სტატუსი</span>{{ meta(selected.status).label }}</div>
+      <div class="detail-item"><span>გამგზავნი</span>{{ selected.senderName || '—' }}</div>
+      <div class="detail-item"><span>გამგზავნის ტელეფონი</span>{{ selected.senderPhone || '—' }}</div>
+      <div class="detail-item"><span>გამგზავნის ელფოსტა</span>{{ selected.senderEmail || '—' }}</div>
+      <div class="detail-item"><span>მიმღების ტელეფონი</span>{{ selected.recipientPhone || '—' }}</div>
+      <div class="detail-item"><span>წონა</span>{{ selected.weight }} კგ</div>
+      <div class="detail-item"><span>ღირებულება</span>{{ selected.value }} ₾</div>
+      <div class="detail-item"><span>გაგზავნის თარიღი</span>{{ selected.shipDate | date: 'dd.MM.yyyy' }}</div>
+      <div class="detail-item"><span>შექმნის თარიღი</span>{{ selected.createdAt | date: 'dd.MM.yyyy HH:mm' }}</div>
+      <div class="detail-item"><span>დამტკიცებული მძღოლის ID</span>{{ selected.acceptedDriverId || '—' }}</div>
+      <div class="detail-item"><span>ID</span>{{ selected._id }}</div>
+    </div>
+    <div class="detail-item"><span>აღწერა</span>{{ selected.description || '—' }}</div>
+    <div class="detail-item" style="margin-top:10px"><span>შენიშვნა</span>{{ selected.notes || '—' }}</div>
+    <div class="photos" *ngIf="selected.images?.length" style="margin-top:12px">
+      <img *ngFor="let img of selected.images" [src]="img" alt="ნივთის ფოტო" />
+    </div>
   </div>
 </div>

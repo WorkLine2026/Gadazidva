@@ -15,8 +15,10 @@ export class AdminLayoutComponent {
 
   navItems = [
     { label: 'მთავარი', icon: '📊', route: '/admin/dashboard' },
+    { label: 'მომხმარებლები', icon: '👥', route: '/admin/users' },
     { label: 'განცხადებები', icon: '📦', route: '/admin/requests' },
-    { label: 'მგზავრობები', icon: '🚗', route: '/admin/trips' }
+    { label: 'მგზავრობები', icon: '🚗', route: '/admin/trips' },
+    { label: 'შეთავაზებები', icon: '🤝', route: '/admin/offers' }
   ];
 
   constructor(
@@ -32,7 +34,7 @@ export class AdminLayoutComponent {
 
   logout(): void {
     this.smsService.clearAuthToken();
-    this.router.navigate(['/login']);
+    this.router.navigate(['/admin/login']);
     this.cdr.markForCheck();
   }
 

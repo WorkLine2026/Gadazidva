@@ -1,53 +1,134 @@
-<div class="dashboard">
-  <!-- Loading -->
-  <div *ngIf="isLoading" class="loading-state">
-    <div class="spinner">⏳</div>
-    <p>ჩატვირთვა...</p>
+<div class="admin-page">
+  <div class="page-header">
+    <h2>📊 მთავარი</h2>
+    <button class="btn-secondary" (click)="load()">🔄 განახლება</button>
   </div>
 
-  <!-- Error -->
-  <div *ngIf="!isLoading && errorMessage" class="error-state">
-    <p>⚠️ {{ errorMessage }}</p>
-  </div>
+  <div *ngIf="isLoading" class="loading-state"><div>⏳</div><p>ჩატვირთვა...</p></div>
+  <div *ngIf="!isLoading && errorMessage" class="error-state"><p>⚠️ {{ errorMessage }}</p></div>
 
-  <div *ngIf="!isLoading && !errorMessage">
-    <!-- Stat Cards -->
+  <ng-container *ngIf="!isLoading && !errorMessage && stats">
+    <h3 class="section-title">👥 მომხმარებლები</h3>
     <div class="stats-grid">
       <div class="stat-card">
-        <div class="stat-icon">📦</div>
-        <div class="stat-value">{{ stats.totalRequests }}</div>
-        <div class="stat-label">განცხადებები (ბოლო)</div>
+        <div class="stat-icon">👥</div>
+        <div class="stat-value">{{ stats.users.total }}</div>
+        <div class="stat-label">სულ მომხმარებელი</div>
+        <div class="stat-sub">+{{ stats.users.newLast7Days }} ბოლო 7 დღეში</div>
       </div>
       <div class="stat-card">
-        <div class="stat-icon">⏳</div>
-        <div class="stat-value">{{ stats.pendingRequests }}</div>
-        <div class="stat-label">მოლოდინში</div>
+        <div class="stat-icon">📦</div>
+        <div class="stat-value">{{ stats.users.senders }}</div>
+        <div class="stat-label">გამგზავნი</div>
       </div>
       <div class="stat-card">
         <div class="stat-icon">🚗</div>
-        <div class="stat-value">{{ stats.totalTrips }}</div>
-        <div class="stat-label">მგზავრობები (ბოლო)</div>
+        <div class="stat-value">{{ stats.users.drivers }}</div>
+        <div class="stat-label">მძღოლი</div>
       </div>
       <div class="stat-card">
-        <div class="stat-icon">✅</div>
-        <div class="stat-value">{{ stats.activeTrips }}</div>
-        <div class="stat-label">აქტიური მგზავრობა</div>
+        <div class="stat-icon">🛡</div>
+        <div class="stat-value">{{ stats.users.admins }}</div>
+        <div class="stat-label">ადმინი</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">⛔</div>
+        <div class="stat-value">{{ stats.users.blocked }}</div>
+        <div class="stat-label">დაბლოკილი</div>
       </div>
     </div>
 
-    <p class="disclaimer">
-      ⚠️ ეს რიცხვები ეყრდნობა "ბოლო" ჩანაწერების endpoint-ს (ლიმიტირებულია backend-ზე).
-      ზუსტი "სულ რაოდენობისთვის" საჭირო იქნება ცალკე admin stats endpoint.
-    </p>
-
-    <!-- Quick links -->
-    <div class="quick-links">
-      <a routerLink="/admin/requests" class="quick-link">
-        📦 ყველა განცხადების ნახვა →
-      </a>
-      <a routerLink="/admin/trips" class="quick-link">
-        🚗 ყველა მგზავრობის ნახვა →
-      </a>
+    <h3 class="section-title">📦 განცხადებები (ნივთები)</h3>
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon">📦</div>
+        <div class="stat-value">{{ stats.requests.total }}</div>
+        <div class="stat-label">სულ განცხადება</div>
+        <div class="stat-sub">+{{ stats.requests.newLast7Days }} ბოლო 7 დღეში</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">💰</div>
+        <div class="stat-value">{{ stats.requests.totalValue | number }} ₾</div>
+        <div class="stat-label">ნივთების ჯამური ღირებულება</div>
+      </div>
     </div>
-  </div>
+    <div class="breakdown">
+      <span *ngFor="let s of stats.requests.byStatus | keyvalue" class="status-badge" [style.background-color]="meta(s.key).color">
+        {{ meta(s.key).label }}: {{ s.value }}
+      </span>
+    </div>
+
+    <h3 class="section-title">🚗 მგზავრობები</h3>
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon">🚗</div>
+        <div class="stat-value">{{ stats.trips.total }}</div>
+        <div class="stat-label">სულ მგზავრობა</div>
+        <div class="stat-sub">+{{ stats.trips.newLast7Days }} ბოლო 7 დღეში</div>
+      </div>
+    </div>
+    <div class="breakdown">
+      <span *ngFor="let s of stats.trips.byStatus | keyvalue" class="status-badge" [style.background-color]="meta(s.key).color">
+        {{ meta(s.key).label }}: {{ s.value }}
+      </span>
+    </div>
+
+    <h3 class="section-title">🤝 შეთავაზებები და მოთხოვნები</h3>
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon">🚚</div>
+        <div class="stat-value">{{ stats.offers.total }}</div>
+        <div class="stat-label">მძღოლის შეთავაზება (ნივთზე)</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">📨</div>
+        <div class="stat-value">{{ stats.tripRequests.total }}</div>
+        <div class="stat-label">გამგზავნის მოთხოვნა (მგზავრობაზე)</div>
+      </div>
+    </div>
+    <div class="breakdown">
+      <span *ngFor="let s of stats.offers.byStatus | keyvalue" class="status-badge" [style.background-color]="meta(s.key).color">
+        შეთავაზება · {{ meta(s.key).label }}: {{ s.value }}
+      </span>
+      <span *ngFor="let s of stats.tripRequests.byStatus | keyvalue" class="status-badge" [style.background-color]="meta(s.key).color">
+        მოთხოვნა · {{ meta(s.key).label }}: {{ s.value }}
+      </span>
+    </div>
+
+    <div class="two-col">
+      <div class="panel">
+        <h3>🆕 ბოლო განცხადებები</h3>
+        <div class="recent-item" *ngFor="let r of stats.recent.requests">
+          <span>{{ r.from }} → {{ r.to }} <span class="muted">· {{ r.senderName || '—' }}</span></span>
+          <span class="status-badge" [style.background-color]="meta(r.status).color">{{ meta(r.status).label }}</span>
+        </div>
+        <div class="empty-state" *ngIf="!stats.recent.requests.length">ცარიელია</div>
+      </div>
+
+      <div class="panel">
+        <h3>🆕 ბოლო მგზავრობები</h3>
+        <div class="recent-item" *ngFor="let t of stats.recent.trips">
+          <span>{{ t.from }} → {{ t.to }} <span class="muted">· {{ t.driverName || '—' }}</span></span>
+          <span class="status-badge" [style.background-color]="meta(t.status).color">{{ meta(t.status).label }}</span>
+        </div>
+        <div class="empty-state" *ngIf="!stats.recent.trips.length">ცარიელია</div>
+      </div>
+
+      <div class="panel">
+        <h3>🆕 ახალი მომხმარებლები</h3>
+        <div class="recent-item" *ngFor="let u of stats.recent.users">
+          <span>{{ u.firstName }} {{ u.lastName }} <span class="muted">· {{ u.phone }}</span></span>
+          <span class="tag">{{ roles[u.role] }}</span>
+        </div>
+        <div class="empty-state" *ngIf="!stats.recent.users.length">ცარიელია</div>
+      </div>
+    </div>
+
+    <div class="breakdown">
+      <a routerLink="/admin/users" class="btn-link">👥 მომხმარებლები →</a>
+      <a routerLink="/admin/requests" class="btn-link">📦 განცხადებები →</a>
+      <a routerLink="/admin/trips" class="btn-link">🚗 მგზავრობები →</a>
+      <a routerLink="/admin/offers" class="btn-link">🤝 შეთავაზებები →</a>
+    </div>
+  </ng-container>
 </div>

@@ -1,41 +1,23 @@
 <div class="admin-page">
   <div class="page-header">
-    <h2>🚗 მგზავრობების მართვა</h2>
+    <h2>🚗 მგზავრობები <span class="muted">({{ total }})</span></h2>
     <button class="btn-secondary" (click)="loadTrips()">🔄 განახლება</button>
   </div>
 
-  <!-- Filters -->
   <div class="filters-bar">
-    <input
-      type="text"
-      class="search-input"
-      placeholder="ძებნა (ქალაქი, მძღოლი, ნომერი)..."
-      [(ngModel)]="searchTerm"
-      (ngModelChange)="onSearchChange()" />
-
+    <input type="text" class="search-input" placeholder="ძებნა (ქალაქი, მძღოლი, ნომერი, მარკა)..."
+      [(ngModel)]="searchTerm" (ngModelChange)="onSearchChange()" />
     <select class="status-select" [(ngModel)]="statusFilter" (ngModelChange)="onStatusFilterChange()">
       <option value="all">ყველა სტატუსი</option>
-      <option value="pending">⏳ დაგეგმილი</option>
-      <option value="active">🚗 აქტიური</option>
-      <option value="completed">✅ დასრულებული</option>
-      <option value="cancelled">❌ გაუქმებული</option>
+      <option *ngFor="let s of statuses" [value]="s">{{ meta(s).label }}</option>
     </select>
   </div>
 
-  <!-- Loading -->
-  <div *ngIf="isLoading" class="loading-state">
-    <div class="spinner">⏳</div>
-    <p>ჩატვირთვა...</p>
-  </div>
+  <div *ngIf="isLoading" class="loading-state"><div>⏳</div><p>ჩატვირთვა...</p></div>
+  <div *ngIf="!isLoading && errorMessage" class="error-state"><p>⚠️ {{ errorMessage }}</p></div>
 
-  <!-- Error -->
-  <div *ngIf="!isLoading && errorMessage" class="error-state">
-    <p>⚠️ {{ errorMessage }}</p>
-  </div>
-
-  <!-- Table -->
   <div *ngIf="!isLoading && !errorMessage" class="table-wrapper">
-    <table class="admin-table" *ngIf="filteredTrips.length > 0; else emptyState">
+    <table class="admin-table" *ngIf="trips.length > 0; else emptyState">
       <thead>
         <tr>
           <th>მარშრუტი</th>
@@ -44,11 +26,12 @@
           <th>ფასი / ადგილი</th>
           <th>სტატუსი</th>
           <th>გასვლის დრო</th>
+          <th>ნივთები</th>
           <th>მოქმედება</th>
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let trip of filteredTrips">
+        <tr *ngFor="let trip of trips">
           <td>{{ trip.from }} → {{ trip.to }}</td>
           <td>
             <div>{{ trip.driverName || '—' }}</div>
@@ -58,30 +41,56 @@
             <div>{{ trip.carModel || '—' }}</div>
             <div class="muted">{{ trip.carPlate || '—' }}</div>
           </td>
-          <td>{{ trip.pricePerKg }} ₾/კგ · {{ trip.availableSpace }} კგ</td>
+          <td>{{ trip.pricePerKg ?? '—' }} ₾/კგ · {{ trip.availableSpace ?? '—' }} კგ</td>
           <td>
-            <span class="status-badge" [style.background-color]="getStatusColor(trip.status)">
-              {{ getStatusLabel(trip.status) }}
-            </span>
+            <select class="mini-select" [ngModel]="trip.status || 'pending'" (ngModelChange)="changeStatus(trip, $event)"
+              [style.border-color]="meta(trip.status || 'pending').color">
+              <option *ngFor="let s of statuses" [value]="s">{{ meta(s).label }}</option>
+            </select>
           </td>
           <td>{{ trip.departureDate | date: 'dd.MM.yyyy HH:mm' }}</td>
+          <td>{{ trip.acceptedShippings?.length || 0 }}</td>
           <td class="actions-cell">
-            <a class="btn-link" [routerLink]="['/trip', trip._id]" target="_blank">👁 ნახვა</a>
-            <button
-              class="btn-danger"
-              [disabled]="trip.status === 'cancelled' || trip.status === 'completed'"
-              (click)="cancelTrip(trip._id)">
-              🚫 გაუქმება
-            </button>
+            <button class="btn-secondary" (click)="selected = trip">🔎 დეტალები</button>
+            <a class="btn-link" [routerLink]="['/trip', trip._id]" target="_blank">👁</a>
+            <button class="btn-danger" (click)="deleteTrip(trip)">🗑</button>
           </td>
         </tr>
       </tbody>
     </table>
+    <ng-template #emptyState><div class="empty-state"><p>მგზავრობები ვერ მოიძებნა</p></div></ng-template>
+  </div>
 
-    <ng-template #emptyState>
-      <div class="empty-state">
-        <p>მგზავრობები ვერ მოიძებნა</p>
-      </div>
-    </ng-template>
+  <div class="pagination" *ngIf="pages > 1">
+    <button class="btn-page" [disabled]="page === 1" (click)="goToPage(page - 1)">← წინა</button>
+    <span>{{ page }} / {{ pages }}</span>
+    <button class="btn-page" [disabled]="page === pages" (click)="goToPage(page + 1)">შემდეგი →</button>
+  </div>
+</div>
+
+<div class="modal-backdrop" *ngIf="selected" (click)="selected = null">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>🚗 {{ selected.from }} → {{ selected.to }}</h3>
+      <button class="close-btn" (click)="selected = null">✕</button>
+    </div>
+    <div class="detail-grid">
+      <div class="detail-item"><span>სტატუსი</span>{{ meta(selected.status || 'pending').label }}</div>
+      <div class="detail-item"><span>მძღოლი</span>{{ selected.driverName || '—' }}</div>
+      <div class="detail-item"><span>ტელეფონი</span>{{ selected.senderPhone || '—' }}</div>
+      <div class="detail-item"><span>პირადი ნომერი</span>{{ selected.personalNumber || '—' }}</div>
+      <div class="detail-item"><span>მანქანა</span>{{ selected.carModel || '—' }} {{ selected.carPlate }}</div>
+      <div class="detail-item"><span>ფასი კგ-ზე</span>{{ selected.pricePerKg ?? '—' }} ₾</div>
+      <div class="detail-item"><span>თავისუფალი ადგილი</span>{{ selected.availableSpace ?? '—' }} კგ</div>
+      <div class="detail-item"><span>გასვლის დრო</span>{{ selected.departureDate | date: 'dd.MM.yyyy HH:mm' }}</div>
+      <div class="detail-item"><span>შექმნის თარიღი</span>{{ selected.createdAt | date: 'dd.MM.yyyy HH:mm' }}</div>
+      <div class="detail-item"><span>მიღებული ნივთები</span>{{ selected.acceptedShippings?.length || 0 }}</div>
+      <div class="detail-item"><span>მძღოლის ID</span>{{ selected.driverId }}</div>
+      <div class="detail-item"><span>ID</span>{{ selected._id }}</div>
+    </div>
+    <div class="detail-item"><span>კომენტარი</span>{{ selected.comments || '—' }}</div>
+    <div class="photos" *ngIf="selected.images?.length" style="margin-top:12px">
+      <img *ngFor="let img of selected.images" [src]="img" alt="მანქანის ფოტო" />
+    </div>
   </div>
 </div>

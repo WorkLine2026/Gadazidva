@@ -2,31 +2,36 @@ import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
-import { ParcelService, DriverTrip } from '../../services/Parcel.service';
-
-type StatusFilter = 'all' | 'pending' | 'active' | 'completed' | 'cancelled';
+import { AdminService } from '../../services/Admin.service';
+import { DriverTrip } from '../../services/Parcel.service';
+import { statusMeta, TRIP_STATUSES } from '../admin-labels';
 
 @Component({
   selector: 'app-admin-trips',
   standalone: true,
   imports: [CommonModule, FormsModule, RouterModule],
   templateUrl: './admin-trips-component.html',
-  styleUrls: ['./admin-trips-component.scss']
+  styleUrls: ['../admin-shared.scss']
 })
 export class AdminTripsComponent implements OnInit {
   isLoading = false;
   errorMessage = '';
 
-  allTrips: DriverTrip[] = [];
-  filteredTrips: DriverTrip[] = [];
-
-  statusFilter: StatusFilter = 'all';
+  trips: DriverTrip[] = [];
+  statusFilter = 'all';
   searchTerm = '';
+  page = 1;
+  pages = 1;
+  total = 0;
+  readonly limit = 20;
 
-  constructor(
-    private parcelService: ParcelService,
-    private cdr: ChangeDetectorRef
-  ) {}
+  selected: DriverTrip | null = null;
+
+  meta = statusMeta;
+  statuses = TRIP_STATUSES;
+  private searchTimer: any;
+
+  constructor(private admin: AdminService, private cdr: ChangeDetectorRef) {}
 
   ngOnInit(): void {
     this.loadTrips();
@@ -37,99 +42,67 @@ export class AdminTripsComponent implements OnInit {
     this.errorMessage = '';
     this.cdr.markForCheck();
 
-    // ⚠️ დროებით getRecentTrips()-ს ვიყენებთ (public, ლიმიტირებული).
-    // TODO: შეცვალეთ admin-specific endpoint-ით, როცა backend-ზე დაემატება.
-    this.parcelService.getRecentTrips().subscribe({
+    this.admin.getTrips({ page: this.page, limit: this.limit, search: this.searchTerm.trim(), status: this.statusFilter }).subscribe({
       next: (res) => {
-        this.allTrips = res.trips || [];
-        this.applyFilters();
+        this.trips = res.data || [];
+        this.total = res.total;
+        this.pages = res.pages;
         this.isLoading = false;
         this.cdr.markForCheck();
       },
       error: (err) => {
-        console.error('❌ მგზავრობების ჩატვირთვის შეცდომა:', err);
-        this.errorMessage = 'მგზავრობების ჩატვირთვა ვერ მოხერხდა';
+        console.error('❌ მგზავრობების შეცდომა:', err);
+        this.errorMessage = err?.error?.message || 'მგზავრობების ჩატვირთვა ვერ მოხერხდა';
         this.isLoading = false;
         this.cdr.markForCheck();
       }
     });
-  }
-
-  applyFilters(): void {
-    let result = [...this.allTrips];
-
-    if (this.statusFilter !== 'all') {
-      result = result.filter(t => t.status === this.statusFilter);
-    }
-
-    if (this.searchTerm.trim()) {
-      const term = this.searchTerm.trim().toLowerCase();
-      result = result.filter(t =>
-        t.from?.toLowerCase().includes(term) ||
-        t.to?.toLowerCase().includes(term) ||
-        t.driverName?.toLowerCase().includes(term) ||
-        t.carPlate?.toLowerCase().includes(term)
-      );
-    }
-
-    this.filteredTrips = result;
-  }
-
-  onStatusFilterChange(): void {
-    this.applyFilters();
-    this.cdr.markForCheck();
   }
 
   onSearchChange(): void {
-    this.applyFilters();
-    this.cdr.markForCheck();
+    clearTimeout(this.searchTimer);
+    this.searchTimer = setTimeout(() => { this.page = 1; this.loadTrips(); }, 350);
   }
 
-  cancelTrip(tripId: string | undefined): void {
-    if (!tripId) return;
+  onStatusFilterChange(): void {
+    this.page = 1;
+    this.loadTrips();
+  }
 
-    if (!confirm('დარწმუნებული ხართ, რომ გსურთ ამ მგზავრობის გაუქმება?')) {
-      return;
-    }
+  goToPage(p: number): void {
+    if (p < 1 || p > this.pages) return;
+    this.page = p;
+    this.loadTrips();
+  }
 
-    // ⚠️ ownership-based — მუშაობს მხოლოდ თუ ადმინი ამ trip-ის driver-ია.
-    // admin override საჭიროებს backend-ის მხარდაჭერას.
-    this.parcelService.cancelTrip(tripId).subscribe({
+  changeStatus(trip: DriverTrip, status: string): void {
+    if (status === trip.status) return;
+    this.admin.setTripStatus(trip._id, status).subscribe({
       next: (res) => {
-        if (res.success) {
-          const trip = this.allTrips.find(t => t._id === tripId);
-          if (trip) trip.status = 'cancelled';
-          this.applyFilters();
-        } else {
-          alert('❌ ' + (res.message || 'გაუქმება ვერ მოხერხდა'));
-        }
+        if (res.success) trip.status = status as any;
+        else alert('❌ ' + (res.message || 'ვერ შეიცვალა'));
         this.cdr.markForCheck();
       },
       error: (err) => {
-        console.error('❌ გაუქმების შეცდომა:', err);
-        alert('❌ გაუქმება ვერ მოხერხდა — შესაძლოა admin-ს არ აქვს ამის უფლება backend-ზე');
-        this.cdr.markForCheck();
+        alert('❌ ' + (err?.error?.message || 'ვერ შეიცვალა'));
+        this.loadTrips();
       }
     });
   }
 
-  getStatusLabel(status: string | undefined): string {
-    const labels: { [key: string]: string } = {
-      'pending': '⏳ დაგეგმილი',
-      'active': '🚗 აქტიური',
-      'completed': '✅ დასრულებული',
-      'cancelled': '❌ გაუქმებული'
-    };
-    return labels[status || 'pending'] || status || '⏳ დაგეგმილი';
-  }
+  deleteTrip(trip: DriverTrip): void {
+    if (!confirm('დარწმუნებული ხართ, რომ გსურთ ამ მგზავრობის წაშლა?')) return;
 
-  getStatusColor(status: string | undefined): string {
-    const colors: { [key: string]: string } = {
-      'pending': '#f59e0b',
-      'active': '#10b981',
-      'completed': '#3b82f6',
-      'cancelled': '#ef4444'
-    };
-    return colors[status || ''] || '#6b7280';
+    this.admin.deleteTrip(trip._id).subscribe({
+      next: (res) => {
+        if (res.success) {
+          this.trips = this.trips.filter((t) => t._id !== trip._id);
+          this.total--;
+          if (this.selected?._id === trip._id) this.selected = null;
+        } else alert('❌ ' + (res.message || 'წაშლა ვერ მოხერხდა'));
+        this.cdr.markForCheck();
+      },
+      error: (err) => alert('❌ ' + (err?.error?.message || 'წაშლა ვერ მოხერხდა'))
+    });
   }
 }

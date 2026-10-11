@@ -39,9 +39,9 @@
     "@capacitor/cli": "^8.5.0",
     "@types/express": "^5.0.1",
     "@types/node": "^20.17.19",
-    "jsdom": "^28.0.0",
+    "jsdom": "^28.1.0",
     "prettier": "^3.8.1",
     "typescript": "~6.0.2",
-    "vitest": "^4.0.8"
+    "vitest": "^4.1.11"
   }
 }

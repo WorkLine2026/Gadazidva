@@ -1,0 +1,122 @@
+<div class="admin-page">
+  <div class="page-header">
+    <h2>👥 მომხმარებლები <span class="muted">({{ total }})</span></h2>
+    <button class="btn-secondary" (click)="load()">🔄 განახლება</button>
+  </div>
+
+  <div class="filters-bar">
+    <input type="text" class="search-input" placeholder="ძებნა (სახელი, ელფოსტა, ტელეფონი, პირადი №, ნომერი)..."
+      [(ngModel)]="searchTerm" (ngModelChange)="onSearchChange()" />
+    <select class="status-select" [(ngModel)]="roleFilter" (ngModelChange)="onFilterChange()">
+      <option value="all">ყველა როლი</option>
+      <option value="sender">📦 გამგზავნი</option>
+      <option value="driver">🚗 მძღოლი</option>
+      <option value="admin">🛡 ადმინი</option>
+    </select>
+  </div>
+
+  <div *ngIf="isLoading" class="loading-state"><div>⏳</div><p>ჩატვირთვა...</p></div>
+  <div *ngIf="!isLoading && errorMessage" class="error-state"><p>⚠️ {{ errorMessage }}</p></div>
+
+  <div *ngIf="!isLoading && !errorMessage" class="table-wrapper">
+    <table class="admin-table" *ngIf="users.length > 0; else emptyState">
+      <thead>
+        <tr>
+          <th>მომხმარებელი</th>
+          <th>კონტაქტი</th>
+          <th>როლი</th>
+          <th>მანქანა</th>
+          <th>სტატუსი</th>
+          <th>რეგისტრაცია</th>
+          <th>მოქმედება</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let u of users">
+          <td>
+            <div>{{ u.firstName }} {{ u.lastName }}</div>
+            <div class="muted">პ/ნ: {{ u.personalNumber || '—' }}</div>
+          </td>
+          <td>
+            <div>{{ u.phone || '—' }} <span *ngIf="u.phoneVerified">✅</span></div>
+            <div class="muted">{{ u.email || '—' }}</div>
+          </td>
+          <td>
+            <select class="mini-select" [ngModel]="u.role" (ngModelChange)="changeRole(u, $event)">
+              <option value="sender">📦 გამგზავნი</option>
+              <option value="driver">🚗 მძღოლი</option>
+              <option value="admin">🛡 ადმინი</option>
+            </select>
+          </td>
+          <td>
+            <div>{{ u.carModel || '—' }}</div>
+            <div class="muted">{{ u.carPlate || '' }}</div>
+          </td>
+          <td>
+            <span class="tag tag-red" *ngIf="u.isBanned">⛔ დაბლოკილი</span>
+            <div class="muted" *ngIf="u.isBanned && u.bannedReason">{{ u.bannedReason }}</div>
+            <span class="tag" *ngIf="!u.isBanned">აქტიური</span>
+          </td>
+          <td>{{ u.createdAt | date: 'dd.MM.yyyy HH:mm' }}</td>
+          <td class="actions-cell">
+            <button class="btn-secondary" (click)="openDetails(u)">👁 დეტალები</button>
+            <button class="btn-warn" (click)="toggleBan(u)">{{ u.isBanned ? '🔓 განბლოკვა' : '⛔ ბლოკი' }}</button>
+            <button class="btn-danger" (click)="deleteUser(u)">🗑</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <ng-template #emptyState><div class="empty-state"><p>მომხმარებლები ვერ მოიძებნა</p></div></ng-template>
+  </div>
+
+  <div class="pagination" *ngIf="pages > 1">
+    <button class="btn-page" [disabled]="page === 1" (click)="goToPage(page - 1)">← წინა</button>
+    <span>{{ page }} / {{ pages }}</span>
+    <button class="btn-page" [disabled]="page === pages" (click)="goToPage(page + 1)">შემდეგი →</button>
+  </div>
+</div>
+
+<!-- Details modal -->
+<div class="modal-backdrop" *ngIf="detailsLoading || selected" (click)="closeDetails()">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>👤 მომხმარებლის დეტალები</h3>
+      <button class="close-btn" (click)="closeDetails()">✕</button>
+    </div>
+
+    <div *ngIf="detailsLoading" class="loading-state">⏳ ჩატვირთვა...</div>
+
+    <ng-container *ngIf="selected as d">
+      <div class="detail-grid">
+        <div class="detail-item"><span>სახელი</span>{{ d.user.firstName }} {{ d.user.lastName }}</div>
+        <div class="detail-item"><span>როლი</span>{{ roleLabels[d.user.role] }}</div>
+        <div class="detail-item"><span>ტელეფონი</span>{{ d.user.phone }} {{ d.user.phoneVerified ? '✅' : '❌' }}</div>
+        <div class="detail-item"><span>ელფოსტა</span>{{ d.user.email }}</div>
+        <div class="detail-item"><span>პირადი ნომერი</span>{{ d.user.personalNumber || '—' }}</div>
+        <div class="detail-item"><span>რეგისტრაცია</span>{{ d.user.createdAt | date: 'dd.MM.yyyy HH:mm' }}</div>
+        <div class="detail-item"><span>მანქანა</span>{{ d.user.carModel || '—' }} {{ d.user.carPlate }}</div>
+        <div class="detail-item"><span>მართვის მოწმობა</span>{{ d.user.driverLicenseNumber || '—' }}</div>
+        <div class="detail-item"><span>შეთავაზებები (როგორც მძღოლი / გამგზავნი)</span>{{ d.offers.asDriver }} / {{ d.offers.asSender }}</div>
+        <div class="detail-item">
+          <span>სტატუსი</span>
+          {{ d.user.isBanned ? '⛔ დაბლოკილი' : 'აქტიური' }}
+          <ng-container *ngIf="d.user.isBanned && d.user.bannedReason"> — {{ d.user.bannedReason }}</ng-container>
+        </div>
+      </div>
+
+      <h3 class="section-title">📦 განცხადებები ({{ d.requests.length }})</h3>
+      <div class="recent-item" *ngFor="let r of d.requests">
+        <span>{{ r.from }} → {{ r.to }} <span class="muted">· {{ r.weight }} კგ · {{ r.value }} ₾ · {{ r.createdAt | date: 'dd.MM.yyyy' }}</span></span>
+        <span class="status-badge" [style.background-color]="meta(r.status).color">{{ meta(r.status).label }}</span>
+      </div>
+      <div class="muted" *ngIf="!d.requests.length">განცხადება არ აქვს</div>
+
+      <h3 class="section-title">🚗 მგზავრობები ({{ d.trips.length }})</h3>
+      <div class="recent-item" *ngFor="let t of d.trips">
+        <span>{{ t.from }} → {{ t.to }} <span class="muted">· {{ t.departureDate | date: 'dd.MM.yyyy HH:mm' }}</span></span>
+        <span class="status-badge" [style.background-color]="meta(t.status).color">{{ meta(t.status).label }}</span>
+      </div>
+      <div class="muted" *ngIf="!d.trips.length">მგზავრობა არ აქვს</div>
+    </ng-container>
+  </div>
+</div>

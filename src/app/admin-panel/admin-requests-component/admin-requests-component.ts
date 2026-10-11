@@ -2,31 +2,36 @@ import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
-import { ParcelService, ParcelRequest } from '../../services/Parcel.service';
-
-type StatusFilter = 'all' | 'pending' | 'accepted' | 'in-transit' | 'delivered';
+import { AdminService } from '../../services/Admin.service';
+import { ParcelRequest } from '../../services/Parcel.service';
+import { statusMeta, REQUEST_STATUSES } from '../admin-labels';
 
 @Component({
   selector: 'app-admin-requests',
   standalone: true,
   imports: [CommonModule, FormsModule, RouterModule],
   templateUrl: './admin-requests-component.html',
-  styleUrls: ['./admin-requests-component.scss']
+  styleUrls: ['../admin-shared.scss']
 })
 export class AdminRequestsComponent implements OnInit {
   isLoading = false;
   errorMessage = '';
 
-  allRequests: ParcelRequest[] = [];
-  filteredRequests: ParcelRequest[] = [];
-
-  statusFilter: StatusFilter = 'all';
+  requests: ParcelRequest[] = [];
+  statusFilter = 'all';
   searchTerm = '';
+  page = 1;
+  pages = 1;
+  total = 0;
+  readonly limit = 20;
 
-  constructor(
-    private parcelService: ParcelService,
-    private cdr: ChangeDetectorRef
-  ) {}
+  selected: ParcelRequest | null = null;
+
+  meta = statusMeta;
+  statuses = REQUEST_STATUSES;
+  private searchTimer: any;
+
+  constructor(private admin: AdminService, private cdr: ChangeDetectorRef) {}
 
   ngOnInit(): void {
     this.loadRequests();
@@ -37,101 +42,68 @@ export class AdminRequestsComponent implements OnInit {
     this.errorMessage = '';
     this.cdr.markForCheck();
 
-    // ⚠️ დროებით getRecentRequests()-ს ვიყენებთ (public, ლიმიტირებული).
-    // TODO: შეცვალეთ ეს admin-specific endpoint-ით (მაგ. /admin/all-requests),
-    // როცა backend-ზე დაემატება — ეს component აღარაფერს საჭიროებს გარდა
-    // ამ ერთი მეთოდის სახელის შეცვლისა.
-    this.parcelService.getRecentRequests().subscribe({
+    this.admin.getRequests({ page: this.page, limit: this.limit, search: this.searchTerm.trim(), status: this.statusFilter }).subscribe({
       next: (res) => {
-        this.allRequests = res.requests || [];
-        this.applyFilters();
+        this.requests = res.data || [];
+        this.total = res.total;
+        this.pages = res.pages;
         this.isLoading = false;
         this.cdr.markForCheck();
       },
       error: (err) => {
-        console.error('❌ განცხადებების ჩატვირთვის შეცდომა:', err);
-        this.errorMessage = 'განცხადებების ჩატვირთვა ვერ მოხერხდა';
+        console.error('❌ განცხადებების შეცდომა:', err);
+        this.errorMessage = err?.error?.message || 'განცხადებების ჩატვირთვა ვერ მოხერხდა';
         this.isLoading = false;
         this.cdr.markForCheck();
       }
     });
-  }
-
-  applyFilters(): void {
-    let result = [...this.allRequests];
-
-    if (this.statusFilter !== 'all') {
-      result = result.filter(r => r.status === this.statusFilter);
-    }
-
-    if (this.searchTerm.trim()) {
-      const term = this.searchTerm.trim().toLowerCase();
-      result = result.filter(r =>
-        r.from?.toLowerCase().includes(term) ||
-        r.to?.toLowerCase().includes(term) ||
-        r.senderName?.toLowerCase().includes(term) ||
-        r.senderPhone?.toLowerCase().includes(term)
-      );
-    }
-
-    this.filteredRequests = result;
-  }
-
-  onStatusFilterChange(): void {
-    this.applyFilters();
-    this.cdr.markForCheck();
   }
 
   onSearchChange(): void {
-    this.applyFilters();
-    this.cdr.markForCheck();
+    clearTimeout(this.searchTimer);
+    this.searchTimer = setTimeout(() => { this.page = 1; this.loadRequests(); }, 350);
   }
 
-  deleteRequest(requestId: string | undefined): void {
-    if (!requestId) return;
+  onStatusFilterChange(): void {
+    this.page = 1;
+    this.loadRequests();
+  }
 
-    if (!confirm('დარწმუნებული ხართ, რომ გსურთ ამ განცხადების წაშლა?')) {
-      return;
-    }
+  goToPage(p: number): void {
+    if (p < 1 || p > this.pages) return;
+    this.page = p;
+    this.loadRequests();
+  }
 
-    // ⚠️ ეს ახლა მუშაობს მხოლოდ თუ ადმინი ამავდროულად ამ განცხადების
-    // ავტორია (ownership-based წაშლა backend-ზე). რეალურ admin override-ს
-    // backend-ის მხრიდან ცალკე დაშვება დასჭირდება.
-    this.parcelService.deleteParcelRequest(requestId).subscribe({
+  changeStatus(req: ParcelRequest, status: string): void {
+    if (!req._id || status === req.status) return;
+    this.admin.setRequestStatus(req._id, status).subscribe({
       next: (res) => {
-        if (res.success) {
-          this.allRequests = this.allRequests.filter(r => r._id !== requestId);
-          this.applyFilters();
-        } else {
-          alert('❌ ' + (res.message || 'წაშლა ვერ მოხერხდა'));
-        }
+        if (res.success) req.status = status as any;
+        else alert('❌ ' + (res.message || 'ვერ შეიცვალა'));
         this.cdr.markForCheck();
       },
       error: (err) => {
-        console.error('❌ წაშლის შეცდომა:', err);
-        alert('❌ წაშლა ვერ მოხერხდა — შესაძლოა admin-ს არ აქვს ამის უფლება backend-ზე');
-        this.cdr.markForCheck();
+        alert('❌ ' + (err?.error?.message || 'ვერ შეიცვალა'));
+        this.loadRequests();
       }
     });
   }
 
-  getStatusLabel(status: string | undefined): string {
-    const labels: { [key: string]: string } = {
-      'pending': '⏳ მოლოდინი',
-      'accepted': '✅ მიღებული',
-      'in-transit': '🚚 გზაში',
-      'delivered': '📍 ჩაბარებული'
-    };
-    return labels[status || ''] || status || '—';
-  }
+  deleteRequest(req: ParcelRequest): void {
+    if (!req._id) return;
+    if (!confirm('დარწმუნებული ხართ, რომ გსურთ ამ განცხადების წაშლა?')) return;
 
-  getStatusColor(status: string | undefined): string {
-    const colors: { [key: string]: string } = {
-      'pending': '#f59e0b',
-      'accepted': '#10b981',
-      'in-transit': '#3b82f6',
-      'delivered': '#8b5cf6'
-    };
-    return colors[status || ''] || '#6b7280';
+    this.admin.deleteRequest(req._id).subscribe({
+      next: (res) => {
+        if (res.success) {
+          this.requests = this.requests.filter((r) => r._id !== req._id);
+          this.total--;
+          if (this.selected?._id === req._id) this.selected = null;
+        } else alert('❌ ' + (res.message || 'წაშლა ვერ მოხერხდა'));
+        this.cdr.markForCheck();
+      },
+      error: (err) => alert('❌ ' + (err?.error?.message || 'წაშლა ვერ მოხერხდა'))
+    });
   }
 }

@@ -1,0 +1,107 @@
+<div class="admin-page">
+  <div class="page-header">
+    <h2>🤝 შეთავაზებები და მოთხოვნები <span class="muted">({{ total }})</span></h2>
+    <button class="btn-secondary" (click)="load()">🔄 განახლება</button>
+  </div>
+
+  <div class="tabs">
+    <button class="tab" [class.active]="tab === 'offers'" (click)="setTab('offers')">🚚 მძღოლის შეთავაზებები (ნივთზე)</button>
+    <button class="tab" [class.active]="tab === 'tripRequests'" (click)="setTab('tripRequests')">📨 გამგზავნის მოთხოვნები (მგზავრობაზე)</button>
+  </div>
+
+  <div class="filters-bar">
+    <select class="status-select" [(ngModel)]="statusFilter" (ngModelChange)="onFilterChange()">
+      <option value="all">ყველა სტატუსი</option>
+      <option value="pending">⏳ მოლოდინი</option>
+      <option value="accepted">✅ მიღებული</option>
+      <option value="rejected">❌ უარყოფილი</option>
+      <option *ngIf="tab === 'offers'" value="in-transit">🚚 გზაში</option>
+      <option *ngIf="tab === 'offers'" value="delivered">📍 ჩაბარებული</option>
+      <option *ngIf="tab === 'offers'" value="cancelled">🚫 გაუქმებული</option>
+    </select>
+  </div>
+
+  <div *ngIf="isLoading" class="loading-state"><div>⏳</div><p>ჩატვირთვა...</p></div>
+  <div *ngIf="!isLoading && errorMessage" class="error-state"><p>⚠️ {{ errorMessage }}</p></div>
+
+  <!-- Pickup offers -->
+  <div *ngIf="!isLoading && !errorMessage && tab === 'offers'" class="table-wrapper">
+    <table class="admin-table" *ngIf="offers.length > 0; else emptyOffers">
+      <thead>
+        <tr>
+          <th>ნივთი (მარშრუტი)</th>
+          <th>მძღოლი</th>
+          <th>გამგზავნი</th>
+          <th>სტატუსი</th>
+          <th>დადასტურება</th>
+          <th>შექმნა</th>
+          <th>დასრულება</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let o of offers">
+          <td>{{ parcelRoute(o) }}</td>
+          <td>
+            <div>{{ name(o.driverId) }}</div>
+            <div class="muted">{{ phone(o.driverId) }}</div>
+          </td>
+          <td>
+            <div>{{ name(o.senderId) }}</div>
+            <div class="muted">{{ phone(o.senderId) }}</div>
+          </td>
+          <td><span class="status-badge" [style.background-color]="meta(o.status).color">{{ meta(o.status).label }}</span></td>
+          <td>
+            <div class="muted">მძღოლი: {{ o.driverConfirmedComplete ? '✅' : '—' }}</div>
+            <div class="muted">გამგზავნი: {{ o.senderConfirmedComplete ? '✅' : '—' }}</div>
+          </td>
+          <td>{{ o.createdAt | date: 'dd.MM.yyyy HH:mm' }}</td>
+          <td>{{ o.completedAt ? (o.completedAt | date: 'dd.MM.yyyy HH:mm') : '—' }}</td>
+          <td><button class="btn-danger" (click)="deleteOffer(o)">🗑</button></td>
+        </tr>
+      </tbody>
+    </table>
+    <ng-template #emptyOffers><div class="empty-state"><p>შეთავაზებები ვერ მოიძებნა</p></div></ng-template>
+  </div>
+
+  <!-- Trip requests -->
+  <div *ngIf="!isLoading && !errorMessage && tab === 'tripRequests'" class="table-wrapper">
+    <table class="admin-table" *ngIf="tripRequests.length > 0; else emptyTr">
+      <thead>
+        <tr>
+          <th>მგზავრობა</th>
+          <th>გამგზავნი</th>
+          <th>მძღოლი</th>
+          <th>შეტყობინება</th>
+          <th>სტატუსი</th>
+          <th>შექმნა</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let r of tripRequests">
+          <td>{{ tripRoute(r) }}</td>
+          <td>
+            <div>{{ name(r.senderId) }}</div>
+            <div class="muted">{{ phone(r.senderId) }}</div>
+          </td>
+          <td>
+            <div>{{ name(r.driverId) }}</div>
+            <div class="muted">{{ phone(r.driverId) }}</div>
+          </td>
+          <td>{{ r.message || '—' }}</td>
+          <td><span class="status-badge" [style.background-color]="meta(r.status).color">{{ meta(r.status).label }}</span></td>
+          <td>{{ r.createdAt | date: 'dd.MM.yyyy HH:mm' }}</td>
+          <td><button class="btn-danger" (click)="deleteTripRequest(r)">🗑</button></td>
+        </tr>
+      </tbody>
+    </table>
+    <ng-template #emptyTr><div class="empty-state"><p>მოთხოვნები ვერ მოიძებნა</p></div></ng-template>
+  </div>
+
+  <div class="pagination" *ngIf="pages > 1">
+    <button class="btn-page" [disabled]="page === 1" (click)="goToPage(page - 1)">← წინა</button>
+    <span>{{ page }} / {{ pages }}</span>
+    <button class="btn-page" [disabled]="page === pages" (click)="goToPage(page + 1)">შემდეგი →</button>
+  </div>
+</div>
