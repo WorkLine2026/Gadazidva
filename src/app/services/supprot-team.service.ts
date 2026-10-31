@@ -20,7 +20,7 @@ export class SupprotTeamService {
 
   private readonly contact: ContactInfo = {
     phoneNumber: '+995555649476', // შეცვალეთ რეალურ ნომერზე 
-    phoneDisplay: '+995 555 64 94 076',
+    phoneDisplay: '+995 555 64 94 76',
     email: 'Ggzavna.info@gmail.com',
   };
 
