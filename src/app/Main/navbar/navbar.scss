@@ -1,181 +1,143 @@
 /* =========================================================
-   NAVBAR VARIABLES
+   NAVBAR — TOKENS
+   ⚠️ Shadow DOM-ში გლობალური @font-face არ ჩაედინება.
+   ფონტები ჩატვირთე index.html-ში (იხ. ინსტრუქცია), აქ მხოლოდ font-family.
+   ⚠️ მობილური breakpoint = 960px (navbar.ts: MOBILE_BREAKPOINT)
    ========================================================= */
 
 :host {
-  --nav-deep: #09131f;
-  --nav-blue: #122c4d;
-  --nav-blue-light: #4ea1ff;
-
   --nav-orange: #ff5f29;
   --nav-orange-light: #ff8b54;
-
+  /* CTA-ს მუქი ვარიანტი: თეთრ ტექსტთან ~4.8–5:1 კონტრასტი (WCAG AA) */
+  --cta: #c93d0b;
+  --cta-2: #d1420f;
   --nav-white: #f8fafc;
-  --nav-muted: #b7c3d4;
+  --nav-muted: #c3cedd;
+  --nav-border: rgba(255, 255, 255, 0.12);
+  --focus: #8fc4ff;
 
-  --nav-border: rgba(255, 255, 255, 0.11);
-
+  /* ⚠️ sticky ჰოსტზე უნდა იყოს (ShadowDom-ში შიდა .navbar-ის მშობელი მხოლოდ
+     ნავბარის სიმაღლისაა და იქ sticky არ მუშაობს) */
   display: block;
-
-  position: relative;
-
+  position: sticky;
+  top: 0;
   z-index: 1000;
+
+  font-family: 'Noto Sans Georgian', 'FiraGO', system-ui, -apple-system, 'Segoe UI', sans-serif;
 }
 
-
-* {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
+button {
+  font: inherit;
+  cursor: pointer;
+}
+
+ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* ხილული ფოკუსი კლავიატურისთვის */
+:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.skip-link {
+  position: absolute;
+  top: -64px;
+  left: 12px;
+  z-index: 2000;
+  padding: 11px 16px;
+  color: #09131f;
+  background: #fff;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: top 150ms ease;
+
+  &:focus {
+    top: 10px;
+  }
+}
 
 /* =========================================================
-   MAIN NAVBAR
+   NAVBAR
    ========================================================= */
 
 .navbar {
-  position: sticky;
-
-  top: 0;
-
+  position: relative;
   z-index: 1000;
-
   width: 100%;
-
   min-height: 82px;
-
   overflow: visible;
-
   isolation: isolate;
-
   color: var(--nav-white);
-
-  background:
-    linear-gradient(
-      105deg,
-      #2a1a2b 0%,
-      #131a31 38%,
-      #0d2639 72%,
-      #0a3345 100%
-    );
-
-  border-bottom:
-    1px solid
-    rgba(255, 255, 255, 0.09);
-
-  box-shadow:
-    0 15px 35px
-    rgba(0, 0, 0, 0.20);
+  background: linear-gradient(105deg, #2a1a2b 0%, #131a31 38%, #0d2639 72%, #0a3345 100%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.09);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
 }
-
-
-/* =========================================================
-   BACKGROUND PATTERN
-   ========================================================= */
 
 .navbar__pattern {
   position: absolute;
-
   inset: 0;
-
   z-index: -2;
-
-  opacity: 0.20;
-
+  opacity: 0.2;
   pointer-events: none;
-
-  background-image:
-    radial-gradient(
-      circle at 1px 1px,
-      rgba(255, 255, 255, 0.36) 1px,
-      transparent 1.4px
-    );
-
+  background-image: radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.36) 1px, transparent 1.4px);
   background-size: 23px 23px;
-
-  mask-image:
-    linear-gradient(
-      to bottom,
-      #000,
-      transparent
-    );
+  mask-image: linear-gradient(to bottom, #000, transparent);
 }
-
-
-/* =========================================================
-   GLOW
-   ========================================================= */
 
 .navbar__glow {
   position: absolute;
-
   z-index: -1;
-
+  top: -125px;
   width: 260px;
-
   height: 190px;
-
   border-radius: 50%;
-
   opacity: 0.16;
-
   filter: blur(70px);
-
   pointer-events: none;
+
+  &--orange {
+    left: 8%;
+    background: var(--nav-orange);
+  }
+
+  &--blue {
+    right: 9%;
+    background: #2688e6;
+  }
 }
-
-
-.navbar__glow--orange {
-  top: -125px;
-
-  left: 8%;
-
-  background:
-    var(--nav-orange);
-}
-
-
-.navbar__glow--blue {
-  top: -125px;
-
-  right: 9%;
-
-  background:
-    #2688e6;
-}
-
-
-/* =========================================================
-   NAVBAR INNER
-   ========================================================= */
 
 .navbar__inner {
   position: relative;
-
-  /* FIX: raised from 10 to 1010 so this stacking context (and
-     everything inside it — nav-menu, menu-toggle) sits above
-     .nav-backdrop (1001) and .road (20). Previously this was 10,
-     which meant the whole inner block — including the open mobile
-     menu — lost the stacking comparison to the backdrop and got
-     visually covered/blurred by it, and also ate all its clicks. */
+  /* menu + toggle backdrop-ის ზემოთ უნდა იყოს */
   z-index: 1010;
-
   display: flex;
-
   align-items: center;
-
   gap: 24px;
-
-  width:
-    min(
-      1440px,
-      calc(100% - 48px)
-    );
-
+  width: min(1440px, calc(100% - 48px));
   min-height: 82px;
-
   margin: 0 auto;
 }
-
 
 /* =========================================================
    BRAND
@@ -183,216 +145,96 @@
 
 .brand {
   display: inline-flex;
-
   align-items: center;
-
   flex: 0 0 auto;
-
   gap: 10px;
-
-  color:
-    var(--nav-white);
-
+  color: var(--nav-white);
   text-decoration: none;
-
-  cursor: pointer;
-
-  transition:
-    transform 180ms ease;
 }
-
-
-.brand:hover {
-  transform:
-    translateY(-2px);
-}
-
 
 .brand__mark {
   display: grid;
-
   width: 43px;
-
   height: 43px;
-
   place-items: center;
-
-  color: white;
-
-  background:
-    linear-gradient(
-      135deg,
-      var(--nav-orange-light),
-      var(--nav-orange)
-    );
-
-  border:
-    1px solid
-    rgba(255, 255, 255, 0.20);
-
+  color: #fff;
+  background: linear-gradient(135deg, var(--nav-orange-light), var(--nav-orange));
+  border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 14px;
+  box-shadow: 0 8px 20px rgba(255, 95, 41, 0.26), inset 0 1px 0 rgba(255, 255, 255, 0.22);
 
-  box-shadow:
-    0 8px 20px
-    rgba(255, 95, 41, 0.26),
-
-    inset 0 1px 0
-    rgba(255, 255, 255, 0.22);
+  svg {
+    width: 25px;
+    height: 25px;
+  }
 }
-
-
-.brand__mark svg {
-  width: 25px;
-
-  height: 25px;
-}
-
 
 .brand__text {
   font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.4px;
 
-  font-weight: 900;
-
-  letter-spacing: -0.8px;
+  span {
+    color: var(--nav-orange-light);
+  }
 }
-
-
-.brand__text span {
-  color:
-    var(--nav-orange-light);
-}
-
 
 /* =========================================================
-   NAV MENU
+   LINKS
    ========================================================= */
 
 .nav-menu {
   display: flex;
-
   flex: 1;
-
   align-items: center;
-
   min-width: 0;
 }
 
-
 .nav-links {
   display: flex;
-
   align-items: center;
-
   gap: 4px;
-
   margin: 0 auto;
 
-  padding: 0;
+  a {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0 14px;
+    color: var(--nav-muted);
+    font-size: 14px;
+    font-weight: 700;
+    text-decoration: none;
+    white-space: nowrap;
+    border-radius: 11px;
+    transition: color 180ms ease, background 180ms ease;
 
-  list-style: none;
+    &::after {
+      content: '';
+      position: absolute;
+      right: 14px;
+      bottom: 6px;
+      left: 14px;
+      height: 2px;
+      background: var(--nav-orange-light);
+      border-radius: 999px;
+      transform: scaleX(0);
+      transition: transform 220ms ease;
+    }
+
+    &:hover,
+    &.active {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    &:hover::after,
+    &.active::after {
+      transform: scaleX(1);
+    }
+  }
 }
-
-
-.nav-links a {
-  position: relative;
-
-  display: inline-flex;
-
-  align-items: center;
-
-  gap: 7px;
-
-  min-height: 42px;
-
-  padding: 0 12px;
-
-  overflow: hidden;
-
-  color:
-    var(--nav-muted);
-
-  font-size: 13px;
-
-  font-weight: 800;
-
-  text-decoration: none;
-
-  white-space: nowrap;
-
-  border-radius: 11px;
-
-  transition:
-    color 180ms ease,
-    background 180ms ease,
-    transform 180ms ease;
-}
-
-
-.nav-links a::after {
-  position: absolute;
-
-  right: 13px;
-
-  bottom: 5px;
-
-  left: 13px;
-
-  height: 2px;
-
-  content: "";
-
-  background:
-    var(--nav-orange-light);
-
-  border-radius: 999px;
-
-  transform:
-    scaleX(0);
-
-  transition:
-    transform 220ms ease;
-}
-
-
-.nav-links a:hover,
-.nav-links a.active {
-  color: white;
-
-  background:
-    rgba(255, 255, 255, 0.08);
-}
-
-
-.nav-links a:hover {
-  transform:
-    translateY(-2px);
-}
-
-
-.nav-links a:hover::after,
-.nav-links a.active::after {
-  transform:
-    scaleX(1);
-}
-
-
-.nav-links__icon {
-  display: grid;
-
-  width: 19px;
-
-  height: 19px;
-
-  place-items: center;
-
-  color:
-    var(--nav-orange-light);
-
-  font-size: 16px;
-
-  font-weight: 900;
-}
-
 
 /* =========================================================
    DESKTOP ACTIONS
@@ -400,14 +242,10 @@
 
 .desktop-actions {
   display: flex;
-
   align-items: center;
-
   flex: 0 0 auto;
-
   gap: 8px;
 }
-
 
 .desktop-listings,
 .desktop-login,
@@ -415,861 +253,398 @@
 .desktop-ride,
 .notification-button,
 .profile-avatar-button {
-  font: inherit;
-
-  cursor: pointer;
-
-  transition:
-    transform 180ms ease,
-    background 180ms ease,
-    box-shadow 180ms ease;
+  transition: background 180ms ease, box-shadow 180ms ease, transform 180ms ease;
 }
-
-
-/* =========================================================
-   ALL LISTINGS
-   ========================================================= */
 
 .desktop-listings {
   display: inline-flex;
-
   align-items: center;
-
   gap: 8px;
-
-  min-height: 40px;
-
-  padding: 0 13px;
-
-  color: white;
-
-  background:
-    rgba(255, 255, 255, 0.07);
-
-  border:
-    1px solid
-    rgba(255, 255, 255, 0.12);
-
+  min-height: 44px;
+  padding: 0 15px;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
 
-  font-size: 12px;
-
-  font-weight: 850;
+  &:hover {
+    background: rgba(255, 255, 255, 0.13);
+  }
 }
-
-
-.desktop-listings:hover {
-  background:
-    rgba(255, 255, 255, 0.13);
-
-  transform:
-    translateY(-2px);
-}
-
 
 .desktop-listings__dot {
   width: 7px;
-
   height: 7px;
-
-  background:
-    #57d88a;
-
+  background: #57d88a;
   border-radius: 50%;
-
-  box-shadow:
-    0 0 0 4px
-    rgba(87, 216, 138, 0.13);
-
-  animation:
-    nav-pulse
-    1.8s
-    ease-in-out
-    infinite;
+  box-shadow: 0 0 0 4px rgba(87, 216, 138, 0.13);
+  animation: nav-pulse 1.8s ease-in-out infinite;
 }
-
-
-/* =========================================================
-   LOGIN
-   ========================================================= */
 
 .desktop-login {
-  min-height: 40px;
-
-  padding: 0 11px;
-
-  color:
-    var(--nav-muted);
-
+  min-height: 44px;
+  padding: 0 12px;
+  color: var(--nav-muted);
   background: transparent;
-
   border: 0;
+  font-size: 14px;
+  font-weight: 700;
 
-  font-size: 13px;
-
-  font-weight: 800;
+  &:hover {
+    color: #fff;
+  }
 }
 
-
-.desktop-login:hover {
-  color: white;
-
-  transform:
-    translateY(-1px);
+.desktop-register,
+.mobile-action--orange {
+  color: #fff;
+  background: linear-gradient(135deg, var(--cta), var(--cta-2));
 }
-
-
-/* =========================================================
-   REGISTER
-   ========================================================= */
 
 .desktop-register {
-  min-height: 40px;
-
-  padding: 0 15px;
-
-  color: white;
-
-  background:
-    linear-gradient(
-      135deg,
-      var(--nav-orange-light),
-      var(--nav-orange)
-    );
-
+  min-height: 44px;
+  padding: 0 18px;
   border: 0;
+  border-radius: 12px;
+  box-shadow: 0 8px 18px rgba(201, 61, 11, 0.3);
+  font-size: 14px;
+  font-weight: 800;
 
-  border-radius: 11px;
-
-  box-shadow:
-    0 8px 18px
-    rgba(255, 95, 41, 0.20);
-
-  font-size: 13px;
-
-  font-weight: 850;
+  &:hover {
+    box-shadow: 0 12px 25px rgba(201, 61, 11, 0.42);
+    transform: translateY(-1px);
+  }
 }
-
-
-.desktop-register:hover {
-  box-shadow:
-    0 12px 25px
-    rgba(255, 95, 41, 0.32);
-
-  transform:
-    translateY(-2px);
-}
-
-
-/* =========================================================
-   RIDE
-   ========================================================= */
 
 .desktop-ride {
-  min-height: 40px;
+  min-height: 44px;
+  padding: 0 14px;
+  color: #dcecff;
+  background: rgba(49, 116, 232, 0.22);
+  border: 1px solid rgba(104, 170, 255, 0.3);
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 700;
 
-  padding: 0 13px;
-
-  color:
-    #dcecff;
-
-  background:
-    rgba(49, 116, 232, 0.22);
-
-  border:
-    1px solid
-    rgba(104, 170, 255, 0.25);
-
-  border-radius: 11px;
-
-  font-size: 13px;
-
-  font-weight: 850;
+  &:hover {
+    background: rgba(49, 116, 232, 0.38);
+  }
 }
-
-
-.desktop-ride:hover {
-  background:
-    rgba(49, 116, 232, 0.38);
-
-  transform:
-    translateY(-2px);
-}
-
 
 /* =========================================================
-   NOTIFICATION
+   NOTIFICATIONS
    ========================================================= */
 
 .notification-wrapper {
   position: relative;
 }
 
-
 .notification-button {
   position: relative;
-
-  display: grid;
-
-  width: 40px;
-
-  height: 40px;
-
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-width: 44px;
+  height: 44px;
   padding: 0;
+  color: #dce7f4;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid var(--nav-border);
+  border-radius: 12px;
 
-  place-items: center;
+  &:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.13);
+  }
 
-  color:
-    #dce7f4;
-
-  background:
-    rgba(255, 255, 255, 0.07);
-
-  border:
-    1px solid
-    var(--nav-border);
-
-  border-radius: 11px;
+  svg {
+    width: 20px;
+    height: 20px;
+  }
 }
 
-
-.notification-button:hover {
-  color: white;
-
-  background:
-    rgba(255, 255, 255, 0.13);
-
-  transform:
-    translateY(-2px);
+.notification-button__label {
+  font-size: 14px;
+  font-weight: 700;
 }
-
-
-.notification-button svg {
-  width: 20px;
-
-  height: 20px;
-}
-
 
 .notification-badge {
   position: absolute;
-
   top: -6px;
-
   right: -6px;
-
   display: grid;
-
-  min-width: 18px;
-
-  height: 18px;
-
+  min-width: 20px;
+  height: 20px;
   padding: 0 4px;
-
   place-items: center;
-
-  color: white;
-
-  background:
-    var(--nav-orange);
-
-  border:
-    2px solid
-    #122137;
-
+  color: #fff;
+  background: var(--cta);
+  border: 2px solid #122137;
   border-radius: 999px;
-
-  font-size: 10px;
-
-  font-weight: 900;
+  font-size: 11px;
+  font-weight: 800;
 }
-
-
-/* =========================================================
-   PROFILE
-   ========================================================= */
 
 .profile-avatar-button {
   display: grid;
-
-  width: 42px;
-
-  height: 42px;
-
+  width: 44px;
+  height: 44px;
   padding: 2px;
-
   place-items: center;
-
-  color: white;
-
-  background:
-    linear-gradient(
-      135deg,
-      #60b2ff,
-      #2563eb
-    );
-
+  color: #fff;
+  background: linear-gradient(135deg, #60b2ff, #2563eb);
   border: 0;
-
   border-radius: 50%;
+  box-shadow: 0 8px 18px rgba(37, 99, 235, 0.26);
 
-  box-shadow:
-    0 8px 18px
-    rgba(37, 99, 235, 0.26);
+  span {
+    display: grid;
+    width: 100%;
+    height: 100%;
+    place-items: center;
+    background: #15263d;
+    border: 1px solid rgba(255, 255, 255, 0.17);
+    border-radius: inherit;
+    font-size: 13px;
+    font-weight: 800;
+  }
 }
-
-
-.profile-avatar-button span {
-  display: grid;
-
-  width: 100%;
-
-  height: 100%;
-
-  place-items: center;
-
-  background:
-    #15263d;
-
-  border:
-    1px solid
-    rgba(255, 255, 255, 0.17);
-
-  border-radius: inherit;
-
-  font-size: 12px;
-
-  font-weight: 900;
-}
-
-
-.profile-avatar-button:hover {
-  transform:
-    translateY(-2px)
-    rotate(3deg);
-}
-
-
-/* =========================================================
-   NOTIFICATION DROPDOWN
-   ========================================================= */
 
 .notification-dropdown {
   position: absolute;
-
-  top:
-    calc(100% + 14px);
-
+  top: calc(100% + 14px);
   right: 0;
-
-  width:
-    min(
-      370px,
-      calc(100vw - 26px)
-    );
-
+  width: min(370px, calc(100vw - 26px));
   overflow: hidden;
-
-  color: white;
-
-  background:
-    rgba(15, 27, 46, 0.98);
-
-  border:
-    1px solid
-    rgba(255, 255, 255, 0.13);
-
+  color: #fff;
+  background: rgba(15, 27, 46, 0.98);
+  border: 1px solid rgba(255, 255, 255, 0.13);
   border-radius: 18px;
-
-  box-shadow:
-    0 25px 55px
-    rgba(0, 0, 0, 0.35);
-
-  animation:
-    dropdown-enter
-    180ms ease both;
+  box-shadow: 0 25px 55px rgba(0, 0, 0, 0.35);
+  animation: dropdown-enter 180ms ease both;
 }
-
 
 .notification-dropdown__header,
 .notification-dropdown__footer {
   display: flex;
-
   align-items: center;
-
   justify-content: space-between;
-
-  padding: 15px 17px;
+  padding: 14px 17px;
 }
-
 
 .notification-dropdown__header {
-  border-bottom:
-    1px solid
-    rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+
+  h2 {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 800;
+  }
 }
 
-
-.notification-dropdown__header h4 {
-  margin: 0;
-
-  font-size: 15px;
-
-  font-weight: 850;
+.notification-dropdown__footer {
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-
-.notification-dropdown__clear,
-.notification-dropdown__footer button {
-  padding: 0;
-
-  color:
-    var(--nav-orange-light);
-
+.notification-dropdown__link {
+  min-height: 32px;
+  padding: 0 4px;
+  color: var(--nav-orange-light);
   background: transparent;
-
   border: 0;
-
-  font: inherit;
-
-  font-size: 12px;
-
-  font-weight: 800;
-
-  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
 }
-
 
 .notification-dropdown__list {
   max-height: 335px;
-
   overflow-y: auto;
 }
 
-
 .notification-item {
   display: flex;
-
   align-items: flex-start;
-
   gap: 11px;
-
   width: 100%;
-
   padding: 13px 16px;
-
-  color: white;
-
+  color: #fff;
   text-align: left;
-
   background: transparent;
-
   border: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 
-  border-bottom:
-    1px solid
-    rgba(255, 255, 255, 0.06);
-
-  cursor: pointer;
+  &:hover {
+    background: rgba(255, 255, 255, 0.06);
+  }
 }
-
-
-.notification-item:hover {
-  background:
-    rgba(255, 255, 255, 0.06);
-}
-
 
 .notification-item__icon {
   display: grid;
-
   flex: 0 0 auto;
-
-  width: 31px;
-
-  height: 31px;
-
+  width: 32px;
+  height: 32px;
   place-items: center;
-
-  color: white;
-
+  color: #fff;
   border-radius: 10px;
-
   font-size: 15px;
+  font-weight: 800;
 
-  font-weight: 900;
+  &--orange { background: #c75a1f; }
+  &--teal { background: #0c8578; }
+  &--navy { background: #365886; }
+  &--red { background: #c93a45; }
+  &--blue { background: #2f6fd0; }
+  &--green { background: #25805a; }
 }
-
-
-.notification-item__icon--orange {
-  background:
-    #e87335;
-}
-
-
-.notification-item__icon--teal {
-  background:
-    #0f9f90;
-}
-
-
-.notification-item__icon--navy {
-  background:
-    #365886;
-}
-
-
-.notification-item__icon--red {
-  background:
-    #db4b55;
-}
-
-
-.notification-item__icon--blue {
-  background:
-    #377ce5;
-}
-
-
-.notification-item__icon--green {
-  background:
-    #2f9f70;
-}
-
 
 .notification-item__body {
   display: grid;
-
   gap: 3px;
-
   min-width: 0;
+
+  strong {
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  small {
+    color: #9fb3c8;
+    font-size: 12px;
+  }
 }
 
-
-.notification-item__body strong {
-  font-size: 13px;
-
-  font-weight: 800;
-}
-
-
-.notification-item__body span {
+/* 2 ხაზი ქართული გრძელი ტექსტისთვის (ადრე nowrap ჭრიდა) */
+.notification-item__text {
+  display: -webkit-box;
   overflow: hidden;
-
-  color:
-    var(--nav-muted);
-
-  font-size: 12px;
-
-  text-overflow: ellipsis;
-
-  white-space: nowrap;
+  color: var(--nav-muted);
+  font-size: 13px;
+  line-height: 1.45;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
-
-
-.notification-item__body small {
-  color:
-    #7790aa;
-
-  font-size: 10px;
-}
-
 
 .notification-item__dot {
   flex: 0 0 auto;
-
-  width: 6px;
-
-  height: 6px;
-
-  margin-top: 5px;
-
-  margin-left: auto;
-
-  background:
-    var(--nav-orange-light);
-
+  width: 8px;
+  height: 8px;
+  margin: 6px 0 0 auto;
+  background: var(--nav-orange-light);
   border-radius: 50%;
 }
 
-
-.notification-dropdown__footer {
-  border-top:
-    1px solid
-    rgba(255, 255, 255, 0.08);
-}
-
-
 .notification-dropdown__empty {
+  margin: 0;
   padding: 32px 15px;
-
-  color:
-    var(--nav-muted);
-
+  color: var(--nav-muted);
   text-align: center;
-
-  font-size: 13px;
+  font-size: 14px;
 }
-
 
 /* =========================================================
-   🚗 ROAD
+   ROAD
    ========================================================= */
 
 .road {
   position: absolute;
-
   right: 0;
-
   bottom: 0;
-
   left: 0;
-
   z-index: 20;
-
   height: 42px;
-
   overflow: hidden;
-
   pointer-events: none;
 }
 
-
-/* ROAD LIGHT LINE */
-
 .road__line {
   position: absolute;
-
   right: 0;
-
   bottom: 6px;
-
   left: 0;
-
   height: 2px;
-
-  background:
-    linear-gradient(
-      90deg,
-      transparent 0%,
-      rgba(255, 96, 39, 0.15) 8%,
-      rgba(255, 96, 39, 0.9) 22%,
-      rgba(78, 161, 255, 0.95) 50%,
-      rgba(255, 96, 39, 0.9) 78%,
-      rgba(255, 96, 39, 0.15) 92%,
-      transparent 100%
-    );
-
-  box-shadow:
-    0 0 8px
-    rgba(78, 161, 255, 0.45),
-
-    0 0 14px
-    rgba(255, 96, 39, 0.25);
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 96, 39, 0.15) 8%,
+    rgba(255, 96, 39, 0.9) 22%,
+    rgba(78, 161, 255, 0.95) 50%,
+    rgba(255, 96, 39, 0.9) 78%,
+    rgba(255, 96, 39, 0.15) 92%,
+    transparent 100%
+  );
+  box-shadow: 0 0 8px rgba(78, 161, 255, 0.45), 0 0 14px rgba(255, 96, 39, 0.25);
 }
-
-
-/* =========================================================
-   🚙 SMALL CAR
-   ========================================================= */
 
 .road__car {
   position: absolute;
-
   top: 4px;
-
   left: -85px;
-
   z-index: 30;
-
   width: 70px;
-
   height: 34px;
+  filter: drop-shadow(0 4px 5px rgba(0, 0, 0, 0.45)) drop-shadow(0 0 8px rgba(78, 161, 255, 0.35));
+  animation: drive-car 12s linear infinite;
+  will-change: transform;
 
-  filter:
-    drop-shadow(
-      0 4px 5px
-      rgba(0, 0, 0, 0.45)
-    )
-
-    drop-shadow(
-      0 0 8px
-      rgba(78, 161, 255, 0.35)
-    );
-
-  animation:
-    drive-car
-    10s
-    linear
-    infinite;
-
-  will-change:
-    transform;
+  svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
 }
 
-
-.road__car svg {
-  display: block;
-
-  width: 100%;
-
-  height: 100%;
+/* მენიუს გახსნისას ანიმაცია ჩერდება (CPU/ბატარეა) */
+.navbar--menu-open .road__car {
+  animation-play-state: paused;
 }
-
-
-/* =========================================================
-   CAR LIGHT
-   ========================================================= */
 
 .road__car-light {
   position: absolute;
-
   top: 13px;
-
   right: -11px;
-
   width: 18px;
-
   height: 4px;
-
   opacity: 0.95;
-
-  background:
-    linear-gradient(
-      90deg,
-      rgba(255, 209, 102, 1),
-      rgba(255, 209, 102, 0)
-    );
-
-  filter:
-    blur(2px);
-
-  animation:
-    car-light
-    900ms
-    ease-in-out
-    infinite alternate;
+  background: linear-gradient(90deg, rgba(255, 209, 102, 1), rgba(255, 209, 102, 0));
+  filter: blur(2px);
+  animation: car-light 900ms ease-in-out infinite alternate;
 }
 
-
 /* =========================================================
-   CAR MOVEMENT
+   KEYFRAMES
    ========================================================= */
 
 @keyframes drive-car {
-
-  0% {
-    transform:
-      translateX(-100px);
-  }
-
-  100% {
-    transform:
-      translateX(
-        calc(100vw + 110px)
-      );
-  }
-
+  from { transform: translateX(-100px); }
+  to { transform: translateX(calc(100vw + 110px)); }
 }
-
-
-/* =========================================================
-   HEADLIGHT ANIMATION
-   ========================================================= */
 
 @keyframes car-light {
-
-  from {
-    opacity: 0.55;
-
-    transform:
-      scaleX(0.8);
-  }
-
-  to {
-    opacity: 1;
-
-    transform:
-      scaleX(1.25);
-  }
-
+  from { opacity: 0.55; transform: scaleX(0.8); }
+  to { opacity: 1; transform: scaleX(1.25); }
 }
-
-
-/* =========================================================
-   PULSE
-   ========================================================= */
 
 @keyframes nav-pulse {
-
-  0%,
-  100% {
-    box-shadow:
-      0 0 0 4px
-      rgba(87, 216, 138, 0.13);
-  }
-
-  50% {
-    box-shadow:
-      0 0 0 7px
-      rgba(87, 216, 138, 0.03);
-  }
-
+  0%, 100% { box-shadow: 0 0 0 4px rgba(87, 216, 138, 0.13); }
+  50% { box-shadow: 0 0 0 7px rgba(87, 216, 138, 0.03); }
 }
-
-
-/* =========================================================
-   DROPDOWN ANIMATION
-   ========================================================= */
 
 @keyframes dropdown-enter {
-
-  from {
-    opacity: 0;
-
-    transform:
-      translateY(-8px)
-      scale(0.98);
-  }
-
-  to {
-    opacity: 1;
-
-    transform:
-      translateY(0)
-      scale(1);
-  }
-
+  from { opacity: 0; transform: translateY(-8px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
-
-
-/* =========================================================
-   DROPDOWN ANIMATION (OPENS UPWARD — MOBILE)
-   ========================================================= */
 
 @keyframes dropdown-enter-up {
-
-  from {
-    opacity: 0;
-
-    transform:
-      translateY(8px)
-      scale(0.98);
-  }
-
-  to {
-    opacity: 1;
-
-    transform:
-      translateY(0)
-      scale(1);
-  }
-
+  from { opacity: 0; transform: translateY(8px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-
 /* =========================================================
-   HIDDEN MOBILE ELEMENTS
+   MOBILE-ONLY ELEMENTS (default hidden)
    ========================================================= */
 
 .menu-toggle,
@@ -1278,498 +653,270 @@
   display: none;
 }
 
-
 /* =========================================================
    TABLET
    ========================================================= */
 
 @media (max-width: 1220px) {
-
   .navbar__inner {
     gap: 14px;
-
-    width:
-      min(
-        1440px,
-        calc(100% - 32px)
-      );
+    width: min(1440px, calc(100% - 32px));
   }
-
 
   .nav-links a {
-    padding: 0 8px;
-
-    font-size: 12px;
+    padding: 0 10px;
   }
-
 
   .desktop-listings {
     display: none;
   }
-
 }
 
-
 /* =========================================================
-   MOBILE
+   MOBILE  (≤ 960px)
    ========================================================= */
 
 @media (max-width: 960px) {
-
-  .navbar {
-    min-height: 72px;
-  }
-
-
+  .navbar,
   .navbar__inner {
     min-height: 72px;
-
-    width:
-      calc(100% - 28px);
   }
 
+  .navbar__inner {
+    width: calc(100% - 28px);
+  }
 
   .desktop-actions {
     display: none;
   }
 
-
-  /* HAMBURGER */
-
+  /* ---- Hamburger ---- */
   .menu-toggle {
     position: relative;
-
     z-index: 1003;
-
     display: flex;
-
     flex-direction: column;
-
     justify-content: center;
-
     gap: 5px;
-
-    width: 44px;
-
-    height: 44px;
-
+    width: 46px;
+    height: 46px;
     margin-left: auto;
-
-    padding: 0 11px;
-
-    cursor: pointer;
-
-    background:
-      rgba(255, 255, 255, 0.08);
-
-    border:
-      1px solid
-      rgba(255, 255, 255, 0.15);
-
+    padding: 0 12px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
     border-radius: 12px;
+
+    span {
+      display: block;
+      width: 100%;
+      height: 2px;
+      background: #fff;
+      border-radius: 100px;
+      transition: opacity 220ms ease, transform 220ms ease;
+    }
+
+    &--active span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+    &--active span:nth-child(2) { opacity: 0; }
+    &--active span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
   }
 
-
-  .menu-toggle span {
+  /* ---- Backdrop ---- */
+  .nav-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 1001;
     display: block;
-
-    width: 100%;
-
-    height: 2px;
-
-    background: white;
-
-    border-radius: 100px;
-
-    transition:
-      opacity 220ms ease,
-      transform 220ms ease;
-  }
-
-
-  .menu-toggle--active span:nth-child(1) {
-    transform:
-      translateY(7px)
-      rotate(45deg);
-  }
-
-
-  .menu-toggle--active span:nth-child(2) {
+    background: rgba(5, 10, 18, 0.6);
     opacity: 0;
+    visibility: hidden;
+    transition: opacity 250ms ease, visibility 0s linear 250ms;
+
+    &--visible {
+      opacity: 1;
+      visibility: visible;
+      transition-delay: 0s;
+    }
   }
 
-
-  .menu-toggle--active span:nth-child(3) {
-    transform:
-      translateY(-7px)
-      rotate(-45deg);
-  }
-
-
-  /* MOBILE MENU */
-
+  /* ---- Slide-in panel ----
+     visibility:hidden დახურულზე → Tab-ით უხილავ ბმულებზე აღარ გადახვალ */
   .nav-menu {
     position: fixed;
-
     top: 0;
-
     right: 0;
-
     z-index: 1002;
-
-    display: flex;
-
     flex-direction: column;
-
     align-items: stretch;
-
-    width:
-      min(
-        375px,
-        88vw
-      );
-
+    width: min(375px, 88vw);
     height: 100dvh;
-
-    padding:
-      92px 20px 28px;
-
+    padding: 92px 20px 28px;
     overflow-y: auto;
+    background: linear-gradient(155deg, #2b1c2c 0%, #14203a 48%, #092b3b 100%);
+    border-left: 1px solid rgba(255, 255, 255, 0.11);
+    box-shadow: -25px 0 60px rgba(0, 0, 0, 0.38);
+    visibility: hidden;
+    transform: translateX(105%);
+    transition: transform 320ms cubic-bezier(0.22, 1, 0.36, 1), visibility 0s linear 320ms;
 
-    background:
-      linear-gradient(
-        155deg,
-        #2b1c2c 0%,
-        #14203a 48%,
-        #092b3b 100%
-      );
-
-    border-left:
-      1px solid
-      rgba(255, 255, 255, 0.11);
-
-    box-shadow:
-      -25px 0 60px
-      rgba(0, 0, 0, 0.38);
-
-    transform:
-      translateX(105%);
-
-    transition:
-      transform
-      320ms
-      cubic-bezier(
-        0.22,
-        1,
-        0.36,
-        1
-      );
+    &--open {
+      visibility: visible;
+      transform: translateX(0);
+      transition-delay: 0s;
+    }
   }
-
-
-  .nav-menu.nav-menu--open {
-    transform:
-      translateX(0);
-  }
-
-
-  /* MOBILE LINKS */
 
   .nav-links {
     display: grid;
-
     gap: 8px;
-
     width: 100%;
-
     margin: 0;
+
+    li {
+      width: 100%;
+    }
+
+    a {
+      display: flex;
+      width: 100%;
+      min-height: 54px;
+      padding: 0 16px;
+      color: #e6eef7;
+      background: rgba(255, 255, 255, 0.055);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 13px;
+      font-size: 16px;
+
+      &::after {
+        top: 14px;
+        right: auto;
+        bottom: 14px;
+        left: 0;
+        width: 3px;
+        height: auto;
+        transform: scaleY(0);
+      }
+
+      &:hover,
+      &.active {
+        background: rgba(255, 95, 41, 0.14);
+        border-color: rgba(255, 132, 79, 0.32);
+      }
+
+      &:hover::after,
+      &.active::after {
+        transform: scaleY(1);
+      }
+    }
   }
-
-
-  .nav-links li {
-    width: 100%;
-  }
-
-
-  .nav-links a {
-    display: flex;
-
-    width: 100%;
-
-    min-height: 53px;
-
-    padding: 0 16px;
-
-    color:
-      #dce7f3;
-
-    background:
-      rgba(255, 255, 255, 0.055);
-
-    border:
-      1px solid
-      rgba(255, 255, 255, 0.08);
-
-    border-radius: 13px;
-
-    font-size: 15px;
-  }
-
-
-  .nav-links a::after {
-    top: 14px;
-
-    right: auto;
-
-    bottom: 14px;
-
-    left: 0;
-
-    width: 3px;
-
-    height: auto;
-
-    transform:
-      scaleY(0);
-  }
-
-
-  .nav-links a:hover,
-  .nav-links a.active {
-    color: white;
-
-    background:
-      rgba(255, 95, 41, 0.14);
-
-    border-color:
-      rgba(255, 132, 79, 0.32);
-  }
-
-
-  .nav-links a:hover::after,
-  .nav-links a.active::after {
-    transform:
-      scaleY(1);
-  }
-
-
-  /* MOBILE ACTIONS */
 
   .mobile-actions {
     display: grid;
-
     gap: 10px;
-
     margin-top: auto;
-
     padding-top: 30px;
   }
 
-
   .mobile-action {
     display: flex;
-
     align-items: center;
-
     justify-content: space-between;
-
     width: 100%;
-
-    min-height: 49px;
-
+    min-height: 52px;
     padding: 0 16px;
-
-    color: white;
-
-    border:
-      1px solid
-      rgba(255, 255, 255, 0.12);
-
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 13px;
+    font-size: 15px;
+    font-weight: 800;
 
-    font: inherit;
-
-    font-size: 14px;
-
-    font-weight: 850;
-
-    cursor: pointer;
+    &--listings { background: rgba(255, 255, 255, 0.1); }
+    &--dark { background: rgba(255, 255, 255, 0.07); }
+    &--orange { border-color: transparent; justify-content: center; }
   }
 
-
-  .mobile-action--listings {
-    background:
-      rgba(255, 255, 255, 0.10);
-  }
-
-
-  .mobile-action--dark {
-    background:
-      rgba(255, 255, 255, 0.07);
-  }
-
-
-  .mobile-action--orange {
-    background:
-      linear-gradient(
-        135deg,
-        var(--nav-orange-light),
-        var(--nav-orange)
-      );
-  }
-
-
-  /* MOBILE: NOTIFICATION + PROFILE ROW */
-
-  /* FIX: this row is now the positioning context for the dropdown
-     (position: relative added below) instead of the narrow
-     .notification-wrapper. The wrapper only spans part of the row
-     (it shares space with the profile avatar via flex), so anchoring
-     the dropdown to it made `right: 0` measure from the wrapper's
-     own edge — not the screen edge — pushing the dropdown off-screen
-     to the left. Anchoring to the full-width row instead means
-     `right: 0; left: 0; width: 100%` always fits within the visible
-     mobile menu panel. */
-
+  /* dropdown-ის საყრდენი = მთელი სტრიქონი, რომ პანელს არ გასცდეს */
   .mobile-secondary-row {
     position: relative;
-
     display: flex;
-
     gap: 10px;
-
     margin-bottom: 4px;
+
+    .notification-wrapper {
+      position: static;
+      flex: 1 1 auto;
+    }
+
+    .notification-button {
+      width: 100%;
+      height: 52px;
+      border-radius: 13px;
+    }
+
+    .profile-avatar-button {
+      flex: 0 0 auto;
+      width: 52px;
+      height: 52px;
+    }
+
+    .notification-dropdown {
+      position: absolute;
+      top: auto;
+      right: 0;
+      bottom: calc(100% + 10px);
+      left: 0;
+      width: 100%;
+      max-width: 100%;
+      max-height: min(50vh, 320px);
+      animation: dropdown-enter-up 180ms ease both;
+    }
   }
-
-
-  .mobile-secondary-row .notification-wrapper {
-    position: static;
-
-    flex: 1 1 auto;
-  }
-
-
-  .mobile-secondary-row .notification-button {
-    width: 100%;
-
-    height: 49px;
-
-    border-radius: 13px;
-  }
-
-
-  .mobile-secondary-row .profile-avatar-button {
-    flex: 0 0 auto;
-
-    width: 49px;
-
-    height: 49px;
-  }
-
-
-  /* FIX: dropdown now anchors to the full-width row and is capped
-     to 100% of it, so it can never overflow the mobile menu panel
-     horizontally. It still opens UPWARD (over the nav-links area)
-     via `bottom` instead of `top`, and its max-height is capped
-     relative to the viewport so it shrinks automatically on short
-     screens; internal content still scrolls via
-     .notification-dropdown__list. */
-
-  .mobile-secondary-row .notification-dropdown {
-    position: absolute;
-
-    top: auto;
-
-    right: 0;
-
-    left: 0;
-
-    bottom: calc(100% + 10px);
-
-    width: 100%;
-
-    max-width: 100%;
-
-    box-sizing: border-box;
-
-    max-height: min(50vh, 320px);
-
-    animation:
-      dropdown-enter-up
-      180ms ease both;
-  }
-
 }
 
-
-/* =========================================================
-   SMALL MOBILE
-   ========================================================= */
-
 @media (max-width: 480px) {
-
   .navbar__inner {
-    width:
-      calc(100% - 20px);
+    width: calc(100% - 20px);
   }
-
 
   .brand__mark {
     width: 39px;
-
     height: 39px;
-
     border-radius: 12px;
+
+    svg {
+      width: 22px;
+      height: 22px;
+    }
   }
-
-
-  .brand__mark svg {
-    width: 22px;
-
-    height: 22px;
-  }
-
 
   .brand__text {
     font-size: 19px;
   }
 
-
   .road {
     height: 39px;
   }
 
-
   .road__car {
     width: 60px;
-
     height: 29px;
-
-    animation-duration: 7s;
+    animation-duration: 8s;
   }
-
 }
 
-
 /* =========================================================
-   REDUCED MOTION
+   REDUCED MOTION — მანქანა საერთოდ იმალება
    ========================================================= */
 
 @media (prefers-reduced-motion: reduce) {
-
   *,
   *::before,
   *::after {
-    scroll-behavior: auto !important;
-
-    animation-duration:
-      0.001ms !important;
-
-    animation-iteration-count:
-      1 !important;
-
-    transition-duration:
-      0.001ms !important;
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
   }
 
+  .road__car {
+    display: none;
+  }
 }

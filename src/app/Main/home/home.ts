@@ -1,11 +1,12 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef, Inject, PLATFORM_ID } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { ParcelService, ParcelRequest, DriverTrip } from '../../services/Parcel.service';
-import { SeoService } from '../../services/seo.service'; // ⚠️ დააზუსტე გზა შენი ფოლდერების მიხედვით
+import { SmsVerificationService } from '../../services/smsverifikation.service';
+import { SeoService } from '../../services/seo.service';
 
 interface Step {
   id: number;
@@ -13,9 +14,15 @@ interface Step {
   description: string;
 }
 
-interface Badge {
+interface TrustItem {
   icon: string;
+  title: string;
   text: string;
+}
+
+interface Faq {
+  question: string;
+  answer: string;
 }
 
 @Component({
@@ -26,70 +33,113 @@ interface Badge {
   styleUrls: ['./home.scss'],
 })
 export class HomeComponent implements OnInit, OnDestroy {
-  // ============ Steps და Badges ============
-  steps: Step[] = [
+  // ============ სტატიკური კონტენტი ============
+
+  readonly cities: string[] = [
+    'თბილისი', 'ბათუმი', 'ქუთაისი', 'რუსთავი', 'გორი', 'ზუგდიდი', 'ფოთი',
+    'თელავი', 'ახალციხე', 'ოზურგეთი', 'სამტრედია', 'სიღნაღი', 'მცხეთა',
+    'ბორჯომი', 'ზესტაფონი', 'ხაშური', 'სენაკი', 'მარნეული',
+  ];
+
+  readonly tags: string[] = [
+    '📦 ამანათები', '🛋️ ავეჯი', '💻 ტექნიკა', '📺 ტელევიზორები', '🚲 ველოსიპედები', '🪑 ნებისმიერი ნივთი',
+  ];
+
+  readonly steps: Step[] = [
+    { id: 1, title: 'დარეგისტრირდი', description: 'ტელეფონის ნომრით, დაახლოებით 1–2 წუთში.' },
+    { id: 2, title: 'შეავსე მარშრუტი', description: 'მიუთითე საიდან, სად, წონა და ნივთის აღწერა.' },
+    { id: 3, title: 'შეთანხმდი მძღოლთან', description: 'აირჩიე მძღოლი ან დაელოდე შეთავაზებას და ჩატში დააზუსტეთ დეტალები.' },
+  ];
+
+  /** მხოლოდ ის, რაც პლატფორმას რეალურად აქვს (ხილულ FAQ-თან თანხვედრაშია). */
+  readonly trust: TrustItem[] = [
+    { icon: '🆓', title: 'უფასოა', text: 'რეგისტრაცია და სარგებლობა ამჟამად უფასოა' },
+    { icon: '👀', title: 'ხედავ მძღოლს', text: 'პროფილი და მგზავრობის დეტალები არჩევანამდე' },
+    { icon: '💬', title: 'პირდაპირი ჩატი', text: 'დეტალებს მძღოლთან პლატფორმაზევე აზუსტებ' },
+    { icon: '🤝', title: 'შენ წყვეტ', text: 'ფასზე და პირობებზე თავად თანხმდებით' },
+  ];
+
+  /** ერთი წყარო: ეკრანზეც და JSON-LD-შიც იგივე ტექსტია (Google-ის მოთხოვნა). */
+  readonly faqs: Faq[] = [
     {
-      id: 1,
-      title: 'დარეგისტრირდი',
-      description: 'სწრაფი და უსაფრთხო ავტორიზაცია',
+      question: 'რამდენი ღირს ამანათის გაგზავნა?',
+      answer:
+        'ფასს ადგენს მძღოლი და ის დამოკიდებულია მარშრუტზე, ამანათის წონასა და ზომაზე. ვინაიდან მძღოლი ამ მიმართულებით ისედაც მგზავრობს, ფასი შეიძლება უფრო ხელმისაწვდომი იყოს, თუმცა კონკრეტული თანხა მხარეთა შეთანხმებაზეა დამოკიდებული.',
     },
     {
-      id: 2,
-      title: 'შეავსე ფორმა',
-      description: 'მიუთითე მონაცემები სულ რამდენიმე წამში',
+      question: 'უსაფრთხოა თუ არა ჩემი ამანათი?',
+      answer:
+        'პლატფორმა გამგზავნსა და მძღოლს აკავშირებს და თავად არ ახორციელებს გადაზიდვას. გადაწყვეტილებამდე გაეცანი მძღოლის პროფილსა და მგზავრობის დეტალებს, ზუსტად აღწერე ამანათი და განსაკუთრებით ძვირფასი ან მყიფე ნივთები წინასწარი შეთანხმების გარეშე არ გააგზავნო. დეტალური პირობები იხილე „წესებში“.',
     },
     {
-      id: 3,
-      title: 'და გააგზავნე ამანათი',
-      description: 'იპოვე სასურველი მძღოლი ან გაგზავნე ამანათი',
+      question: 'რისი გაგზავნა არ შეიძლება?',
+      answer: 'კანონით აკრძალული და საშიში ნივთები არ იგზავნება. სრული სია იხილე „წესებში“.',
+    },
+    {
+      question: 'მხოლოდ მცირე ზომის ნივთის გაგზავნა შემიძლია?',
+      answer:
+        'დიახ. მინიმალური ლიმიტი არ არსებობს: შეგიძლია გააგზავნო კონვერტი ან გასაღები, ისევე როგორც დიდი ტვირთი, თუ მძღოლი დათანხმდება და საბარგულში ადგილი ექნება.',
+    },
+    {
+      question: 'რა დრო სჭირდება მიწოდებას?',
+      answer:
+        'დამოკიდებულია მძღოლის მგზავრობის გრაფიკზე, მარშრუტსა და გზის პირობებზე. ზუსტ დროს მძღოლთან შეთანხმებისას დააზუსტებ.',
+    },
+    {
+      question: 'როგორ ხდება ანგარიშსწორება?',
+      answer:
+        'ანგარიშსწორება ხდება უშუალოდ გამგზავნსა და მძღოლს შორის, წინასწარი შეთანხმებით (მაგ. ნაღდი ანგარიშსწორებით ჩაბარებისას). პლატფორმა თანხას ამჟამად არ ახორციელებს და არ ინახავს.',
+    },
+    {
+      question: 'აქვს თუ არა პლატფორმას საკომისიო?',
+      answer:
+        'ამჟამად პლატფორმით სარგებლობა უფასოა. მომავალში საკომისიო თუ დაწესდა, მომხმარებლებს წინასწარ გავაფრთხილებთ.',
+    },
+    {
+      question: 'რა ვქნა, თუ მძღოლი დათქმულ დროს არ გამოჩნდა?',
+      answer:
+        'დაუკავშირდი მძღოლს ჩატით ან ტელეფონით. თუ კავშირი ვერ დამყარდა, შეგიძლია შეკვეთა გააუქმო და სხვა მძღოლი აირჩიო. პრობლემის შემთხვევაში მოგვმართე მხარდაჭერის გუნდს.',
     },
   ];
 
-  badges: Badge[] = [
-    {
-      icon: '✓',
-      text: '100% დაზღვეული ტრანზაქციები',
-    },
-    {
-      icon: '🔒',
-      text: 'შენი მონაცემები სრულად დაცულია',
-    },
-    {
-      icon: '⚡',
-      text: 'სწრაფი მიწოდების სერვისი',
-    },
-    {
-      icon: '💳',
-      text: 'გადახდის მოხერხებული მეთოდები',
-    },
-  ];
+  // ============ მდგომარეობა ============
 
-  // ============ განცხადებები და მგზავრობები ============
   recentRequests: ParcelRequest[] = [];
   recentTrips: DriverTrip[] = [];
   isLoadingRequests = false;
   isLoadingTrips = false;
+  requestsFailed = false;
+  tripsFailed = false;
+
+  isLoggedIn = false;
+
+  searchFrom = '';
+  searchTo = '';
+
+  readonly skeletons = [1, 2, 3];
 
   private destroy$ = new Subject<void>();
-  private readonly isBrowser: boolean;
 
   constructor(
     private router: Router,
     private parcelService: ParcelService,
+    private smsService: SmsVerificationService,
     private cdr: ChangeDetectorRef,
-    private seo: SeoService,
-    @Inject(PLATFORM_ID) platformId: Object
-  ) {
-    this.isBrowser = isPlatformBrowser(platformId);
-  }
+    private seo: SeoService
+  ) {}
 
   ngOnInit(): void {
     this.setSeo();
     this.loadRecentRequests();
     this.loadRecentTrips();
 
-    // ✅ ახალი განცხადებების რეალ-ტაიმ მოსმენა
-    this.parcelService.tripCreated()
+    this.smsService.isLoggedIn$.pipe(takeUntil(this.destroy$)).subscribe((status) => {
+      this.isLoggedIn = status;
+      this.cdr.detectChanges();
+    });
+
+    this.parcelService
+      .tripCreated()
       .pipe(takeUntil(this.destroy$))
       .subscribe(() => {
         this.loadRecentRequests();
@@ -103,11 +153,12 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   // ============ SEO ============
+
   private setSeo(): void {
     this.seo.update({
       title: 'ამანათის გაგზავნა და გადაზიდვა საქართველოში | გგზავნა',
       description:
-        'ამანათის, ნივთის, ავეჯის, ტექნიკისა და ტვირთის გაგზავნა და გადაზიდვა საქართველოს ნებისმიერ ქალაქში. იპოვე მძღოლი რამდენიმე წუთში — სწრაფად, უსაფრთხოდ და დაბალ ფასად.',
+        'გააგზავნე ამანათი, ავეჯი, ტექნიკა ან ნებისმიერი ნივთი საქართველოს ნებისმიერ ქალაქში. იპოვე მძღოლი, რომელიც უკვე მიდის შენთვის სასურველი მიმართულებით. რეგისტრაცია უფასოა.',
       url: 'https://www.ggzavna.ge/',
     });
 
@@ -129,237 +180,159 @@ export class HomeComponent implements OnInit, OnDestroy {
         areaServed: { '@type': 'Country', name: 'საქართველო' },
         serviceType: [
           'ამანათის გაგზავნა',
-          'ამანათის გადაგზავნა',
           'ნივთის გაგზავნა',
           'ნივთის გადაზიდვა',
-          'ტვირთის გადაზიდვა',
-          'ტვირთის გაგზავნა',
           'ავეჯის გადაზიდვა',
           'ტექნიკის გადაზიდვა',
           'ტელევიზორის გაგზავნა',
           'ველოსიპედის გაგზავნა',
           'დოკუმენტის გაგზავნა',
-          'ბარგის გაგზავნა',
-          'საკურიერო მომსახურება',
-          'ამანათის მიტანა რეგიონებში',
         ],
         description:
-          'ამანათის გაგზავნა, ნივთის გადაზიდვა და ტვირთის გადაგზავნა თბილისიდან, ბათუმში, ქუთაისში, გორში და საქართველოს ყველა ქალაქში მძღოლებთან ერთად, რომლებიც უკვე მიემგზავრებიან ამ მიმართულებით.',
-        hasOfferCatalog: {
-          '@type': 'OfferCatalog',
-          name: 'გაგზავნისა და გადაზიდვის სერვისები',
-          itemListElement: [
-            { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'ამანათის გაგზავნა' } },
-            { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'ნივთის გაგზავნა' } },
-            { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'ავეჯის გადაზიდვა' } },
-            { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'ტექნიკის გადაზიდვა' } },
-            { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'ტვირთის გადაზიდვა' } },
-            { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'ველოსიპედის გაგზავნა' } },
-            { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'დოკუმენტის გაგზავნა' } },
-          ],
-        },
+          'პლატფორმა, რომელიც გამგზავნს აკავშირებს მძღოლებთან, რომლებიც უკვე მიემგზავრებიან საქართველოს ქალაქებს შორის.',
       },
       {
         '@context': 'https://schema.org',
         '@type': 'FAQPage',
-        mainEntity: [
-          {
-            '@type': 'Question',
-            name: 'რამდენი ღირს ამანათის გაგზავნა?',
-            acceptedAnswer: {
-              '@type': 'Answer',
-              text: 'ფასი დამოკიდებულია მარშრუტის მანძილზე, ამანათის წონასა და ზომაზე. ვინაიდან მძღოლი ამ მიმართულებით ისედაც მგზავრობს, ტარიფები სტანდარტულ საკურიერო მომსახურებებთან შედარებით ბევრად უფრო დაბალია.',
-            },
-          },
-          {
-            '@type': 'Question',
-            name: 'უსაფრთხოა თუ არა ჩემი ამანათი?',
-            acceptedAnswer: {
-              '@type': 'Answer',
-              text: 'დიახ. ყველა მომხმარებელი და მძღოლი გადის იდენტიფიკაციას, თითოეული გზავნილი დაზღვეულია, და შესაძლებელია რეალურ დროში თვალის დევნება რუკაზე.',
-            },
-          },
-          {
-            '@type': 'Question',
-            name: 'მხოლოდ მცირე ზომის ნივთის გაგზავნა შემიძლია?',
-            acceptedAnswer: {
-              '@type': 'Answer',
-              text: 'დიახ, არანაირი მინიმალური ლიმიტი არ არსებობს — შეგიძლიათ გაგზავნოთ როგორც პატარა კონვერტი, ისე დიდი ზომის ტვირთი.',
-            },
-          },
-          {
-            '@type': 'Question',
-            name: 'რა დრო სჭირდება მიწოდებას?',
-            acceptedAnswer: {
-              '@type': 'Answer',
-              text: 'მძღოლი პირდაპირ მიემართება დანიშნულების ადგილისკენ, ამიტომ მიწოდება ხშირად სულ რამდენიმე საათში სრულდება.',
-            },
-          },
-          {
-            '@type': 'Question',
-            name: 'რა საკომისიო აქვს პლატფორმას?',
-            acceptedAnswer: {
-              '@type': 'Answer',
-              text: 'პლატფორმა თითოეული წარმატებული ტრანზაქციიდან იტოვებს მინიმალურ საკომისიოს (3-5%), რომელიც ხმარდება დაზღვევასა და სერვისის მხარდაჭერას.',
-            },
-          },
-        ],
+        // ეკრანზე ხილულ FAQ-ს ემთხვევა (იგივე მასივი)
+        mainEntity: this.faqs.map((f) => ({
+          '@type': 'Question',
+          name: f.question,
+          acceptedAnswer: { '@type': 'Answer', text: f.answer },
+        })),
       },
     ]);
   }
 
-  // ============ გამგზავნის განცხადებების ჩაკრება (PUBLIC) ============
-  private loadRecentRequests(): void {
+  // ============ მონაცემების ჩატვირთვა ============
+
+  loadRecentRequests(): void {
     this.isLoadingRequests = true;
+    this.requestsFailed = false;
     this.cdr.detectChanges();
 
     this.parcelService.getRecentRequests().subscribe({
       next: (res: any) => {
+        this.recentRequests = res?.success && res.requests ? res.requests.slice(0, 6) : [];
         this.isLoadingRequests = false;
-
-        if (res.success && res.requests) {
-          this.recentRequests = res.requests.slice(0, 6);
-        } else {
-          this.recentRequests = [];
-        }
-
         this.cdr.detectChanges();
       },
       error: (err) => {
-        this.isLoadingRequests = false;
+        console.error('განცხადებების ჩატვირთვა ვერ მოხერხდა:', err);
         this.recentRequests = [];
-        console.error('განცხადებების ჩაკრება ვერ ხერხდა:', err);
+        this.requestsFailed = true;
+        this.isLoadingRequests = false;
         this.cdr.detectChanges();
-      }
+      },
     });
   }
 
-  // ============ მძღოლის მგზავრობების ჩაკრება (PUBLIC) ============
-  private loadRecentTrips(): void {
+  loadRecentTrips(): void {
     this.isLoadingTrips = true;
+    this.tripsFailed = false;
     this.cdr.detectChanges();
 
     this.parcelService.getRecentTrips().subscribe({
       next: (res: any) => {
+        this.recentTrips = res?.success && res.trips ? res.trips.slice(0, 6) : [];
         this.isLoadingTrips = false;
-
-        if (res.success && res.trips) {
-          this.recentTrips = res.trips.slice(0, 6);
-        } else {
-          this.recentTrips = [];
-        }
-
         this.cdr.detectChanges();
       },
       error: (err) => {
-        this.isLoadingTrips = false;
+        console.error('მგზავრობების ჩატვირთვა ვერ მოხერხდა:', err);
         this.recentTrips = [];
-        console.error('მგზავრობების ჩაკრება ვერ ხერხდა:', err);
+        this.tripsFailed = true;
+        this.isLoadingTrips = false;
         this.cdr.detectChanges();
-      }
+      },
     });
   }
 
-  // ============ დეტალების ნახვა ============
+  // ============ CTA და ძიება ============
+
+  /** გამგზავნი: შესულს → /send, სტუმარს → /register */
+  startAsSender(): void {
+    this.isLoggedIn
+      ? this.router.navigate(['/send'])
+      : this.router.navigate(['/register'], { queryParams: { role: 'sender' } });
+  }
+
+  /** მძღოლი: შესულს → /pickup, სტუმარს → /register */
+  startAsDriver(): void {
+    this.isLoggedIn
+      ? this.router.navigate(['/pickup'])
+      : this.router.navigate(['/register'], { queryParams: { role: 'driver' } });
+  }
+
+  /** /listing გვერდმა უნდა წაიკითხოს ?from=&to= (იხ. ინსტრუქცია) */
+  search(): void {
+    const queryParams: Record<string, string> = {};
+    if (this.searchFrom) queryParams['from'] = this.searchFrom;
+    if (this.searchTo) queryParams['to'] = this.searchTo;
+    this.router.navigate(['/listing'], { queryParams });
+  }
+
+  swapCities(): void {
+    [this.searchFrom, this.searchTo] = [this.searchTo, this.searchFrom];
+  }
 
   viewRequest(requestId: string | undefined): void {
-    if (!requestId) {
-      console.error('❌ განცხადების ID არ გაითვალა');
-      return;
-    }
-    this.router.navigate(['/request', requestId]);
+    if (requestId) this.router.navigate(['/request', requestId]);
   }
 
   viewTrip(tripId: string | undefined): void {
-    if (!tripId) {
-      console.error('❌ მგზავრობის ID არ გაითვალა');
-      return;
-    }
-    this.router.navigate(['/trip', tripId]);
+    if (tripId) this.router.navigate(['/trip', tripId]);
   }
 
   // ============ დამხმარე ფუნქციები ============
+
+  /** კონფიდენციალურობა: "გიორგი მამულაშვილი" → "გიორგი მ." */
+  shortName(fullName: string | undefined, fallback: string): string {
+    const parts = (fullName ?? '').trim().split(/\s+/).filter(Boolean);
+    if (parts.length === 0) return fallback;
+    return parts.length > 1 ? `${parts[0]} ${parts[1].charAt(0)}.` : parts[0];
+  }
+
+  /** "დაემატა" — ფარდობითი დრო (ახლახან, 3 საათის წინ, ...) */
+  timeAgo(dateString: string | undefined): string {
+    if (!dateString) return '—';
+    const diffSec = Math.floor((Date.now() - new Date(dateString).getTime()) / 1000);
+    if (isNaN(diffSec)) return '—';
+    if (diffSec < 60) return 'ახლახან';
+    const min = Math.floor(diffSec / 60);
+    if (min < 60) return `${min} წუთის წინ`;
+    const hour = Math.floor(min / 60);
+    if (hour < 24) return `${hour} საათის წინ`;
+    const day = Math.floor(hour / 24);
+    return day < 30 ? `${day} დღის წინ` : this.formatDate(dateString);
+  }
+
   formatDate(dateString: string | undefined): string {
     if (!dateString) return '—';
-    try {
-      const date = new Date(dateString);
-      return date.toLocaleDateString('ka-GE', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric'
-      });
-    } catch {
-      return '—';
-    }
+    const date = new Date(dateString);
+    return isNaN(date.getTime())
+      ? '—'
+      : date.toLocaleDateString('ka-GE', { year: 'numeric', month: 'short', day: 'numeric' });
   }
 
   formatDateTime(dateString: string | undefined): string {
     if (!dateString) return '—';
-    try {
-      const date = new Date(dateString);
-      return (
-        date.toLocaleDateString('ka-GE') +
-        ' ' +
-        date.toLocaleTimeString('ka-GE', { hour: '2-digit', minute: '2-digit' })
-      );
-    } catch {
-      return '—';
-    }
+    const date = new Date(dateString);
+    return isNaN(date.getTime())
+      ? '—'
+      : date.toLocaleDateString('ka-GE', { day: 'numeric', month: 'short' }) +
+          ', ' +
+          date.toLocaleTimeString('ka-GE', { hour: '2-digit', minute: '2-digit' });
   }
 
-  getStatusLabel(status: string): string {
-    const labels: { [key: string]: string } = {
-      'pending': '⏳ მოლოდინი',
-      'accepted': '✅ მიღებული',
-      'in-transit': '🚚 გზაში',
-      'delivered': '📍 დაბრუნებული'
-    };
-    return labels[status] || status;
+  trackById(index: number, item: { _id?: string }): string | number {
+    return item._id ?? index;
   }
 
-  getTripStatusLabel(status: string | undefined): string {
-    const labels: { [key: string]: string } = {
-      'pending': '⏳ დაგეგმილი',
-      'active': '🚗 აქტიური',
-      'completed': '✅ დასრულებული',
-      'cancelled': '❌ გაუქმებული'
-    };
-    return labels[status || 'pending'] || status || '⏳ დაგეგმილი';
-  }
-
-  getTripEarnings(trip: DriverTrip): string {
-    if (!trip.acceptedShippings || trip.acceptedShippings.length === 0) {
-      return '0 ₾';
-    }
-
-    const total = trip.acceptedShippings.reduce((sum, shipping) => {
-      const weight = shipping.parcelDetails?.weight || 0;
-      const price = trip.pricePerKg || 0;
-      return sum + weight * price;
-    }, 0);
-
-    return `${total.toFixed(2)} ₾`;
-  }
-
-  /**
-   * გვერდის თავში რბილად (smooth) აყოლება — გამოიყენება how-cta სექციის ღილაკებზე
-   */
-  scrollToTop(): void {
-    if (this.isBrowser) {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-  }
-
-  // ============ კარუსელის სქროლი ============
   scrollCarousel(track: HTMLElement, direction: 1 | -1): void {
     if (!track) return;
-
-    const firstCard = track.querySelector(
-      '.request-card-home, .trip-card-home'
-    ) as HTMLElement | null;
-
-    const cardWidth = firstCard ? firstCard.offsetWidth + 24 : 300;
-
+    const firstCard = track.querySelector('.listing-card') as HTMLElement | null;
+    const cardWidth = firstCard ? firstCard.offsetWidth + 22 : 300;
     track.scrollBy({ left: direction * cardWidth * 2, behavior: 'smooth' });
   }
 }

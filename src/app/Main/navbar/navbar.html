@@ -1,495 +1,230 @@
-<nav class="navbar" [class.navbar--menu-open]="isMenuOpen">
-  <div class="navbar__pattern"></div>
-  <div class="navbar__glow navbar__glow--orange"></div>
-  <div class="navbar__glow navbar__glow--blue"></div>
+<a class="skip-link" href="#main-content" (click)="skipToContent($event)">
+  გადასვლა მთავარ კონტენტზე
+</a>
+
+<!-- ============ შეტყობინებების ბლოკი (ერთი შაბლონი — დესკტოპიც და მობილურიც) ============ -->
+<ng-template #notifBlock let-mobile="mobile">
+  <div class="notification-wrapper">
+    <button
+      type="button"
+      class="notification-button"
+      [attr.aria-label]="'შეტყობინებები' + (unreadCount > 0 ? ', წაუკითხავი: ' + unreadCount : '')"
+      aria-haspopup="true"
+      [attr.aria-expanded]="isNotifOpen"
+      (click)="toggleNotifications($event)">
+
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="M18 9C18 5.686 15.314 3 12 3C8.686 3 6 5.686 6 9C6 16 3 17 3 18H21C21 17 18 16 18 9Z"
+              stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M10 21H14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>
+
+      <span class="notification-button__label" *ngIf="mobile">შეტყობინებები</span>
+
+      <span class="notification-badge" *ngIf="unreadCount > 0" aria-hidden="true">
+        {{ unreadCount > 9 ? '9+' : unreadCount }}
+      </span>
+    </button>
+
+    <div
+      class="notification-dropdown"
+      *ngIf="isNotifOpen"
+      role="region"
+      aria-label="შეტყობინებები"
+      (click)="$event.stopPropagation()">
+
+      <div class="notification-dropdown__header">
+        <h2>შეტყობინებები</h2>
+        <button
+          type="button"
+          class="notification-dropdown__link"
+          *ngIf="notifications.length > 0"
+          (click)="clearAllNotifications()">
+          გასუფთავება
+        </button>
+      </div>
+
+      <ul class="notification-dropdown__list" *ngIf="notifications.length > 0; else emptyNotifications">
+        <li *ngFor="let item of notifications; trackBy: trackByIndex">
+          <button type="button" class="notification-item" (click)="onNotificationClick(item)">
+            <span
+              class="notification-item__icon"
+              [ngClass]="'notification-item__icon--' + accentFor(item.type)"
+              aria-hidden="true">
+              <ng-container [ngSwitch]="iconFor(item.type)">
+                <ng-container *ngSwitchCase="'box'">▣</ng-container>
+                <ng-container *ngSwitchCase="'check'">✓</ng-container>
+                <ng-container *ngSwitchCase="'x'">×</ng-container>
+                <ng-container *ngSwitchCase="'flag'">⚑</ng-container>
+                <ng-container *ngSwitchCase="'truck'">▰</ng-container>
+                <ng-container *ngSwitchCase="'chat'">◌</ng-container>
+                <ng-container *ngSwitchDefault>●</ng-container>
+              </ng-container>
+            </span>
+
+            <span class="notification-item__body">
+              <strong>{{ item.title }}</strong>
+              <span class="notification-item__text">{{ item.body }}</span>
+              <small>{{ timeAgo(item) }}</small>
+            </span>
+
+            <span class="notification-item__dot" *ngIf="isUnread(item)">
+              <span class="sr-only">წაუკითხავი</span>
+            </span>
+          </button>
+        </li>
+      </ul>
+
+      <ng-template #emptyNotifications>
+        <p class="notification-dropdown__empty">ახალი შეტყობინება არ არის</p>
+      </ng-template>
+
+      <div class="notification-dropdown__footer">
+        <button type="button" class="notification-dropdown__link" (click)="goToProfile()">
+          გახსენი პროფილი
+        </button>
+      </div>
+    </div>
+  </div>
+</ng-template>
+
+<nav class="navbar" [class.navbar--menu-open]="isMenuOpen" aria-label="მთავარი ნავიგაცია">
+  <div class="navbar__pattern" aria-hidden="true"></div>
+  <div class="navbar__glow navbar__glow--orange" aria-hidden="true"></div>
+  <div class="navbar__glow navbar__glow--blue" aria-hidden="true"></div>
 
   <div class="navbar__inner">
     <!-- LOGO -->
-    <a
-      class="brand"
-      routerLink="/"
-      (click)="closeMenu()"
-      aria-label="Ggzavna.ge მთავარი გვერდი">
-
-      <span class="brand__mark">
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          aria-hidden="true">
-
-          <path
-            d="M17 4L21 8L17 12"
-            stroke="currentColor"
-            stroke-width="2.3"
-            stroke-linecap="round"
-            stroke-linejoin="round"/>
-
-          <path
-            d="M21 8H9"
-            stroke="currentColor"
-            stroke-width="2.3"
-            stroke-linecap="round"/>
-
-          <path
-            d="M7 12L3 16L7 20"
-            stroke="currentColor"
-            stroke-width="2.3"
-            stroke-linecap="round"
-            stroke-linejoin="round"/>
-
-          <path
-            d="M3 16H15"
-            stroke="currentColor"
-            stroke-width="2.3"
-            stroke-linecap="round"/>
+    <a class="brand" routerLink="/" (click)="closeMenu()" aria-label="Ggzavna.ge — მთავარი გვერდი">
+      <span class="brand__mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M17 4L21 8L17 12" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M21 8H9" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"/>
+          <path d="M7 12L3 16L7 20" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M3 16H15" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"/>
         </svg>
       </span>
-
-      <span class="brand__text">
-        Ggzavna<span>.ge</span>
-      </span>
+      <span class="brand__text">Ggzavna<span>.ge</span></span>
     </a>
 
-    <!-- MOBILE HAMBURGER -->
+    <!-- HAMBURGER -->
     <button
+      #menuToggle
       type="button"
       class="menu-toggle"
       [class.menu-toggle--active]="isMenuOpen"
       [attr.aria-label]="isMenuOpen ? 'მენიუს დახურვა' : 'მენიუს გახსნა'"
       [attr.aria-expanded]="isMenuOpen"
+      aria-controls="site-menu"
       (click)="toggleMenu($event)">
-
-      <span></span>
-      <span></span>
-      <span></span>
+      <span></span><span></span><span></span>
     </button>
 
     <!-- MENU -->
-    <div
-      class="nav-menu"
-      [class.nav-menu--open]="isMenuOpen">
-
+    <div class="nav-menu" id="site-menu" [class.nav-menu--open]="isMenuOpen">
       <ul class="nav-links">
-        <li>
+        <li *ngFor="let link of links">
           <a
-            routerLink="/"
+            [routerLink]="link.path"
             routerLinkActive="active"
-            [routerLinkActiveOptions]="{ exact: true }"
+            ariaCurrentWhenActive="page"
+            [routerLinkActiveOptions]="{ exact: !!link.exact }"
             (click)="closeMenu()">
-            <span class="nav-links__icon">⌂</span>
-            მთავარი
-          </a>
-        </li>
-
-        <li>
-          <a
-            routerLink="/howtowork"
-            routerLinkActive="active"
-            (click)="closeMenu()">
-            <span class="nav-links__icon">✦</span>
-            როგორ მუშაობს
-          </a>
-        </li>
-
-        <li>
-          <a
-            routerLink="/rules"
-            routerLinkActive="active"
-            (click)="closeMenu()">
-            <span class="nav-links__icon">◎</span>
-            წესები
-          </a>
-        </li>
-
-        <li>
-          <a
-            routerLink="/support"
-            routerLinkActive="active"
-            (click)="navigateTosupport(); closeMenu()">
-            <span class="nav-links__icon">?</span>
-            კონტაქტი
+            {{ link.label }}
           </a>
         </li>
       </ul>
 
-      <!-- MOBILE BUTTONS -->
+      <!-- MOBILE ACTIONS -->
       <div class="mobile-actions">
-        <button
-          type="button"
-          class="mobile-action mobile-action--listings"
-          (click)="navigateToAllListings()">
-          <span>ყველა განცხადება</span>
-          <span>→</span>
+        <button type="button" class="mobile-action mobile-action--listings" (click)="go('/listing')">
+          <span>განცხადებები</span>
+          <span aria-hidden="true">→</span>
         </button>
 
-        <!-- MOBILE: NOTIFICATIONS + PROFILE (only when logged in) -->
-        <ng-container *ngIf="isLoggedIn">
+        <ng-container *ngIf="isLoggedIn; else mobileGuest">
           <div class="mobile-secondary-row">
-            <div class="notification-wrapper">
-              <button
-                type="button"
-                class="notification-button"
-                aria-label="შეტყობინებები"
-                [attr.aria-expanded]="isNotifOpen"
-                (click)="toggleNotifications($event)">
+            <ng-container *ngTemplateOutlet="notifBlock; context: { mobile: true }"></ng-container>
 
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                  aria-hidden="true">
-
-                  <path
-                    d="M18 9C18 5.686 15.314 3 12 3C8.686 3 6 5.686 6 9C6 16 3 17 3 18H21C21 17 18 16 18 9Z"
-                    stroke="currentColor"
-                    stroke-width="1.8"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"/>
-
-                  <path
-                    d="M10 21H14"
-                    stroke="currentColor"
-                    stroke-width="1.8"
-                    stroke-linecap="round"/>
-                </svg>
-
-                <span
-                  class="notification-badge"
-                  *ngIf="unreadCount > 0">
-                  {{ unreadCount > 9 ? '9+' : unreadCount }}
-                </span>
-              </button>
-
-              <div
-                class="notification-dropdown"
-                *ngIf="isNotifOpen"
-                (click)="$event.stopPropagation()">
-
-                <div class="notification-dropdown__header">
-                  <h4>შეტყობინებები</h4>
-
-                  <button
-                    type="button"
-                    class="notification-dropdown__clear"
-                    (click)="clearAllNotifications()">
-                    ყველას გასუფთავება
-                  </button>
-                </div>
-
-                <div
-                  class="notification-dropdown__list"
-                  *ngIf="notifications.length > 0; else emptyStateMobile">
-
-                  <button
-                    type="button"
-                    class="notification-item"
-                    *ngFor="let item of notifications"
-                    (click)="onNotificationClick(item)">
-
-                    <span
-                      class="notification-item__icon"
-                      [class]="'notification-item__icon notification-item__icon--' + accentFor(item.type)">
-
-                      <ng-container [ngSwitch]="iconFor(item.type)">
-                        <span *ngSwitchCase="'box'">▣</span>
-                        <span *ngSwitchCase="'check'">✓</span>
-                        <span *ngSwitchCase="'x'">×</span>
-                        <span *ngSwitchCase="'flag'">⚑</span>
-                        <span *ngSwitchCase="'truck'">▰</span>
-                        <span *ngSwitchCase="'chat'">◌</span>
-                        <span *ngSwitchDefault>●</span>
-                      </ng-container>
-                    </span>
-
-                    <span class="notification-item__body">
-                      <strong>{{ item.title }}</strong>
-                      <span>{{ item.body }}</span>
-                      <small>{{ timeAgo(item) }}</small>
-                    </span>
-
-                    <span class="notification-item__dot"></span>
-                  </button>
-                </div>
-
-                <ng-template #emptyStateMobile>
-                  <div class="notification-dropdown__empty">
-                    შეტყობინებები არ არის
-                  </div>
-                </ng-template>
-
-                <div class="notification-dropdown__footer">
-                  <button
-                    type="button"
-                    (click)="navigateToAllNotifications()">
-                    ყველა შეტყობინების ნახვა →
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <button
-              type="button"
-              class="profile-avatar-button"
-              aria-label="პროფილი"
-              (click)="navigateToProfile()">
-
+            <button type="button" class="profile-avatar-button" aria-label="ჩემი პროფილი" (click)="goToProfile()">
               <span>{{ getUserInitials() }}</span>
             </button>
           </div>
-        </ng-container>
-
-        <ng-container *ngIf="!isLoggedIn">
-          <button
-            type="button"
-            class="mobile-action mobile-action--dark"
-            (click)="navigateToLogin()">
-            შესვლა
-          </button>
 
           <button
+            *ngFor="let action of actions"
             type="button"
-            class="mobile-action mobile-action--orange"
-            (click)="navigateToRegister()">
-            რეგისტრაცია
+            class="mobile-action"
+            [ngClass]="action.kind === 'primary' ? 'mobile-action--orange' : 'mobile-action--dark'"
+            (click)="go(action.path)">
+            {{ action.label }}
           </button>
         </ng-container>
 
-        <ng-container *ngIf="isLoggedIn">
-          <button
-            type="button"
-            class="mobile-action mobile-action--orange"
-            (click)="navigateToDashboard()">
-            გაგზავნა
+        <ng-template #mobileGuest>
+          <button type="button" class="mobile-action mobile-action--dark" (click)="go('/login')">შესვლა</button>
+          <button type="button" class="mobile-action mobile-action--orange" (click)="go('/register')">
+            უფასო რეგისტრაცია
           </button>
-
-          <button
-            type="button"
-            class="mobile-action mobile-action--dark"
-            (click)="navigateToAddRide()">
-            რეისის დამატება
-          </button>
-        </ng-container>
+        </ng-template>
       </div>
     </div>
 
     <!-- DESKTOP ACTIONS -->
     <div class="desktop-actions">
-      <button
-        type="button"
-        class="desktop-listings"
-        (click)="navigateToAllListings()">
-
-        <span class="desktop-listings__dot"></span>
-        ყველა განცხადება
+      <button type="button" class="desktop-listings" (click)="go('/listing')">
+        <span class="desktop-listings__dot" aria-hidden="true"></span>
+        განცხადებები
       </button>
 
-      <ng-container *ngIf="!isLoggedIn">
-        <button
-          type="button"
-          class="desktop-login"
-          (click)="navigateToLogin()">
-          შესვლა
-        </button>
-
-        <button
-          type="button"
-          class="desktop-register"
-          (click)="navigateToRegister()">
-          რეგისტრაცია
-        </button>
+      <ng-container *ngIf="!isLoggedIn; else desktopUser">
+        <button type="button" class="desktop-login" (click)="go('/login')">შესვლა</button>
+        <button type="button" class="desktop-register" (click)="go('/register')">უფასო რეგისტრაცია</button>
       </ng-container>
 
-      <ng-container *ngIf="isLoggedIn">
+      <ng-template #desktopUser>
         <button
+          *ngFor="let action of actions"
           type="button"
-          class="desktop-register"
-          (click)="navigateToDashboard()">
-          გაგზავნა
+          [ngClass]="action.kind === 'primary' ? 'desktop-register' : 'desktop-ride'"
+          (click)="go(action.path)">
+          {{ action.label }}
         </button>
 
-        <button
-          type="button"
-          class="desktop-ride"
-          (click)="navigateToAddRide()">
-          რეისის დამატება
-        </button>
+        <ng-container *ngTemplateOutlet="notifBlock; context: { mobile: false }"></ng-container>
 
-        <!-- NOTIFICATIONS -->
-        <div class="notification-wrapper">
-          <button
-            type="button"
-            class="notification-button"
-            aria-label="შეტყობინებები"
-            [attr.aria-expanded]="isNotifOpen"
-            (click)="toggleNotifications($event)">
-
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-              aria-hidden="true">
-
-              <path
-                d="M18 9C18 5.686 15.314 3 12 3C8.686 3 6 5.686 6 9C6 16 3 17 3 18H21C21 17 18 16 18 9Z"
-                stroke="currentColor"
-                stroke-width="1.8"
-                stroke-linecap="round"
-                stroke-linejoin="round"/>
-
-              <path
-                d="M10 21H14"
-                stroke="currentColor"
-                stroke-width="1.8"
-                stroke-linecap="round"/>
-            </svg>
-
-            <span
-              class="notification-badge"
-              *ngIf="unreadCount > 0">
-              {{ unreadCount > 9 ? '9+' : unreadCount }}
-            </span>
-          </button>
-
-          <div
-            class="notification-dropdown"
-            *ngIf="isNotifOpen"
-            (click)="$event.stopPropagation()">
-
-            <div class="notification-dropdown__header">
-              <h4>შეტყობინებები</h4>
-
-              <button
-                type="button"
-                class="notification-dropdown__clear"
-                (click)="clearAllNotifications()">
-                ყველას გასუფთავება
-              </button>
-            </div>
-
-            <div
-              class="notification-dropdown__list"
-              *ngIf="notifications.length > 0; else emptyState">
-
-              <button
-                type="button"
-                class="notification-item"
-                *ngFor="let item of notifications"
-                (click)="onNotificationClick(item)">
-
-                <span
-                  class="notification-item__icon"
-                  [class]="'notification-item__icon notification-item__icon--' + accentFor(item.type)">
-
-                  <ng-container [ngSwitch]="iconFor(item.type)">
-                    <span *ngSwitchCase="'box'">▣</span>
-                    <span *ngSwitchCase="'check'">✓</span>
-                    <span *ngSwitchCase="'x'">×</span>
-                    <span *ngSwitchCase="'flag'">⚑</span>
-                    <span *ngSwitchCase="'truck'">▰</span>
-                    <span *ngSwitchCase="'chat'">◌</span>
-                    <span *ngSwitchDefault>●</span>
-                  </ng-container>
-                </span>
-
-                <span class="notification-item__body">
-                  <strong>{{ item.title }}</strong>
-                  <span>{{ item.body }}</span>
-                  <small>{{ timeAgo(item) }}</small>
-                </span>
-
-                <span class="notification-item__dot"></span>
-              </button>
-            </div>
-
-            <ng-template #emptyState>
-              <div class="notification-dropdown__empty">
-                შეტყობინებები არ არის
-              </div>
-            </ng-template>
-
-            <div class="notification-dropdown__footer">
-              <button
-                type="button"
-                (click)="navigateToAllNotifications()">
-                ყველა შეტყობინების ნახვა →
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <!-- PROFILE -->
-        <button
-          type="button"
-          class="profile-avatar-button"
-          aria-label="პროფილი"
-          (click)="navigateToProfile()">
-
+        <button type="button" class="profile-avatar-button" aria-label="ჩემი პროფილი" (click)="goToProfile()">
           <span>{{ getUserInitials() }}</span>
         </button>
-      </ng-container>
+      </ng-template>
     </div>
   </div>
 
-  <!-- ANIMATED ROAD -->
+  <!-- ANIMATED ROAD (დეკორატიულია) -->
   <div class="road" aria-hidden="true">
     <div class="road__line"></div>
-
     <div class="road__car">
       <div class="road__car-light"></div>
-
-      <svg
-        viewBox="0 0 80 38"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg">
-
+      <svg viewBox="0 0 80 38" fill="none" xmlns="http://www.w3.org/2000/svg">
         <defs>
-          <linearGradient
-            id="navbarCarGradient"
-            x1="40"
-            y1="4"
-            x2="40"
-            y2="30"
-            gradientUnits="userSpaceOnUse">
+          <linearGradient id="navbarCarGradient" x1="40" y1="4" x2="40" y2="30" gradientUnits="userSpaceOnUse">
             <stop stop-color="#5CABFF"/>
             <stop offset="1" stop-color="#1F57C7"/>
           </linearGradient>
         </defs>
-
-        <path
-          d="M8 14.5L15 6H51L61 14.5H70C73.3 14.5 76 17.2 76 20.5V28H5V18C5 16.1 6.3 14.5 8 14.5Z"
-          fill="url(#navbarCarGradient)"/>
-
-        <path
-          d="M17 8H31V14H12L17 8Z"
-          fill="#D9F0FF"
-          fill-opacity=".92"/>
-
-        <path
-          d="M34 8H50L57 14H34V8Z"
-          fill="#D9F0FF"
-          fill-opacity=".92"/>
-
-        <path
-          d="M5 20H76"
-          stroke="#FF6930"
-          stroke-width="2.5"/>
-
+        <path d="M8 14.5L15 6H51L61 14.5H70C73.3 14.5 76 17.2 76 20.5V28H5V18C5 16.1 6.3 14.5 8 14.5Z" fill="url(#navbarCarGradient)"/>
+        <path d="M17 8H31V14H12L17 8Z" fill="#D9F0FF" fill-opacity=".92"/>
+        <path d="M34 8H50L57 14H34V8Z" fill="#D9F0FF" fill-opacity=".92"/>
+        <path d="M5 20H76" stroke="#FF6930" stroke-width="2.5"/>
         <circle cx="19" cy="29" r="6" fill="#101827"/>
         <circle cx="61" cy="29" r="6" fill="#101827"/>
-
         <circle cx="19" cy="29" r="2.5" fill="#D7E2EE"/>
         <circle cx="61" cy="29" r="2.5" fill="#D7E2EE"/>
-
         <circle cx="72" cy="20" r="1.5" fill="#FFD166"/>
       </svg>
     </div>
   </div>
 
   <!-- MOBILE BACKDROP -->
-  <div
-    class="nav-backdrop"
-    [class.nav-backdrop--visible]="isMenuOpen"
-    (click)="closeMenu()">
-  </div>
+  <div class="nav-backdrop" [class.nav-backdrop--visible]="isMenuOpen" (click)="closeMenu()" aria-hidden="true"></div>
 </nav>

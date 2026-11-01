@@ -1,566 +1,299 @@
-<div class="hero-slogans">
-  <div class="hero-content">
-    <span class="hero-badge">
-      🚚 მარტივი • მოხერხებული • მთელი საქართველო
-    </span>
+<!-- ============ HERO ============ -->
+<section class="hero" aria-labelledby="hero-title">
+  <div class="hero__content">
+    <p class="hero__badge"><span aria-hidden="true">🚚</span> მარტივი • მოხერხებული • მთელი საქართველო</p>
 
-    <h1 class="hero-title">
+    <h1 id="hero-title" class="hero__title">
       გააგზავნე ნებისმიერი ნივთი
       <span>საქართველოს ნებისმიერ ქალაქში</span>
     </h1>
 
-    <p class="hero-description">
-      ამანათის გაგზავნა და ნივთის გაგზავნა მარტივად — იპოვე მძღოლი,
-      რომელიც უკვე მიდის შენთვის სასურველი მიმართულებით.
+    <p class="hero__lead">
+      იპოვე მძღოლი, რომელიც უკვე მიდის შენთვის სასურველი მიმართულებით და პირდაპირ შეთანხმდი ფასზე.
     </p>
 
-    <div class="hero-tags">
-      <span>📦 ამანათები</span>
-      <span>🛋️ ავეჯი</span>
-      <span>💻 ტექნიკა</span>
-      <span>📺 ტელევიზორები</span>
-      <span>🚲 ველოსიპედები</span>
-      <span>🪑 ნებისმიერი ნივთი</span>
-    </div>
-  </div>
-</div>
-
-<div>
-  <div class="announcements-section">
-    <h2 class="section-title">📦 გამგზავნთა ბოლო განცხადებები</h2>
-
-    <div *ngIf="isLoadingRequests" style="text-align: center; padding: 40px 20px; color: #64748b;">
-      ⏳ განცხადებების ჩატვირთვა...
+    <div class="hero__actions">
+      <button type="button" class="btn btn--primary btn--lg" (click)="startAsSender()">
+        ამანათის გაგზავნა
+      </button>
+      <button type="button" class="btn btn--ghost btn--lg" (click)="startAsDriver()">
+        მძღოლი ვარ, ამანათს წავიღებ
+      </button>
     </div>
 
-    <div *ngIf="!isLoadingRequests && recentRequests.length === 0"
-         style="text-align: center; padding: 40px 20px; background: #f8fafc; border-radius: 16px; color: #64748b;">
-      <div style="font-size: 32px; margin-bottom: 12px;">📭</div>
-      <div style="font-size: 15px; font-weight: 600;">განცხადებები ჯერ არ არის</div>
-      <div style="font-size: 13px; margin-top: 8px;">მალე გამგზავნების განცხადებები აქ გამოჩნდება</div>
-    </div>
+    <p class="hero__hint" *ngIf="!isLoggedIn">უფასო რეგისტრაცია, დაახლოებით 1–2 წუთი</p>
 
-    <div class="carousel-wrapper" *ngIf="!isLoadingRequests && recentRequests.length > 0">
-      <button
-        class="carousel-arrow carousel-arrow-left"
-        type="button"
-        (click)="scrollCarousel(requestsTrack, -1)"
-        aria-label="წინა">
-        ‹
+    <!-- სწრაფი ძიება -->
+    <form class="search" role="search" aria-label="მძღოლების ძიება მარშრუტით" (ngSubmit)="search()">
+      <div class="search__field">
+        <label for="search-from">საიდან</label>
+        <select id="search-from" name="from" [(ngModel)]="searchFrom">
+          <option value="">ნებისმიერი ქალაქი</option>
+          <option *ngFor="let city of cities" [value]="city">{{ city }}</option>
+        </select>
+      </div>
+
+      <button type="button" class="search__swap" (click)="swapCities()" aria-label="მიმართულების შებრუნება">
+        <span aria-hidden="true">⇄</span>
       </button>
 
-      <div class="carousel-track requests-carousel" #requestsTrack>
-        <div class="request-card-home" *ngFor="let request of recentRequests">
+      <div class="search__field">
+        <label for="search-to">სად</label>
+        <select id="search-to" name="to" [(ngModel)]="searchTo">
+          <option value="">ნებისმიერი ქალაქი</option>
+          <option *ngFor="let city of cities" [value]="city">{{ city }}</option>
+        </select>
+      </div>
 
-          <div class="card-image">
+      <button type="submit" class="btn btn--primary search__submit">მძღოლების ძებნა</button>
+    </form>
+
+    <ul class="hero__tags" aria-label="რისი გაგზავნა შეიძლება">
+      <li *ngFor="let tag of tags">{{ tag }}</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ ცოცხალი განცხადებები ============ -->
+<section class="listings" aria-labelledby="requests-title">
+  <header class="section-head">
+    <div>
+      <h2 id="requests-title" class="section-title">ამანათები, რომლებიც მძღოლს ელოდება</h2>
+      <p class="section-sub">გზაში ხარ? აირჩიე ამანათი შენი მარშრუტიდან</p>
+    </div>
+    <a class="link-more" routerLink="/listing">ყველას ნახვა</a>
+  </header>
+
+  <div class="skeleton-row" *ngIf="isLoadingRequests" aria-busy="true" aria-label="განცხადებები იტვირთება">
+    <div class="skeleton-card" *ngFor="let s of skeletons"></div>
+  </div>
+
+  <div class="state" *ngIf="!isLoadingRequests && requestsFailed" role="alert">
+    <p class="state__title">განცხადებები ვერ ჩაიტვირთა</p>
+    <p class="state__text">შეამოწმე ინტერნეტი და სცადე თავიდან.</p>
+    <button type="button" class="btn btn--outline" (click)="loadRecentRequests()">თავიდან ცდა</button>
+  </div>
+
+  <div class="state" *ngIf="!isLoadingRequests && !requestsFailed && recentRequests.length === 0">
+    <p class="state__title">ჯერ ამანათის განცხადება არ არის</p>
+    <p class="state__text">გამოაქვეყნე პირველი და მძღოლები შენს მარშრუტზე დაგიკავშირდებიან.</p>
+    <button type="button" class="btn btn--primary" (click)="startAsSender()">ამანათის გაგზავნა</button>
+  </div>
+
+  <div class="carousel" *ngIf="!isLoadingRequests && recentRequests.length > 0">
+    <button type="button" class="carousel__arrow carousel__arrow--left" (click)="scrollCarousel(requestsTrack, -1)" aria-label="წინა განცხადებები">‹</button>
+
+    <ul class="carousel__track" #requestsTrack tabindex="0" aria-label="ამანათების განცხადებები">
+      <li *ngFor="let request of recentRequests; trackBy: trackById">
+        <article class="listing-card">
+          <div class="listing-card__image">
             <img
-              *ngIf="request.images && request.images.length > 0"
+              *ngIf="request.images && request.images.length > 0; else noRequestImage"
               [src]="request.images[0]"
-              [alt]="request.from + ' → ' + request.to"
+              [alt]="'ამანათი: ' + request.from + ' – ' + request.to"
               loading="lazy" />
-            <div class="card-image-placeholder" *ngIf="!request.images || request.images.length === 0">
-              📦
-            </div>
-            <span class="card-image-count" *ngIf="request.images && request.images.length > 1">
-              +{{ request.images.length - 1 }}
+            <ng-template #noRequestImage><span class="listing-card__placeholder" aria-hidden="true">📦</span></ng-template>
+            <span class="listing-card__count" *ngIf="request.images && request.images.length > 1">
+              +{{ request.images.length - 1 }} ფოტო
             </span>
           </div>
 
-          <div class="card-header">
-            <div class="sender-info">
-              <span class="sender-name">{{ request.senderName || 'უცნობი გამგზავნი' }}</span>
-            </div>
-          </div>
+          <div class="listing-card__body">
+            <p class="listing-card__who">{{ shortName(request.senderName, 'გამგზავნი') }}</p>
 
-          <div class="route-display">
-            <span class="route-city">{{ request.from }}</span>
-            <span class="route-arrow">→</span>
-            <span class="route-city">{{ request.to }}</span>
-          </div>
+            <p class="route">
+              <span class="route__city">{{ request.from }}</span>
+              <span class="route__arrow" aria-label="–">→</span>
+              <span class="route__city">{{ request.to }}</span>
+            </p>
 
-          <div class="card-details">
-            <div class="detail-item">
-              <span class="detail-label">წონა</span>
-              <span class="detail-value">{{ request.weight }} კგ</span>
-            </div>
-            <div class="detail-item">
-              <span class="detail-label">ღირებულება</span>
-              <span class="detail-value">{{ request.value }} ₾</span>
-            </div>
-            <div class="detail-item">
-              <span class="detail-label">თარიღი</span>
-              <span class="detail-value">{{ formatDate(request.createdAt!) }}</span>
-            </div>
-            <button class="view-request-button" (click)="viewRequest(request._id)">
+            <dl class="facts">
+              <div><dt>წონა</dt><dd>{{ request.weight }} კგ</dd></div>
+              <div><dt>დაემატა</dt><dd>{{ timeAgo(request.createdAt) }}</dd></div>
+            </dl>
+
+            <button type="button" class="btn btn--primary btn--block" (click)="viewRequest(request._id)">
               განცხადების ნახვა
+              <span class="sr-only">: {{ request.from }} – {{ request.to }}</span>
             </button>
           </div>
-        </div>
-      </div>
+        </article>
+      </li>
+    </ul>
 
-      <button
-        class="carousel-arrow carousel-arrow-right"
-        type="button"
-        (click)="scrollCarousel(requestsTrack, 1)"
-        aria-label="შემდეგი">
-        ›
-      </button>
+    <button type="button" class="carousel__arrow carousel__arrow--right" (click)="scrollCarousel(requestsTrack, 1)" aria-label="შემდეგი განცხადებები">›</button>
+  </div>
+</section>
+
+<section class="listings listings--trips" aria-labelledby="trips-title">
+  <header class="section-head">
+    <div>
+      <h2 id="trips-title" class="section-title">მძღოლები, რომლებიც მალე მიდიან</h2>
+      <p class="section-sub">აირჩიე მძღოლი, რომელიც შენს მიმართულებით მიემგზავრება</p>
     </div>
+    <a class="link-more" routerLink="/listing">ყველას ნახვა</a>
+  </header>
+
+  <div class="skeleton-row" *ngIf="isLoadingTrips" aria-busy="true" aria-label="მგზავრობები იტვირთება">
+    <div class="skeleton-card" *ngFor="let s of skeletons"></div>
   </div>
 
-  <div class="announcements-section">
-    <h2 class="section-title">🚗 მძღოლების ბოლო მგზავრობები</h2>
+  <div class="state" *ngIf="!isLoadingTrips && tripsFailed" role="alert">
+    <p class="state__title">მგზავრობები ვერ ჩაიტვირთა</p>
+    <p class="state__text">შეამოწმე ინტერნეტი და სცადე თავიდან.</p>
+    <button type="button" class="btn btn--outline" (click)="loadRecentTrips()">თავიდან ცდა</button>
+  </div>
 
-    <div *ngIf="isLoadingTrips" style="text-align: center; padding: 40px 20px; color: #64748b;">
-      ⏳ მგზავრობების ჩატვირთვა...
-    </div>
+  <div class="state" *ngIf="!isLoadingTrips && !tripsFailed && recentTrips.length === 0">
+    <p class="state__title">ჯერ მგზავრობა არ არის დამატებული</p>
+    <p class="state__text">მიდიხარ სხვა ქალაქში? დაამატე მგზავრობა და გზის ხარჯი ნაწილობრივ დაიფარე.</p>
+    <button type="button" class="btn btn--primary" (click)="startAsDriver()">მგზავრობის დამატება</button>
+  </div>
 
-    <div *ngIf="!isLoadingTrips && recentTrips.length === 0"
-         style="text-align: center; padding: 40px 20px; background: #f8fafc; border-radius: 16px; color: #64748b;">
-      <div style="font-size: 32px; margin-bottom: 12px;">🛣️</div>
-      <div style="font-size: 15px; font-weight: 600;">მგზავრობები ჯერ არ არის</div>
-      <div style="font-size: 13px; margin-top: 8px;">მალე მძღოლების მგზავრობები აქ გამოჩნდება</div>
-    </div>
+  <div class="carousel" *ngIf="!isLoadingTrips && recentTrips.length > 0">
+    <button type="button" class="carousel__arrow carousel__arrow--left" (click)="scrollCarousel(tripsTrack, -1)" aria-label="წინა მგზავრობები">‹</button>
 
-    <div class="carousel-wrapper" *ngIf="!isLoadingTrips && recentTrips.length > 0">
-      <button
-        class="carousel-arrow carousel-arrow-left"
-        type="button"
-        (click)="scrollCarousel(tripsTrack, -1)"
-        aria-label="წინა">
-        ‹
-      </button>
-
-      <div class="carousel-track trips-carousel" #tripsTrack>
-        <div class="trip-card-home" *ngFor="let trip of recentTrips">
-
-          <div class="card-image">
+    <ul class="carousel__track" #tripsTrack tabindex="0" aria-label="მძღოლების მგზავრობები">
+      <li *ngFor="let trip of recentTrips; trackBy: trackById">
+        <article class="listing-card">
+          <div class="listing-card__image">
             <img
-              *ngIf="trip.images && trip.images.length > 0"
+              *ngIf="trip.images && trip.images.length > 0; else noTripImage"
               [src]="trip.images[0]"
-              [alt]="trip.from + ' → ' + trip.to"
+              [alt]="'მგზავრობა: ' + trip.from + ' – ' + trip.to"
               loading="lazy" />
-            <div class="card-image-placeholder" *ngIf="!trip.images || trip.images.length === 0">
-              🚗
-            </div>
-            <span class="card-image-count" *ngIf="trip.images && trip.images.length > 1">
-              +{{ trip.images.length - 1 }}
+            <ng-template #noTripImage><span class="listing-card__placeholder" aria-hidden="true">🚗</span></ng-template>
+            <span class="listing-card__count" *ngIf="trip.images && trip.images.length > 1">
+              +{{ trip.images.length - 1 }} ფოტო
             </span>
           </div>
 
-          <div class="card-header">
-            <div class="driver-info">
-              <span class="driver-name">{{ trip.driverName || 'უცნობი მძღოლი' }}</span>
-            </div>
+          <div class="listing-card__body">
+            <p class="listing-card__who">{{ shortName(trip.driverName, 'მძღოლი') }}</p>
+
+            <p class="route">
+              <span class="route__city">{{ trip.from }}</span>
+              <span class="route__arrow" aria-label="–">→</span>
+              <span class="route__city">{{ trip.to }}</span>
+            </p>
+
+            <dl class="facts facts--3">
+              <div><dt>გასვლა</dt><dd>{{ formatDateTime(trip.departureDate) }}</dd></div>
+              <div><dt>თავისუფალი</dt><dd>{{ trip.availableSpace }} კგ</dd></div>
+              <div><dt>ფასი</dt><dd>{{ trip.pricePerKg }} ₾/კგ</dd></div>
+            </dl>
+
+            <p class="listing-card__orders" *ngIf="trip.acceptedShippings && trip.acceptedShippings.length > 0">
+              ✓ უკვე აქვს {{ trip.acceptedShippings.length }} შეკვეთა
+            </p>
+
+            <button type="button" class="btn btn--primary btn--block" (click)="viewTrip(trip._id)">
+              მგზავრობის ნახვა
+              <span class="sr-only">: {{ trip.from }} – {{ trip.to }}</span>
+            </button>
           </div>
+        </article>
+      </li>
+    </ul>
 
-          <div class="route-display">
-            <span class="route-city">{{ trip.from }}</span>
-            <span class="route-arrow">→</span>
-            <span class="route-city">{{ trip.to }}</span>
-          </div>
-
-          <div class="card-details">
-            <div class="detail-item">
-              <span class="detail-label">გასვლა</span>
-              <span class="detail-value">{{ formatDateTime(trip.departureDate!) }}</span>
-            </div>
-            <div class="detail-item">
-              <span class="detail-label">თავისუფალი ადგილი</span>
-              <span class="detail-value">{{ trip.availableSpace }} კგ</span>
-            </div>
-            <div class="detail-item">
-              <span class="detail-label">ფასი</span>
-              <span class="detail-value">{{ trip.pricePerKg }} ₾/კგ</span>
-            </div>
-          </div>
-
-          <div *ngIf="trip.acceptedShippings && trip.acceptedShippings.length > 0"
-               class="shippings-info">
-            <span class="shipping-count">✓ {{ trip.acceptedShippings.length }} შეკვეთა</span>
-            <span class="shipping-earnings">{{ getTripEarnings(trip) }}</span>
-          </div>
-
-          <button class="view-request-button" (click)="viewTrip(trip._id)">
-            მგზავრობის ნახვა
-          </button>
-        </div>
-      </div>
-
-      <button
-        class="carousel-arrow carousel-arrow-right"
-        type="button"
-        (click)="scrollCarousel(tripsTrack, 1)"
-        aria-label="შემდეგი">
-        ›
-      </button>
-    </div>
+    <button type="button" class="carousel__arrow carousel__arrow--right" (click)="scrollCarousel(tripsTrack, 1)" aria-label="შემდეგი მგზავრობები">›</button>
   </div>
-</div>
+</section>
 
-<!-- ⚠️ დუბლირებული "დაიწყე 3 მარტივი ნაბიჯით" სექცია (steps1-ზე დაფუძნებული) წაშლილია.
-     დარჩა მხოლოდ ერთი, steps მასივზე დაფუძნებული სექცია. -->
-<section class="preview">
-  <div class="preview-container">
-    <h2 class="preview-title">დაიწყე 3 მარტივი ნაბიჯით</h2>
+<!-- ============ 3 ნაბიჯი ============ -->
+<section class="steps" aria-labelledby="steps-title">
+  <div class="steps__inner">
+    <h2 id="steps-title" class="steps__title">დაიწყე 3 მარტივი ნაბიჯით</h2>
 
-    <div class="preview-grid">
-      <ng-container *ngFor="let step of steps; let isLast = last">
-        <div class="preview-card">
-          <div class="preview-number">{{ step.id }}</div>
-          <h3 class="preview-card-title">{{ step.title }}</h3>
-          <p class="preview-card-description">{{ step.description }}</p>
-        </div>
+    <ol class="steps__list">
+      <li class="steps__item" *ngFor="let step of steps">
+        <span class="steps__number" aria-hidden="true">{{ step.id }}</span>
+        <h3>{{ step.title }}</h3>
+        <p>{{ step.description }}</p>
+      </li>
+    </ol>
 
-        <div class="preview-arrow" *ngIf="!isLast" aria-hidden="true">→</div>
-      </ng-container>
+    <div class="steps__cta">
+      <button type="button" class="btn btn--primary btn--lg" (click)="startAsSender()">ამანათის გაგზავნა</button>
+      <a class="link-more link-more--light" routerLink="/howtowork">როგორ მუშაობს დეტალურად</a>
     </div>
   </div>
 </section>
 
-<section class="badges">
-  <div class="badges-container">
-    <div class="badge" *ngFor="let badge of badges">
-      <span class="badge-icon">{{ badge.icon }}</span>
-      <span class="badge-text">{{ badge.text }}</span>
-    </div>
+<!-- ============ ნდობა ============ -->
+<section class="trust" aria-label="რატომ ჩვენთან">
+  <ul class="trust__list">
+    <li class="trust__item" *ngFor="let item of trust">
+      <span class="trust__icon" aria-hidden="true">{{ item.icon }}</span>
+      <div>
+        <p class="trust__title">{{ item.title }}</p>
+        <p class="trust__text">{{ item.text }}</p>
+      </div>
+    </li>
+  </ul>
+</section>
+
+<!-- ============ ვისთვისაა ============ -->
+<section class="audience" aria-labelledby="audience-title">
+  <h2 id="audience-title" class="section-title section-title--center">მიკროლოჯისტიკა: ორივე მხარისთვის მოსახერხებელია</h2>
+
+  <div class="audience__grid">
+    <article class="audience__card audience__card--sender">
+      <h3>თუ გინდა ამანათის გაგზავნა</h3>
+      <ul>
+        <li>ფასი შეიძლება უფრო ხელმისაწვდომი იყოს, რადგან მძღოლი ისედაც მიდის იმ მიმართულებით</li>
+        <li>არჩევანამდე ხედავ მძღოლის პროფილს და მგზავრობის დეტალებს</li>
+        <li>დეტალებს მძღოლთან შიდა ჩატში აზუსტებ</li>
+      </ul>
+      <button type="button" class="btn btn--primary" (click)="startAsSender()">ამანათის გაგზავნა</button>
+    </article>
+
+    <article class="audience__card audience__card--driver">
+      <h3>თუ გზაში ხარ</h3>
+      <ul>
+        <li>გზის ხარჯი ნაწილობრივ ან სრულად შეგიძლია დაიფარო</li>
+        <li>თავად წყვეტ, რომელ შეკვეთას მიიღებ</li>
+        <li>კარგი შეფასებები ზრდის ნდობას და მეტ შეკვეთას გიტანს</li>
+      </ul>
+      <button type="button" class="btn btn--blue" (click)="startAsDriver()">მგზავრობის დამატება</button>
+    </article>
   </div>
 </section>
 
-<section class="how-it-works">
-  <div class="how-intro">
-    <!-- ⚠️ h1 → h2 შეცვლილია: გვერდზე უკვე არსებობს hero-title-ის h1, SEO-სთვის ერთი h1 საჭიროა -->
-    <h2 class="how-title">როგორ მუშაობს მიკროლოჯისტიკა</h2>
-    <p class="how-description">
-      სულ რამდენიმე მარტივი ნაბიჯი — და იპოვით მძღოლს, რომელიც თქვენს ამანათს თავისი მარშრუტით გადაიტანს
-    </p>
+<!-- ============ FAQ ============ -->
+<section class="faq" aria-labelledby="faq-title">
+  <h2 id="faq-title" class="section-title section-title--center">ხშირად დასმული კითხვები</h2>
+
+  <div class="faq__list">
+    <details class="faq__item" *ngFor="let faq of faqs">
+      <summary>{{ faq.question }}</summary>
+      <p>{{ faq.answer }}</p>
+    </details>
   </div>
 
-  <div class="how-flows">
-    <div class="flow-column sender-flow">
-      <div class="flow-header">
-        <h2 class="flow-title">
-          <span class="flow-icon">📦</span>
-          ამანათის გაგზავნა
-        </h2>
-        <p class="flow-subtitle">თუ გსურთ ნივთის ან დოკუმენტის გაგზავნა</p>
-      </div>
+  <p class="faq__more">
+    სხვა კითხვა გაქვს? <a routerLink="/support">მოგვწერე</a> ან გადაავლე თვალი <a routerLink="/rules">წესებს</a>.
+  </p>
+</section>
 
-      <div class="steps-container">
-        <div class="step-card">
-          <div class="step-number">1</div>
-          <div class="step-content">
-            <h3 class="step-title">დარეგისტრირდი</h3>
-            <p class="step-description">
-              პირველ რიგში, გაიარეთ სწრაფი რეგისტრაცია პლატფორმაზე. 
-              პროცესი მაქსიმალურად მარტივია:
-            </p>
-            <ul class="step-details">
-              <li>მიუთითეთ ტელეფონის ნომერი ან ელ-ფოსტა</li>
-              <li>შეავსეთ ძირითადი ინფორმაცია (სახელი, გვარი)</li>
-              <li>დაადასტურეთ პროფილის შექმნა</li>
-            </ul>
-            <div class="step-note">
-              ⏱️ <strong>დრო:</strong> დაახლოებით 1-2 წუთი
-            </div>
-          </div>
-        </div>
+<!-- ============ ფინალური CTA ============ -->
+<section class="final-cta" aria-labelledby="cta-title">
+  <h2 id="cta-title">{{ isLoggedIn ? 'რა გინდა გააკეთო დღეს?' : 'მზად ხარ დასაწყებად?' }}</h2>
+  <p>
+    {{ isLoggedIn
+      ? 'გამოაქვეყნე ამანათი ან დაამატე მგზავრობა.'
+      : 'დარეგისტრირდი უფასოდ და იპოვე მძღოლი შენს მიმართულებაზე.' }}
+  </p>
 
-        <div class="step-card">
-          <div class="step-number">2</div>
-          <div class="step-content">
-            <h3 class="step-title">მიუთითე ამანათის დეტალები</h3>
-            <p class="step-description">
-              სისტემაში შესვლის შემდეგ, შეავსეთ გაგზავნის მოკლე ფორმა:
-            </p>
-            <ul class="step-details">
-              <li><strong>საიდან:</strong> ქალაქი/ლოკაცია, საიდანაც იგზავნება ნივთი</li>
-              <li><strong>სად:</strong> დანიშნულების ადგილი (ბათუმი, ქუთაისი, გორი და ა.შ.)</li>
-              <li><strong>გაგზავნის თარიღი:</strong> როდის გსურთ ნივთის გაგზავნა</li>
-              <li><strong>ამანათის აღწერა:</strong> მიუთითეთ ტიპი (საბუთები, ტანსაცმელი, ტექნიკა)</li>
-              <li><strong>წონა/ზომა:</strong> ამანათის მიახლოებითი წონა კილოგრამებში</li>
-              <li><strong>ღირებულება:</strong> ნივთის სავარაუდო ფასი (მძღოლისთვის ინფორმაციის მიწოდების მიზნით)</li>
-            </ul>
-            <div class="step-note">
-              💰 <strong>ფასი:</strong> ფასს განსაზღვრავს მძღოლი თავისი ტარიფის მიხედვით, თქვენ კი თავად წყვეტთ, ეთანხმებით თუ არა
-            </div>
-          </div>
-        </div>
+  <div class="final-cta__buttons">
+    <ng-container *ngIf="!isLoggedIn; else loggedCta">
+      <button type="button" class="btn btn--primary btn--lg" routerLink="/register">უფასო რეგისტრაცია</button>
+      <button type="button" class="btn btn--ghost btn--lg" routerLink="/login">უკვე მაქვს ანგარიში</button>
+    </ng-container>
 
-        <div class="step-card">
-          <div class="step-number">3</div>
-          <div class="step-content">
-            <h3 class="step-title">აირჩიე მძღოლი ან დაელოდე გამოხმაურებას</h3>
-            <p class="step-description">
-              თქვენ გაქვთ არჩევანის რამდენიმე ვარიანტი:
-            </p>
-            <ul class="step-details">
-              <li>
-                <strong>არსებული მძღოლები:</strong> შეგიძლიათ თავად აირჩიოთ მძღოლი, რომელიც უკვე გეგმავს მგზავრობას ამ მიმართულებით
-              </li>
-              <li>
-                <strong>მოთხოვნის განთავსება:</strong> დატოვეთ განაცხადი და მძღოლებს, რომლებიც ამ მარშრუტით მიდიან, საშუალება ექნებათ თავად დაგიკავშირდნენ
-              </li>
-            </ul>
-            <div class="step-note">
-              🔔 <strong>შეტყობინება:</strong> მძღოლის გამოხმაურებისას მიიღებთ შეტყობინებას
-            </div>
-          </div>
-        </div>
-
-      </div>
-
-      <div class="flow-benefits">
-        <h3 class="benefits-title">რატომ მიკროლოჯისტიკა?</h3>
-        <div class="benefits-grid">
-          <div class="benefit-item">
-            <span class="benefit-icon">💸</span>
-            <span class="benefit-text">შესაძლოა უფრო ხელმისაწვდომი ფასი — მძღოლი მაინც მიდის ამ მიმართულებით</span>
-          </div>
-          <div class="benefit-item">
-            <span class="benefit-icon">⚡</span>
-            <span class="benefit-text">მიწოდების დრო დამოკიდებულია მძღოლის მგზავრობის გრაფიკზე</span>
-          </div>
-          <div class="benefit-item">
-            <span class="benefit-icon">👀</span>
-            <span class="benefit-text">მძღოლისა და მგზავრობის დეტალების ნახვა არჩევანის გაკეთებამდე</span>
-          </div>
-          <div class="benefit-item">
-            <span class="benefit-icon">💬</span>
-            <span class="benefit-text">პირდაპირი კომუნიკაცია მძღოლთან შიდა ჩატით</span>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="flow-column driver-flow">
-      <div class="flow-header">
-        <h2 class="flow-title">
-          <span class="flow-icon">🚗</span>
-          მძღოლებისთვის
-        </h2>
-        <p class="flow-subtitle">თუ გეგმავთ ქალაქებს შორის მგზავრობას</p>
-      </div>
-
-      <div class="steps-container">
-        <div class="step-card">
-          <div class="step-number">1</div>
-          <div class="step-content">
-            <h3 class="step-title">გაიარე რეგისტრაცია და ვერიფიკაცია</h3>
-            <p class="step-description">
-              პლატფორმის მომხმარებლებისთვის სანდოობის უზრუნველსაყოფად საჭიროა პროფილის დადასტურება:
-            </p>
-            <ul class="step-details">
-              <li>შეავსეთ პირადი მონაცემები (სახელი, ტელეფონი)</li>
-              <li>მიუთითეთ ავტომობილის მოდელი და სახელმწიფო ნომერი</li>
-              <li>ატვირთეთ მართვის მოწმობის ფოტო</li>
-              <li>სასურველია ავტომობილის დაზღვევის მითითებაც (დამატებითი უპირატესობისთვის)</li>
-            </ul>
-            <div class="step-note">
-              ✅ <strong>აქტივაცია:</strong> მონაცემების გადამოწმების შემდეგ თქვენი პროფილი გააქტიურდება
-            </div>
-          </div>
-        </div>
-
-        <div class="step-card">
-          <div class="step-number">2</div>
-          <div class="step-content">
-            <h3 class="step-title">განათავსე მგზავრობის გეგმა</h3>
-            <p class="step-description">
-              პროფილის გააქტიურების შემდეგ, დაამატეთ თქვენი მარშრუტი:
-            </p>
-            <ul class="step-details">
-              <li><strong>საიდან - სად:</strong> მიუთითეთ საწყისი და საბოლოო პუნქტები</li>
-              <li><strong>თარიღი და დრო:</strong> როდის გეგმავთ გამგზავრებას</li>
-              <li><strong>თავისუფალი ადგილი:</strong> რა ზომის ამანათების წაღება შეგიძლიათ საბარგულით</li>
-              <li><strong>ფასი:</strong> მიუთითეთ თქვენთვის სასურველი ტარიფი (₾/კგ)</li>
-              <li><strong>კომენტარი:</strong> დაამატეთ დეტალები (მაგ. „მივდივარ კომფორტული სედანით“)</li>
-            </ul>
-            <div class="step-note">
-              📢 <strong>ხილვადობა:</strong> განთავსების შემდეგ თქვენი მგზავრობა გამოჩნდება ძიების შედეგებში
-            </div>
-          </div>
-        </div>
-
-        <div class="step-card">
-          <div class="step-number">3</div>
-          <div class="step-content">
-            <h3 class="step-title">მიიღე შეკვეთები</h3>
-            <p class="step-description">
-              პლატფორმაზე მუშაობის ორი გზა არსებობს:
-            </p>
-            <ul class="step-details">
-              <li>
-                <strong>შემოსული მოთხოვნები:</strong> მომხმარებლებს შეუძლიათ ნახონ თქვენი მარშრუტი და გამოგიგზავნონ შეკვეთა
-              </li>
-              <li>
-                <strong>დეტალების შეთანხმება:</strong> ზუსტი ადგილი და დრო მარტივად დააზუსტეთ შიდა ჩატში
-              </li>
-            </ul>
-            <div class="step-note">
-              🎯 <strong>რეიტინგი:</strong> კარგი რეიტინგი ზრდის მომხმარებელთა ნდობას
-            </div>
-          </div>
-        </div>
-
-        <div class="step-card">
-          <div class="step-number">4</div>
-          <div class="step-content">
-            <h3 class="step-title">აიღე, გადააადგილე და ჩააბარე</h3>
-            <p class="step-description">
-              მგზავრობის დღეს:
-            </p>
-            <ul class="step-details">
-              <li>
-                <strong>ამანათის მიღება:</strong> შეხვდით გამგზავნს და თავად შეამოწმეთ ნივთი, სანამ გადაიბარებთ
-              </li>
-              <li>
-                <strong>მგზავრობა:</strong> იმოძრავეთ თქვენი მარშრუტით უსაფრთხოდ და კომფორტულად
-              </li>
-              <li>
-                <strong>მიწოდება:</strong> დანიშნულების ადგილზე დაუკავშირდით მიმღებს
-              </li>
-              <li>
-                <strong>ჩაბარება:</strong> ჩააბარეთ ამანათი მიმღებს შეთანხმებისამებრ
-              </li>
-              <li>
-                <strong>ანგარიშსწორება:</strong> ანგარიშსწორება ხდება გამგზავნთან წინასწარი შეთანხმებით (მაგ. ნაღდი ანგარიშსწორებით ჩაბარებისას)
-              </li>
-            </ul>
-            <div class="step-note">
-              💵 <strong>შემოსავალი:</strong> გზაში მყოფმა შეგიძლიათ ნაწილობრივ ან სრულად დაფაროთ საწვავის ხარჯი
-            </div>
-          </div>
-        </div>
-
-        <div class="step-card">
-          <div class="step-number">5</div>
-          <div class="step-content">
-            <h3 class="step-title">შეფასება და განმეორება</h3>
-            <p class="step-description">
-              შეკვეთის დასრულების შემდეგ:
-            </p>
-            <ul class="step-details">
-              <li>მომხმარებელს შეუძლია დაგიწეროთ შეფასება</li>
-              <li>კომენტარებში შესაძლოა აღინიშნოს თქვენი პუნქტუალურობა და სერვისი</li>
-              <li>დადებითი ისტორია ზრდის თქვენდამი ნდობას პლატფორმაზე</li>
-              <li>შეგიძლიათ განათავსოთ მომდევნო მგზავრობა</li>
-            </ul>
-            <div class="step-note">
-              ⭐ <strong>რჩევა:</strong> დროული და კორექტული მომსახურება ხელს უწყობს მეტი შეკვეთის მიღებას
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="flow-benefits">
-        <h3 class="benefits-title">რა უპირატესობა გაქვთ?</h3>
-        <div class="benefits-grid">
-          <div class="benefit-item">
-            <span class="benefit-icon">💰</span>
-            <span class="benefit-text">შესაძლებლობა, გზის ხარჯი ნაწილობრივ ან სრულად დაიფაროთ</span>
-          </div>
-          <div class="benefit-item">
-            <span class="benefit-icon">🕐</span>
-            <span class="benefit-text">თავისუფლება — თავად წყვეტთ, რომელ შეკვეთას მიიღებთ, როცა გზაში ხართ</span>
-          </div>
-          <div class="benefit-item">
-            <span class="benefit-icon">🤝</span>
-            <span class="benefit-text">პირდაპირი შეთანხმება გამგზავნთან ფასსა და პირობებზე</span>
-          </div>
-          <div class="benefit-item">
-            <span class="benefit-icon">⭐</span>
-            <span class="benefit-text">კარგი შეფასებებით ნდობის ზრდის შესაძლებლობა</span>
-          </div>
-        </div>
-      </div>
-    </div>
+    <ng-template #loggedCta>
+      <button type="button" class="btn btn--primary btn--lg" (click)="startAsSender()">ამანათის გაგზავნა</button>
+      <button type="button" class="btn btn--ghost btn--lg" (click)="startAsDriver()">მგზავრობის დამატება</button>
+    </ng-template>
   </div>
-
-  <section class="how-faq">
-    <h2 class="faq-title">ხშირად დასმული კითხვები</h2>
-    
-    <div class="faq-container">
-      <div class="faq-item">
-        <h3 class="faq-question">რამდენი ღირს ამანათის გაგზავნა?</h3>
-        <p class="faq-answer">
-          ფასს ადგენს მძღოლი და ის დამოკიდებულია მარშრუტის მანძილზე, ამანათის წონასა და ზომაზე. 
-          ვინაიდან მძღოლი ამ მიმართულებით ისედაც მგზავრობს, ფასი შეიძლება უფრო ხელმისაწვდომი იყოს, თუმცა კონკრეტული თანხა მხარეთა შეთანხმებაზეა დამოკიდებული.
-        </p>
-      </div>
-
-      <div class="faq-item">
-        <h3 class="faq-question">უსაფრთხოა თუ არა ჩემი ამანათი?</h3>
-        <p class="faq-answer">
-          პლატფორმა წარმოადგენს გამგზავნსა და მძღოლს შორის დამაკავშირებელ სივრცეს და თავად არ ახორციელებს გადაზიდვას. 
-          ამანათის გადაზიდვის პირობები მხარეები თავად შეთანხმდებიან. 
-          გადაწყვეტილების მიღებამდე გირჩევთ, გაეცნოთ მძღოლის პროფილსა და მგზავრობის დეტალებს, მიუთითოთ ამანათის ზუსტი აღწერა და არ გააგზავნოთ განსაკუთრებით ძვირფასი ან მყიფე ნივთები წინასწარი შეთანხმების გარეშე. 
-          დეტალური პირობები იხილეთ „გამოყენების წესებში“.
-        </p>
-      </div>
-
-      <div class="faq-item">
-        <h3 class="faq-question">მხოლოდ მცირე ზომის (მაგ. 500 გრამი) ნივთის გაგზავნა შემიძლია?</h3>
-        <p class="faq-answer">
-          დიახ. პლატფორმაზე მინიმალური ლიმიტი არ არსებობს — შეგიძლიათ გაგზავნოთ როგორც კონვერტი ან გასაღები, ისე დიდი ზომის ტვირთი, თუ მძღოლი დათანხმდება და საბარგულში შესაბამისი ადგილი ექნება.
-        </p>
-      </div>
-
-      <div class="faq-item">
-        <h3 class="faq-question">რა დრო სჭირდება მიწოდებას?</h3>
-        <p class="faq-answer">
-          მიწოდების დრო დამოკიდებულია მძღოლის მგზავრობის გრაფიკზე, მარშრუტსა და გზის პირობებზე. 
-          რადგან მძღოლი თავისი გეგმიური მგზავრობისას გადააქვს ამანათს, ზუსტ დროს მძღოლთან შეთანხმებისას დააზუსტებთ.
-        </p>
-      </div>
-
-      <div class="faq-item">
-        <h3 class="faq-question">როგორ ხდება ანგარიშსწორება?</h3>
-        <p class="faq-answer">
-          ამჟამად ანგარიშსწორება ხდება უშუალოდ გამგზავნსა და მძღოლს შორის, წინასწარი შეთანხმებით (მაგ. ნაღდი ანგარიშსწორებით ამანათის ჩაბარებისას). 
-          პლატფორმა თანხის გადახდას ან შენახვას ამჟამად არ ახორციელებს.
-        </p>
-      </div>
-
-      <div class="faq-item">
-        <h3 class="faq-question">აქვს თუ არა პლატფორმას საკომისიო?</h3>
-        <p class="faq-answer">
-          ამჟამად პლატფორმით სარგებლობა უფასოა. მომავალში შესაძლოა დაწესდეს საკომისიო; ასეთ შემთხვევაში ამის შესახებ მომხმარებლებს წინასწარ გავაფრთხილებთ და განახლებულ პირობებს გამოვაქვეყნებთ.
-        </p>
-      </div>
-
-      <div class="faq-item">
-        <h3 class="faq-question">რა ვქნა, თუ მძღოლი დათქმულ დროს არ გამოჩნდა?</h3>
-        <p class="faq-answer">
-          პირველ რიგში, დაუკავშირდით მძღოლს შიდა ჩატით ან ტელეფონით და დააზუსტეთ სიტუაცია. 
-          თუ კავშირი ვერ დამყარდა, შეგიძლიათ გააუქმოთ შეკვეთა და აირჩიოთ სხვა მძღოლი. 
-          პრობლემის შემთხვევაში მოგვმართეთ მხარდაჭერის გუნდს და შევეცდებით დაგეხმაროთ.
-        </p>
-      </div>
-
-      <div class="faq-item">
-        <h3 class="faq-question">ვინ არის პასუხისმგებელი გადაზიდვის პროცესზე?</h3>
-        <p class="faq-answer">
-          გადაზიდვა ხორციელდება გამგზავნსა და მძღოლს შორის შეთანხმების საფუძველზე. 
-          პლატფორმა უზრუნველყოფს მათ დაკავშირებას და ინფორმაციის გაცვლის შესაძლებლობას. 
-          მხარეთა უფლება-მოვალეობები და პასუხისმგებლობა დეტალურად იხილეთ „გამოყენების წესებში“.
-        </p>
-      </div>
-    </div>
-  </section>
-
-  <section class="how-cta">
-    <h2 class="cta-title">მზად ხართ დასაწყებად?</h2>
-    <p class="cta-description">
-      დარეგისტრირდით ახლავე და იპოვეთ მძღოლი თქვენი მიმართულებით
-    </p>
-    <div class="cta-buttons">
-      <button class="button button-primary" routerLink="/register" (click)="scrollToTop()">
-        რეგისტრაცია
-      </button>
-      <button class="button button-secondary" routerLink="/" (click)="scrollToTop()">
-        მთავარ გვერდზე დაბრუნება
-      </button>
-    </div>
-  </section>
 </section>
