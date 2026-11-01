@@ -1,30 +1,38 @@
 <!-- ============ HERO ============ -->
 <section class="hero" aria-labelledby="hero-title">
-  <div class="hero__content">
-    <p class="hero__badge"><span aria-hidden="true">🚚</span> მარტივი • მოხერხებული • მთელი საქართველო</p>
+  <div class="hero__inner">
+    <!-- მარცხენა მხარე: ტექსტი -->
+    <div class="hero__copy">
+      <p class="hero__badge"><span aria-hidden="true">🚚</span> მარტივი • მოხერხებული • მთელი საქართველო</p>
 
-    <h1 id="hero-title" class="hero__title">
-      გააგზავნე ნებისმიერი ნივთი
-      <span>საქართველოს ნებისმიერ ქალაქში</span>
-    </h1>
+      <h1 id="hero-title" class="hero__title">
+        გააგზავნე ნებისმიერი ნივთი
+        <span>საქართველოს ნებისმიერ ქალაქში</span>
+      </h1>
 
-    <p class="hero__lead">
-      იპოვე მძღოლი, რომელიც უკვე მიდის შენთვის სასურველი მიმართულებით და პირდაპირ შეთანხმდი ფასზე.
-    </p>
+      <p class="hero__lead">
+        იპოვე მძღოლი, რომელიც უკვე მიდის შენთვის სასურველი მიმართულებით და პირდაპირ შეთანხმდი ფასზე.
+      </p>
 
-    <div class="hero__actions">
-      <button type="button" class="btn btn--primary btn--lg" (click)="startAsSender()">
-        ამანათის გაგზავნა
-      </button>
-      <button type="button" class="btn btn--ghost btn--lg" (click)="startAsDriver()">
-        მძღოლი ვარ, ამანათს წავიღებ
-      </button>
+      <div class="hero__actions">
+        <button type="button" class="btn btn--primary btn--lg" (click)="startAsSender()">
+          ამანათის გაგზავნა
+        </button>
+        <button type="button" class="btn btn--ghost btn--lg" (click)="startAsDriver()">
+          მძღოლი ვარ, ამანათს წავიღებ
+        </button>
+      </div>
+
+      <p class="hero__hint" *ngIf="!isLoggedIn">უფასო რეგისტრაცია, დაახლოებით 1–2 წუთი</p>
     </div>
 
-    <p class="hero__hint" *ngIf="!isLoggedIn">უფასო რეგისტრაცია, დაახლოებით 1–2 წუთი</p>
-
-    <!-- სწრაფი ძიება -->
+    <!-- მარჯვენა მხარე: სწრაფი ძიება -->
     <form class="search" role="search" aria-label="მძღოლების ძიება მარშრუტით" (ngSubmit)="search()">
+      <div class="search__head">
+        <p class="search__title">იპოვე მძღოლი</p>
+        <p class="search__sub">აირჩიე მარშრუტი და ნახე, ვინ მიდის შენს მიმართულებით</p>
+      </div>
+
       <div class="search__field">
         <label for="search-from">საიდან</label>
         <select id="search-from" name="from" [(ngModel)]="searchFrom">
@@ -34,7 +42,7 @@
       </div>
 
       <button type="button" class="search__swap" (click)="swapCities()" aria-label="მიმართულების შებრუნება">
-        <span aria-hidden="true">⇄</span>
+        <span aria-hidden="true">⇅</span>
       </button>
 
       <div class="search__field">
@@ -45,9 +53,10 @@
         </select>
       </div>
 
-      <button type="submit" class="btn btn--primary search__submit">მძღოლების ძებნა</button>
+      <button type="submit" class="btn btn--primary btn--lg btn--block search__submit">მძღოლების ძებნა</button>
     </form>
 
+    <!-- თეგები: ორივე სვეტის ქვემოთ -->
     <ul class="hero__tags" aria-label="რისი გაგზავნა შეიძლება">
       <li *ngFor="let tag of tags">{{ tag }}</li>
     </ul>
