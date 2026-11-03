@@ -19,7 +19,7 @@
   --green: #22b573;
   --red: #e5484d;
 
-  --nav-h: 78px;      // ნავბარის სიმაღლე (მობილური მენიუს პოზიციისთვის)
+  --nav-h: 86px;      // ადგილი გვერდზე: 10px ზემოდან + 68px ნავბარი + 8px დაშორება
   --bp: 1240px;       // დესკტოპზე გადასვლის წერტილი (იხილე @media-ები)
 
   --shadow: 0 10px 30px rgba(20, 36, 107, 0.12);
@@ -90,25 +90,29 @@
 }
 
 // =====================================================
-// ნავბარი
+// ნავბარი (მობილურზეც "მცურავი" და მომრგვალებული, როგორც დესკტოპზე)
 // =====================================================
+// ყურადღება: აქ backdrop-filter არ გამოიყენება. მისი გამო position: fixed
+// შვილები (მობილური მენიუ, ბექდროპი, შეტყობინებები) ნავბარის შიგნით "ჩაიკეტებოდა"
+// და მენიუ დაიშლებოდა. ბლური მხოლოდ დესკტოპზეა, სადაც მენიუ ჩვეულებრივია.
 .navbar {
   position: fixed;
-  top: 5;
-  left: 0;
-  right: 0;
-  margin-left: 1%;
-  margin-right: 1%;
+  top: 10px;
+  left: 12px;
+  right: 12px;
   z-index: 1000;
-  height: var(--nav-h);
-  padding: 0 20px 14px;
+  height: 68px;
+  padding: 0 14px;
   background: rgba(255, 255, 255, 0.97);
-  box-shadow: 0 6px 24px rgba(20, 36, 107, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  border-radius: 34px;
+  box-shadow: 0 12px 30px rgba(20, 36, 107, 0.16);
 
   // ნაზი წერტილოვანი ფონი
   &__pattern {
     position: absolute;
     inset: 0;
+    border-radius: inherit;
     pointer-events: none;
     background-image: radial-gradient(rgba(20, 36, 107, 0.08) 1.1px, transparent 1.3px);
     background-size: 22px 22px;
@@ -120,6 +124,7 @@
   &__glow {
     position: absolute;
     inset: 0;
+    border-radius: inherit;
     pointer-events: none;
 
     &--orange {
@@ -139,9 +144,9 @@
     align-items: center;
     gap: 16px;
     max-width: 1320px;
-    min-height: 64px;
+    min-height: 66px;
     margin: 0 auto;
-    padding-top: 8px;
+    padding-top: 0;
   }
 }
 
@@ -213,7 +218,7 @@
   padding: 0;
   background: var(--sky);
   border: 0;
-  border-radius: 14px;
+  border-radius: 50%;
   cursor: pointer;
   transition: background 0.2s ease;
 
@@ -254,15 +259,16 @@
 .nav-menu {
   position: fixed;
   top: var(--nav-h);
-  left: 0;
-  right: 0;
+  left: 12px;
+  right: 12px;
   z-index: 1100;
-  max-height: calc(100vh - var(--nav-h));
-  max-height: calc(100dvh - var(--nav-h));
-  padding: 14px 20px 26px;
+  max-height: calc(100vh - var(--nav-h) - 12px);
+  max-height: calc(100dvh - var(--nav-h) - 12px);
+  padding: 14px 20px 22px;
   overflow-y: auto;
   background: var(--white);
-  border-top: 1.5px solid var(--line);
+  border: 1.5px solid var(--line);
+  border-radius: 28px;
   box-shadow: 0 24px 40px rgba(13, 26, 84, 0.2);
   visibility: hidden;
   opacity: 0;
@@ -579,8 +585,8 @@
 .notification-dropdown {
   position: fixed;
   top: calc(var(--nav-h) + 8px);
-  left: 16px;
-  right: 16px;
+  left: 12px;
+  right: 12px;
   z-index: 1200;
   max-height: calc(100vh - var(--nav-h) - 24px);
   max-height: calc(100dvh - var(--nav-h) - 24px);
@@ -725,8 +731,10 @@
 
 // =====================================================
 // გზა და მანქანა (დეკორატიული)
+// მომრგვალებულ "მცურავ" ნავბარში არ ჯდება, ამიტომ ყველგან დამალულია
 // =====================================================
 .road {
+  display: none;
   position: absolute;
   left: 0;
   right: 0;
@@ -810,6 +818,7 @@
     overflow: visible;
     background: transparent;
     border: 0;
+    border-radius: 0;
     box-shadow: none;
     visibility: visible;
     opacity: 1;
@@ -847,8 +856,16 @@
 // პატარა ეკრანები
 @media (max-width: 420px) {
   .navbar {
-    padding-left: 14px;
-    padding-right: 14px;
+    left: 8px;
+    right: 8px;
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .nav-menu,
+  .notification-dropdown {
+    left: 8px;
+    right: 8px;
   }
 
   .brand__text {
@@ -862,10 +879,6 @@
   *::after {
     animation: none !important;
     transition: none !important;
-  }
-
-  .road__car {
-    left: 40%;
   }
 }
 
@@ -882,8 +895,6 @@
     top: 10px;
     left: 20px;
     right: 20px;
-    margin-left: 0;   // მობილურის 1% აქ ზედმეტია (left/right უკვე გვაქვს)
-    margin-right: 0;
     height: 76px;
     padding: 0 26px;
     background: rgba(255, 255, 255, 0.9);
@@ -903,11 +914,6 @@
       max-width: none;   // 1320px-იანი ლიმიტი აქ ზედმეტია და შიგთავსს ავიწროებს
       padding-top: 0;
     }
-  }
-
-  // გზა და მანქანა მაკეტში არ არის
-  .road {
-    display: none;
   }
 
   // ლოგო + ვერტიკალური გამყოფი
@@ -1064,8 +1070,6 @@
   .navbar {
     left: 14px;
     right: 14px;
-    margin-left: 0;
-    margin-right: 0;
     padding: 0 18px;
 
     &__inner {

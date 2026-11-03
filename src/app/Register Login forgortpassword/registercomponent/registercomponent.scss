@@ -31,7 +31,17 @@ $font: 'Noto Sans Georgian', 'BPG Nino Mtavruli', 'Segoe UI', system-ui, sans-se
 @mixin desktop-down { @media (max-width: 960px) { @content; } }
 @mixin mobile       { @media (max-width: 600px) { @content; } }
 
-:host { display: block; }
+// box-sizing აუცილებელია: მის გარეშე input-ის width:100% + padding
+// კონტეინერის სიგანეს აღემატება და მარჯვნივ გადმოდის
+:host {
+  display: block;
+
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+}
 
 @keyframes spin { to { transform: rotate(360deg); } }
 
@@ -512,12 +522,16 @@ $font: 'Noto Sans Georgian', 'BPG Nino Mtavruli', 'Segoe UI', system-ui, sans-se
   display: flex;
   flex-direction: column;
   gap: 26px;
+  width: 100%;
+  min-width: 0;
 }
 
 .form-section {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  width: 100%;
+  min-width: 0;
   padding: 22px;
   border-radius: $radius-lg;
   background: linear-gradient(180deg, #fbfdff, #f4f8ff);
@@ -540,6 +554,7 @@ $font: 'Noto Sans Georgian', 'BPG Nino Mtavruli', 'Segoe UI', system-ui, sans-se
   display: flex;
   flex-direction: column;
   gap: 6px;
+  width: 100%;
   min-width: 0;
 }
 
@@ -551,6 +566,8 @@ $font: 'Noto Sans Georgian', 'BPG Nino Mtavruli', 'Segoe UI', system-ui, sans-se
 
 .input-wrap {
   position: relative;
+  width: 100%;
+  min-width: 0;
 
   .input-icon {
     position: absolute;
@@ -586,7 +603,9 @@ $font: 'Noto Sans Georgian', 'BPG Nino Mtavruli', 'Segoe UI', system-ui, sans-se
 }
 
 .input-field {
+  display: block;
   width: 100%;
+  max-width: 100%;
   padding: 14px 16px;
   border-radius: $radius-sm;
   border: 1.5px solid $line;
@@ -623,6 +642,7 @@ $font: 'Noto Sans Georgian', 'BPG Nino Mtavruli', 'Segoe UI', system-ui, sans-se
 .phone-input-wrapper {
   display: flex;
   align-items: stretch;
+  width: 100%;
 
   .phone-country {
     display: inline-flex;
@@ -665,6 +685,8 @@ $font: 'Noto Sans Georgian', 'BPG Nino Mtavruli', 'Segoe UI', system-ui, sans-se
   display: flex;
   flex-direction: column;
   gap: 16px;
+  width: 100%;
+  min-width: 0;
   padding: 22px;
   border-radius: $radius-lg;
   background: $orange-soft;
@@ -730,6 +752,7 @@ $font: 'Noto Sans Georgian', 'BPG Nino Mtavruli', 'Segoe UI', system-ui, sans-se
 }
 
 .file-upload-box {
+  width: 100%;
   border: 2px dashed rgba($orange, 0.55);
   border-radius: $radius-sm;
   background: #fff;
@@ -1029,6 +1052,8 @@ $font: 'Noto Sans Georgian', 'BPG Nino Mtavruli', 'Segoe UI', system-ui, sans-se
   display: flex;
   flex-direction: column;
   gap: 16px;
+  width: 100%;
+  min-width: 0;
 }
 
 .otp-label {
@@ -1045,6 +1070,7 @@ $font: 'Noto Sans Georgian', 'BPG Nino Mtavruli', 'Segoe UI', system-ui, sans-se
 
 .otp-input.input-field {
   max-width: 280px;
+  margin: 0 auto;
   padding: 16px 16px 16px calc(16px + 0.5em);
   text-align: center;
   font-size: 32px;
