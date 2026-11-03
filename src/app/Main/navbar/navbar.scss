@@ -1,342 +1,515 @@
-/* =========================================================
-   NAVBAR — TOKENS
-   ⚠️ Shadow DOM-ში გლობალური @font-face არ ჩაედინება.
-   ფონტები ჩატვირთე index.html-ში (იხ. ინსტრუქცია), აქ მხოლოდ font-family.
-   ⚠️ მობილური breakpoint = 960px (navbar.ts: MOBILE_BREAKPOINT)
-   ========================================================= */
+// =====================================================
+// ნავბარი — ნარინჯისფერი + მუქი ლურჯი
+// კლასების სახელები HTML-ის იდენტურია, HTML-ის შეცვლა არ სჭირდება
+// =====================================================
 
 :host {
-  --nav-orange: #ff5f29;
-  --nav-orange-light: #ff8b54;
-  /* CTA-ს მუქი ვარიანტი: თეთრ ტექსტთან ~4.8–5:1 კონტრასტი (WCAG AA) */
-  --cta: #c93d0b;
-  --cta-2: #d1420f;
-  --nav-white: #f8fafc;
-  --nav-muted: #c3cedd;
-  --nav-border: rgba(255, 255, 255, 0.12);
-  --focus: #8fc4ff;
+  --navy: #14246b;
+  --navy-deep: #0d1a54;
+  --blue: #2a55d6;
+  --sky: #eaf2ff;
+  --sky-2: #d9e8ff;
+  --orange: #ff6a00;
+  --orange-2: #ff8f1f;
+  --orange-soft: #fff0e2;
+  --text: #1a2350;
+  --muted: #5b6590;
+  --line: #e3e9f6;
+  --white: #ffffff;
+  --green: #22b573;
+  --red: #e5484d;
 
-  /* ⚠️ sticky ჰოსტზე უნდა იყოს (ShadowDom-ში შიდა .navbar-ის მშობელი მხოლოდ
-     ნავბარის სიმაღლისაა და იქ sticky არ მუშაობს) */
+  --nav-h: 78px;      // ნავბარის სიმაღლე (მობილური მენიუს პოზიციისთვის)
+  --bp: 1240px;       // დესკტოპზე გადასვლის წერტილი (იხილე @media-ები)
+
+  --shadow: 0 10px 30px rgba(20, 36, 107, 0.12);
+  --shadow-sm: 0 4px 14px rgba(20, 36, 107, 0.08);
+
+  // host ინარჩუნებს ნავბარის ადგილს გვერდზე, თვითონ ნავბარი კი fixed-ია
   display: block;
-  position: sticky;
-  top: 0;
-  z-index: 1000;
+  position: relative;
+  height: var(--nav-h);
+  color: var(--text);
+  font-family: 'Noto Sans Georgian', 'FiraGO', 'Segoe UI', system-ui, sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
 
-  font-family: 'Noto Sans Georgian', 'FiraGO', system-ui, -apple-system, 'Segoe UI', sans-serif;
-}
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
 
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-}
+  h2, p, ul {
+    margin: 0;
+  }
 
-button {
-  font: inherit;
-  cursor: pointer;
-}
+  ul {
+    padding: 0;
+    list-style: none;
+  }
 
-ul {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-/* ხილული ფოკუსი კლავიატურისთვის */
-:focus-visible {
-  outline: 3px solid var(--focus);
-  outline-offset: 2px;
+  button {
+    font: inherit;
+  }
 }
 
 .sr-only {
   position: absolute;
   width: 1px;
   height: 1px;
+  margin: -1px;
+  padding: 0;
   overflow: hidden;
-  clip: rect(0 0 0 0);
+  clip: rect(0, 0, 0, 0);
   white-space: nowrap;
+  border: 0;
 }
 
+// =====================================================
+// გამოტოვების ბმული (კლავიატურისთვის)
+// =====================================================
 .skip-link {
   position: absolute;
   top: -64px;
-  left: 12px;
+  left: 16px;
   z-index: 2000;
-  padding: 11px 16px;
-  color: #09131f;
-  background: #fff;
-  border-radius: 10px;
-  font-size: 14px;
+  padding: 10px 18px;
   font-weight: 700;
+  color: var(--white);
   text-decoration: none;
-  transition: top 150ms ease;
+  background: var(--orange);
+  border-radius: 999px;
+  transition: top 0.2s ease;
 
-  &:focus {
-    top: 10px;
+  &:focus-visible {
+    top: 12px;
+    outline: 3px solid var(--navy);
+    outline-offset: 3px;
   }
 }
 
-/* =========================================================
-   NAVBAR
-   ========================================================= */
-
+// =====================================================
+// ნავბარი
+// =====================================================
 .navbar {
-  position: relative;
+  position: fixed;
+  top: 5;
+  left: 0;
+  right: 0;
+  margin-left: 1%;
+  margin-right: 1%;
   z-index: 1000;
-  width: 100%;
-  min-height: 82px;
-  overflow: visible;
-  isolation: isolate;
-  color: var(--nav-white);
-  background: linear-gradient(105deg, #2a1a2b 0%, #131a31 38%, #0d2639 72%, #0a3345 100%);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.09);
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
-}
+  height: var(--nav-h);
+  padding: 0 20px 14px;
+  background: rgba(255, 255, 255, 0.97);
+  box-shadow: 0 6px 24px rgba(20, 36, 107, 0.1);
 
-.navbar__pattern {
-  position: absolute;
-  inset: 0;
-  z-index: -2;
-  opacity: 0.2;
-  pointer-events: none;
-  background-image: radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.36) 1px, transparent 1.4px);
-  background-size: 23px 23px;
-  mask-image: linear-gradient(to bottom, #000, transparent);
-}
-
-.navbar__glow {
-  position: absolute;
-  z-index: -1;
-  top: -125px;
-  width: 260px;
-  height: 190px;
-  border-radius: 50%;
-  opacity: 0.16;
-  filter: blur(70px);
-  pointer-events: none;
-
-  &--orange {
-    left: 8%;
-    background: var(--nav-orange);
+  // ნაზი წერტილოვანი ფონი
+  &__pattern {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image: radial-gradient(rgba(20, 36, 107, 0.08) 1.1px, transparent 1.3px);
+    background-size: 22px 22px;
+    -webkit-mask-image: linear-gradient(90deg, #000, transparent 45%, transparent 55%, #000);
+    mask-image: linear-gradient(90deg, #000, transparent 45%, transparent 55%, #000);
   }
 
-  &--blue {
-    right: 9%;
-    background: #2688e6;
+  // ნარინჯისფერი და ლურჯი ნათება კიდეებზე
+  &__glow {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+
+    &--orange {
+      background: radial-gradient(circle at 0% 0%, rgba(255, 106, 0, 0.14), transparent 38%);
+    }
+
+    &--blue {
+      background: radial-gradient(circle at 100% 0%, rgba(42, 85, 214, 0.13), transparent 38%);
+    }
+  }
+
+  // z-index არ უნდა მიენიჭოს: სხვაგვარად ახალ stacking context-ს ქმნის
+  // და მობილური მენიუ ფონის დაბნელების (nav-backdrop) ქვეშ მოხვდება
+  &__inner {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    max-width: 1320px;
+    min-height: 64px;
+    margin: 0 auto;
+    padding-top: 8px;
   }
 }
 
-.navbar__inner {
-  position: relative;
-  /* menu + toggle backdrop-ის ზემოთ უნდა იყოს */
-  z-index: 1010;
-  display: flex;
-  align-items: center;
-  gap: 24px;
-  width: min(1440px, calc(100% - 48px));
-  min-height: 82px;
-  margin: 0 auto;
-}
-
-/* =========================================================
-   BRAND
-   ========================================================= */
-
+// =====================================================
+// ლოგო
+// =====================================================
 .brand {
   display: inline-flex;
   align-items: center;
-  flex: 0 0 auto;
   gap: 10px;
-  color: var(--nav-white);
+  margin-right: auto;
   text-decoration: none;
-}
-
-.brand__mark {
-  display: grid;
-  width: 43px;
-  height: 43px;
-  place-items: center;
-  color: #fff;
-  background: linear-gradient(135deg, var(--nav-orange-light), var(--nav-orange));
-  border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 14px;
-  box-shadow: 0 8px 20px rgba(255, 95, 41, 0.26), inset 0 1px 0 rgba(255, 255, 255, 0.22);
 
-  svg {
-    width: 25px;
-    height: 25px;
+  &:focus-visible {
+    outline: 3px solid var(--blue);
+    outline-offset: 4px;
+  }
+
+  // ლოგო საკუთარი ფერებით, ფონის კვადრატის გარეშე, სწორი პროპორციით (142:72)
+  &__mark {
+    display: block;
+    flex: none;
+    height: 40px;
+    aspect-ratio: 142 / 72;
+    padding: 0;
+    background: none;
+    border-radius: 0;
+    box-shadow: none;
+    filter: drop-shadow(0 4px 8px rgba(255, 106, 0, 0.28));
+    transition: transform 0.2s ease, filter 0.2s ease;
+
+    svg {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+  }
+
+  &:hover &__mark {
+    transform: scale(1.06);
+    filter: drop-shadow(0 6px 12px rgba(255, 106, 0, 0.4));
+  }
+
+  &__text {
+    flex: none;
+    font-size: 1.35rem;
+    font-weight: 800;
+    white-space: nowrap;
+    color: var(--navy);
+
+    span {
+      color: var(--orange);
+    }
   }
 }
 
-.brand__text {
-  font-size: 22px;
-  font-weight: 800;
-  letter-spacing: -0.4px;
+// =====================================================
+// ჰამბურგერი
+// =====================================================
+.menu-toggle {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  width: 46px;
+  height: 46px;
+  padding: 0;
+  background: var(--sky);
+  border: 0;
+  border-radius: 14px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+
+  &:hover {
+    background: var(--sky-2);
+  }
+
+  &:focus-visible {
+    outline: 3px solid var(--blue);
+    outline-offset: 3px;
+  }
 
   span {
-    color: var(--nav-orange-light);
+    display: block;
+    width: 22px;
+    height: 2.5px;
+    background: var(--navy);
+    border-radius: 2px;
+    transition: transform 0.25s ease, opacity 0.2s ease, background 0.2s ease;
+  }
+
+  &--active {
+    background: var(--orange-soft);
+
+    span {
+      background: var(--orange);
+    }
+
+    span:nth-child(1) { transform: translateY(7.5px) rotate(45deg); }
+    span:nth-child(2) { opacity: 0; }
+    span:nth-child(3) { transform: translateY(-7.5px) rotate(-45deg); }
   }
 }
 
-/* =========================================================
-   LINKS
-   ========================================================= */
-
+// =====================================================
+// მენიუ (მობილურზე ჩამოსაშლელი პანელი)
+// =====================================================
 .nav-menu {
-  display: flex;
-  flex: 1;
-  align-items: center;
-  min-width: 0;
+  position: fixed;
+  top: var(--nav-h);
+  left: 0;
+  right: 0;
+  z-index: 1100;
+  max-height: calc(100vh - var(--nav-h));
+  max-height: calc(100dvh - var(--nav-h));
+  padding: 14px 20px 26px;
+  overflow-y: auto;
+  background: var(--white);
+  border-top: 1.5px solid var(--line);
+  box-shadow: 0 24px 40px rgba(13, 26, 84, 0.2);
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 0.2s ease, visibility 0.2s ease;
+
+  &--open {
+    visibility: visible;
+    opacity: 1;
+  }
 }
 
 .nav-links {
   display: flex;
-  align-items: center;
+  flex-direction: column;
   gap: 4px;
-  margin: 0 auto;
 
   a {
-    position: relative;
-    display: inline-flex;
-    align-items: center;
-    min-height: 44px;
-    padding: 0 14px;
-    color: var(--nav-muted);
-    font-size: 14px;
+    display: block;
+    padding: 12px 16px;
     font-weight: 700;
+    color: var(--navy);
     text-decoration: none;
-    white-space: nowrap;
-    border-radius: 11px;
-    transition: color 180ms ease, background 180ms ease;
+    border-radius: 14px;
+    transition: background 0.18s ease, color 0.18s ease;
 
-    &::after {
-      content: '';
-      position: absolute;
-      right: 14px;
-      bottom: 6px;
-      left: 14px;
-      height: 2px;
-      background: var(--nav-orange-light);
-      border-radius: 999px;
-      transform: scaleX(0);
-      transition: transform 220ms ease;
+    &:hover {
+      background: var(--sky);
     }
 
-    &:hover,
+    &:focus-visible {
+      outline: 3px solid var(--blue);
+      outline-offset: 2px;
+    }
+
     &.active {
-      color: #fff;
-      background: rgba(255, 255, 255, 0.08);
-    }
-
-    &:hover::after,
-    &.active::after {
-      transform: scaleX(1);
+      color: var(--orange);
+      background: var(--orange-soft);
     }
   }
 }
 
-/* =========================================================
-   DESKTOP ACTIONS
-   ========================================================= */
+// =====================================================
+// მობილური მოქმედებები
+// =====================================================
+.mobile-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1.5px solid var(--line);
+}
 
-.desktop-actions {
+.mobile-secondary-row {
   display: flex;
   align-items: center;
-  flex: 0 0 auto;
-  gap: 8px;
+  gap: 10px;
+
+  .notification-wrapper {
+    flex: 1;
+  }
+}
+
+.mobile-action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 14px 20px;
+  font-weight: 700;
+  color: var(--white);
+  text-align: center;
+  border: 0;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+  }
+
+  &:focus-visible {
+    outline: 3px solid var(--blue);
+    outline-offset: 3px;
+  }
+
+  &--listings {
+    justify-content: space-between;
+    color: var(--navy);
+    background: var(--sky);
+  }
+
+  &--orange {
+    background: linear-gradient(135deg, var(--orange-2), var(--orange));
+    box-shadow: 0 8px 20px rgba(255, 106, 0, 0.35);
+  }
+
+  &--dark {
+    background: linear-gradient(135deg, var(--blue), var(--navy));
+    box-shadow: 0 8px 20px rgba(20, 36, 107, 0.28);
+  }
+}
+
+// ფონის დაბნელება მენიუს გახსნისას
+.nav-backdrop {
+  position: fixed;
+  top: var(--nav-h);
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1050;
+  background: rgba(13, 26, 84, 0.45);
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 0.2s ease, visibility 0.2s ease;
+
+  &--visible {
+    visibility: visible;
+    opacity: 1;
+  }
+}
+
+// =====================================================
+// დესკტოპის მოქმედებები
+// =====================================================
+.desktop-actions {
+  display: none;
+  align-items: center;
+  gap: 10px;
 }
 
 .desktop-listings,
 .desktop-login,
 .desktop-register,
-.desktop-ride,
-.notification-button,
-.profile-avatar-button {
-  transition: background 180ms ease, box-shadow 180ms ease, transform 180ms ease;
-}
-
-.desktop-listings {
+.desktop-ride {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  min-height: 44px;
-  padding: 0 15px;
-  color: #fff;
-  background: rgba(255, 255, 255, 0.07);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 999px;
-  font-size: 13px;
+  padding: 10px 20px;
   font-weight: 700;
+  line-height: 1.3;
+  white-space: nowrap;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.2s ease, color 0.2s ease;
 
   &:hover {
-    background: rgba(255, 255, 255, 0.13);
+    transform: translateY(-2px);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+
+  &:focus-visible {
+    outline: 3px solid var(--blue);
+    outline-offset: 3px;
   }
 }
 
-.desktop-listings__dot {
-  width: 7px;
-  height: 7px;
-  background: #57d88a;
-  border-radius: 50%;
-  box-shadow: 0 0 0 4px rgba(87, 216, 138, 0.13);
-  animation: nav-pulse 1.8s ease-in-out infinite;
+.desktop-listings {
+  color: var(--navy);
+  background: var(--white);
+  border: 1.5px solid var(--navy);
+
+  &:hover {
+    background: var(--sky);
+  }
+
+  &__dot {
+    width: 9px;
+    height: 9px;
+    background: var(--orange);
+    border-radius: 50%;
+    box-shadow: 0 0 0 0 rgba(255, 106, 0, 0.5);
+    animation: pulse 2s ease-out infinite;
+  }
+}
+
+@keyframes pulse {
+  0%   { box-shadow: 0 0 0 0 rgba(255, 106, 0, 0.5); }
+  70%  { box-shadow: 0 0 0 8px rgba(255, 106, 0, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(255, 106, 0, 0); }
 }
 
 .desktop-login {
-  min-height: 44px;
-  padding: 0 12px;
-  color: var(--nav-muted);
+  color: var(--navy);
   background: transparent;
-  border: 0;
-  font-size: 14px;
-  font-weight: 700;
+  border: 1.5px solid transparent;
 
   &:hover {
-    color: #fff;
+    background: var(--sky);
   }
 }
 
-.desktop-register,
-.mobile-action--orange {
-  color: #fff;
-  background: linear-gradient(135deg, var(--cta), var(--cta-2));
-}
-
 .desktop-register {
-  min-height: 44px;
-  padding: 0 18px;
-  border: 0;
-  border-radius: 12px;
-  box-shadow: 0 8px 18px rgba(201, 61, 11, 0.3);
-  font-size: 14px;
-  font-weight: 800;
+  color: var(--white);
+  background: linear-gradient(135deg, var(--orange-2), var(--orange));
+  border: 1.5px solid transparent;
+  box-shadow: 0 8px 20px rgba(255, 106, 0, 0.35);
 
   &:hover {
-    box-shadow: 0 12px 25px rgba(201, 61, 11, 0.42);
-    transform: translateY(-1px);
+    box-shadow: 0 12px 26px rgba(255, 106, 0, 0.45);
   }
 }
 
 .desktop-ride {
-  min-height: 44px;
-  padding: 0 14px;
-  color: #dcecff;
-  background: rgba(49, 116, 232, 0.22);
-  border: 1px solid rgba(104, 170, 255, 0.3);
-  border-radius: 12px;
-  font-size: 14px;
-  font-weight: 700;
+  color: var(--white);
+  background: linear-gradient(135deg, var(--blue), var(--navy));
+  border: 1.5px solid transparent;
+  box-shadow: 0 8px 20px rgba(20, 36, 107, 0.28);
+}
+
+// =====================================================
+// პროფილის ავატარი
+// =====================================================
+.profile-avatar-button {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  font-weight: 800;
+  color: var(--white);
+  background: linear-gradient(135deg, var(--blue), var(--navy));
+  border: 3px solid var(--white);
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px var(--sky-2), var(--shadow-sm);
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
 
   &:hover {
-    background: rgba(49, 116, 232, 0.38);
+    transform: scale(1.06);
+    box-shadow: 0 0 0 2px var(--orange), var(--shadow-sm);
+  }
+
+  &:focus-visible {
+    outline: 3px solid var(--blue);
+    outline-offset: 3px;
   }
 }
 
-/* =========================================================
-   NOTIFICATIONS
-   ========================================================= */
-
+// =====================================================
+// შეტყობინებები
+// =====================================================
 .notification-wrapper {
   position: relative;
 }
@@ -349,574 +522,676 @@ ul {
   gap: 10px;
   min-width: 44px;
   height: 44px;
-  padding: 0;
-  color: #dce7f4;
-  background: rgba(255, 255, 255, 0.07);
-  border: 1px solid var(--nav-border);
-  border-radius: 12px;
+  padding: 0 11px;
+  color: var(--navy);
+  background: var(--white);
+  border: 1.5px solid var(--line);
+  border-radius: 999px;
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  transition: border-color 0.2s ease, color 0.2s ease, transform 0.15s ease;
 
   &:hover {
-    color: #fff;
-    background: rgba(255, 255, 255, 0.13);
+    color: var(--orange);
+    border-color: var(--orange);
+  }
+
+  &:focus-visible {
+    outline: 3px solid var(--blue);
+    outline-offset: 3px;
   }
 
   svg {
-    width: 20px;
-    height: 20px;
+    width: 22px;
+    height: 22px;
+  }
+
+  &__label {
+    font-weight: 700;
   }
 }
 
-.notification-button__label {
-  font-size: 14px;
-  font-weight: 700;
+// მობილურზე ღილაკი სრულ სიგანეზეა
+.mobile-secondary-row .notification-button {
+  width: 100%;
+  justify-content: flex-start;
+  padding: 0 16px;
 }
 
 .notification-badge {
   position: absolute;
-  top: -6px;
-  right: -6px;
+  top: -5px;
+  right: -3px;
   display: grid;
+  place-items: center;
   min-width: 20px;
   height: 20px;
-  padding: 0 4px;
-  place-items: center;
-  color: #fff;
-  background: var(--cta);
-  border: 2px solid #122137;
-  border-radius: 999px;
-  font-size: 11px;
+  padding: 0 5px;
+  font-size: 0.7rem;
   font-weight: 800;
-}
-
-.profile-avatar-button {
-  display: grid;
-  width: 44px;
-  height: 44px;
-  padding: 2px;
-  place-items: center;
-  color: #fff;
-  background: linear-gradient(135deg, #60b2ff, #2563eb);
-  border: 0;
-  border-radius: 50%;
-  box-shadow: 0 8px 18px rgba(37, 99, 235, 0.26);
-
-  span {
-    display: grid;
-    width: 100%;
-    height: 100%;
-    place-items: center;
-    background: #15263d;
-    border: 1px solid rgba(255, 255, 255, 0.17);
-    border-radius: inherit;
-    font-size: 13px;
-    font-weight: 800;
-  }
+  line-height: 1;
+  color: var(--white);
+  background: var(--orange);
+  border: 2px solid var(--white);
+  border-radius: 999px;
 }
 
 .notification-dropdown {
-  position: absolute;
-  top: calc(100% + 14px);
-  right: 0;
-  width: min(370px, calc(100vw - 26px));
-  overflow: hidden;
-  color: #fff;
-  background: rgba(15, 27, 46, 0.98);
-  border: 1px solid rgba(255, 255, 255, 0.13);
-  border-radius: 18px;
-  box-shadow: 0 25px 55px rgba(0, 0, 0, 0.35);
-  animation: dropdown-enter 180ms ease both;
-}
-
-.notification-dropdown__header,
-.notification-dropdown__footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 14px 17px;
-}
-
-.notification-dropdown__header {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-
-  h2 {
-    margin: 0;
-    font-size: 15px;
-    font-weight: 800;
-  }
-}
-
-.notification-dropdown__footer {
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.notification-dropdown__link {
-  min-height: 32px;
-  padding: 0 4px;
-  color: var(--nav-orange-light);
-  background: transparent;
-  border: 0;
-  font-size: 13px;
-  font-weight: 700;
-}
-
-.notification-dropdown__list {
-  max-height: 335px;
+  position: fixed;
+  top: calc(var(--nav-h) + 8px);
+  left: 16px;
+  right: 16px;
+  z-index: 1200;
+  max-height: calc(100vh - var(--nav-h) - 24px);
+  max-height: calc(100dvh - var(--nav-h) - 24px);
   overflow-y: auto;
+  background: var(--white);
+  border-radius: 22px;
+  box-shadow: 0 24px 60px rgba(13, 26, 84, 0.28);
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 16px 18px 12px;
+    border-bottom: 1.5px solid var(--line);
+
+    h2 {
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: var(--navy);
+    }
+  }
+
+  &__link {
+    padding: 4px 10px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--orange);
+    background: transparent;
+    border: 0;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background 0.18s ease;
+
+    &:hover {
+      background: var(--orange-soft);
+    }
+
+    &:focus-visible {
+      outline: 3px solid var(--blue);
+      outline-offset: 2px;
+    }
+  }
+
+  &__list {
+    max-height: 360px;
+    overflow-y: auto;
+  }
+
+  &__empty {
+    padding: 32px 18px;
+    text-align: center;
+    color: var(--muted);
+  }
+
+  &__footer {
+    padding: 8px;
+    text-align: center;
+    border-top: 1.5px solid var(--line);
+  }
 }
 
 .notification-item {
   display: flex;
   align-items: flex-start;
-  gap: 11px;
+  gap: 12px;
   width: 100%;
-  padding: 13px 16px;
-  color: #fff;
+  padding: 12px 18px;
   text-align: left;
+  color: var(--text);
   background: transparent;
   border: 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  cursor: pointer;
+  transition: background 0.18s ease;
 
   &:hover {
-    background: rgba(255, 255, 255, 0.06);
+    background: var(--sky);
+  }
+
+  &:focus-visible {
+    outline: 3px solid var(--blue);
+    outline-offset: -3px;
+  }
+
+  &__icon {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 38px;
+    height: 38px;
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: var(--navy);
+    background: var(--sky);
+    border-radius: 50%;
+
+    &--orange, &--amber, &--yellow { color: var(--orange); background: var(--orange-soft); }
+    &--green, &--success, &--teal  { color: #12794d; background: #e3f7ee; }
+    &--red, &--danger, &--error    { color: #b4232a; background: #fdeaea; }
+    &--blue, &--info               { color: var(--blue); background: var(--sky); }
+    &--purple, &--violet           { color: #6a47e0; background: #eee9ff; }
+    &--dark, &--gray, &--grey      { color: var(--white); background: var(--navy); }
+  }
+
+  &__body {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-width: 0;
+    line-height: 1.4;
+
+    strong {
+      font-weight: 800;
+      color: var(--navy);
+    }
+
+    small {
+      margin-top: 2px;
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+  }
+
+  &__text {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    font-size: 0.9rem;
+    color: var(--muted);
+  }
+
+  &__dot {
+    flex: none;
+    width: 10px;
+    height: 10px;
+    margin-top: 6px;
+    background: var(--orange);
+    border-radius: 50%;
   }
 }
 
-.notification-item__icon {
-  display: grid;
-  flex: 0 0 auto;
-  width: 32px;
-  height: 32px;
-  place-items: center;
-  color: #fff;
-  border-radius: 10px;
-  font-size: 15px;
-  font-weight: 800;
-
-  &--orange { background: #c75a1f; }
-  &--teal { background: #0c8578; }
-  &--navy { background: #365886; }
-  &--red { background: #c93a45; }
-  &--blue { background: #2f6fd0; }
-  &--green { background: #25805a; }
-}
-
-.notification-item__body {
-  display: grid;
-  gap: 3px;
-  min-width: 0;
-
-  strong {
-    font-size: 13px;
-    font-weight: 700;
-  }
-
-  small {
-    color: #9fb3c8;
-    font-size: 12px;
-  }
-}
-
-/* 2 ხაზი ქართული გრძელი ტექსტისთვის (ადრე nowrap ჭრიდა) */
-.notification-item__text {
-  display: -webkit-box;
-  overflow: hidden;
-  color: var(--nav-muted);
-  font-size: 13px;
-  line-height: 1.45;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-  -webkit-box-orient: vertical;
-}
-
-.notification-item__dot {
-  flex: 0 0 auto;
-  width: 8px;
-  height: 8px;
-  margin: 6px 0 0 auto;
-  background: var(--nav-orange-light);
-  border-radius: 50%;
-}
-
-.notification-dropdown__empty {
-  margin: 0;
-  padding: 32px 15px;
-  color: var(--nav-muted);
-  text-align: center;
-  font-size: 14px;
-}
-
-/* =========================================================
-   ROAD
-   ========================================================= */
-
+// =====================================================
+// გზა და მანქანა (დეკორატიული)
+// =====================================================
 .road {
   position: absolute;
+  left: 0;
   right: 0;
   bottom: 0;
-  left: 0;
-  z-index: 20;
-  height: 42px;
+  z-index: -1;
+  height: 26px;
   overflow: hidden;
   pointer-events: none;
-}
 
-.road__line {
-  position: absolute;
-  right: 0;
-  bottom: 6px;
-  left: 0;
-  height: 2px;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    rgba(255, 96, 39, 0.15) 8%,
-    rgba(255, 96, 39, 0.9) 22%,
-    rgba(78, 161, 255, 0.95) 50%,
-    rgba(255, 96, 39, 0.9) 78%,
-    rgba(255, 96, 39, 0.15) 92%,
-    transparent 100%
-  );
-  box-shadow: 0 0 8px rgba(78, 161, 255, 0.45), 0 0 14px rgba(255, 96, 39, 0.25);
-}
-
-.road__car {
-  position: absolute;
-  top: 4px;
-  left: -85px;
-  z-index: 30;
-  width: 70px;
-  height: 34px;
-  filter: drop-shadow(0 4px 5px rgba(0, 0, 0, 0.45)) drop-shadow(0 0 8px rgba(78, 161, 255, 0.35));
-  animation: drive-car 12s linear infinite;
-  will-change: transform;
-
-  svg {
-    display: block;
-    width: 100%;
-    height: 100%;
-  }
-}
-
-/* მენიუს გახსნისას ანიმაცია ჩერდება (CPU/ბატარეა) */
-.navbar--menu-open .road__car {
-  animation-play-state: paused;
-}
-
-.road__car-light {
-  position: absolute;
-  top: 13px;
-  right: -11px;
-  width: 18px;
-  height: 4px;
-  opacity: 0.95;
-  background: linear-gradient(90deg, rgba(255, 209, 102, 1), rgba(255, 209, 102, 0));
-  filter: blur(2px);
-  animation: car-light 900ms ease-in-out infinite alternate;
-}
-
-/* =========================================================
-   KEYFRAMES
-   ========================================================= */
-
-@keyframes drive-car {
-  from { transform: translateX(-100px); }
-  to { transform: translateX(calc(100vw + 110px)); }
-}
-
-@keyframes car-light {
-  from { opacity: 0.55; transform: scaleX(0.8); }
-  to { opacity: 1; transform: scaleX(1.25); }
-}
-
-@keyframes nav-pulse {
-  0%, 100% { box-shadow: 0 0 0 4px rgba(87, 216, 138, 0.13); }
-  50% { box-shadow: 0 0 0 7px rgba(87, 216, 138, 0.03); }
-}
-
-@keyframes dropdown-enter {
-  from { opacity: 0; transform: translateY(-8px) scale(0.98); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
-}
-
-@keyframes dropdown-enter-up {
-  from { opacity: 0; transform: translateY(8px) scale(0.98); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
-}
-
-/* =========================================================
-   MOBILE-ONLY ELEMENTS (default hidden)
-   ========================================================= */
-
-.menu-toggle,
-.mobile-actions,
-.nav-backdrop {
-  display: none;
-}
-
-/* =========================================================
-   TABLET
-   ========================================================= */
-
-@media (max-width: 1220px) {
-  .navbar__inner {
-    gap: 14px;
-    width: min(1440px, calc(100% - 32px));
+  &__line {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 3px;
+    height: 3px;
+    background: repeating-linear-gradient(90deg, var(--orange-2) 0 18px, transparent 18px 36px);
+    opacity: 0.7;
+    animation: road-dash 1.2s linear infinite;
   }
 
-  .nav-links a {
-    padding: 0 10px;
-  }
-
-  .desktop-listings {
-    display: none;
-  }
-}
-
-/* =========================================================
-   MOBILE  (≤ 960px)
-   ========================================================= */
-
-@media (max-width: 960px) {
-  .navbar,
-  .navbar__inner {
-    min-height: 72px;
-  }
-
-  .navbar__inner {
-    width: calc(100% - 28px);
-  }
-
-  .desktop-actions {
-    display: none;
-  }
-
-  /* ---- Hamburger ---- */
-  .menu-toggle {
-    position: relative;
-    z-index: 1003;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    gap: 5px;
+  &__car {
+    position: absolute;
+    left: -70px;
+    bottom: 5px;
     width: 46px;
-    height: 46px;
-    margin-left: auto;
-    padding: 0 12px;
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    border-radius: 12px;
+    animation: cruise 18s linear infinite;
 
-    span {
+    svg {
       display: block;
       width: 100%;
-      height: 2px;
-      background: #fff;
-      border-radius: 100px;
-      transition: opacity 220ms ease, transform 220ms ease;
+      height: auto;
     }
-
-    &--active span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
-    &--active span:nth-child(2) { opacity: 0; }
-    &--active span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
   }
 
-  /* ---- Backdrop ---- */
+  &__car-light {
+    position: absolute;
+    right: -10px;
+    top: 42%;
+    width: 16px;
+    height: 7px;
+    background: linear-gradient(90deg, rgba(255, 210, 77, 0.8), transparent);
+    border-radius: 0 50% 50% 0;
+  }
+}
+
+@keyframes cruise {
+  from { left: -70px; }
+  to   { left: 100%; }
+}
+
+@keyframes road-dash {
+  from { background-position: 0 0; }
+  to   { background-position: -36px 0; }
+}
+
+// =====================================================
+// დესკტოპი (1240px-დან)
+// =====================================================
+@media (min-width: 1240px) {
+  .navbar {
+    padding-left: 32px;
+    padding-right: 32px;
+  }
+
+  .brand {
+    margin-right: 0;
+  }
+
+  .menu-toggle,
+  .mobile-actions,
   .nav-backdrop {
-    position: fixed;
-    inset: 0;
-    z-index: 1001;
-    display: block;
-    background: rgba(5, 10, 18, 0.6);
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 250ms ease, visibility 0s linear 250ms;
-
-    &--visible {
-      opacity: 1;
-      visibility: visible;
-      transition-delay: 0s;
-    }
+    display: none;
   }
 
-  /* ---- Slide-in panel ----
-     visibility:hidden დახურულზე → Tab-ით უხილავ ბმულებზე აღარ გადახვალ */
+  // მენიუ ხდება ჩვეულებრივი, ჰორიზონტალური
   .nav-menu {
-    position: fixed;
-    top: 0;
-    right: 0;
-    z-index: 1002;
-    flex-direction: column;
-    align-items: stretch;
-    width: min(375px, 88vw);
-    height: 100dvh;
-    padding: 92px 20px 28px;
-    overflow-y: auto;
-    background: linear-gradient(155deg, #2b1c2c 0%, #14203a 48%, #092b3b 100%);
-    border-left: 1px solid rgba(255, 255, 255, 0.11);
-    box-shadow: -25px 0 60px rgba(0, 0, 0, 0.38);
-    visibility: hidden;
-    transform: translateX(105%);
-    transition: transform 320ms cubic-bezier(0.22, 1, 0.36, 1), visibility 0s linear 320ms;
-
-    &--open {
-      visibility: visible;
-      transform: translateX(0);
-      transition-delay: 0s;
-    }
+    position: static;
+    flex: 1;
+    max-height: none;
+    padding: 0;
+    overflow: visible;
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+    visibility: visible;
+    opacity: 1;
   }
 
   .nav-links {
-    display: grid;
-    gap: 8px;
-    width: 100%;
-    margin: 0;
-
-    li {
-      width: 100%;
-    }
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
 
     a {
-      display: flex;
-      width: 100%;
-      min-height: 54px;
-      padding: 0 16px;
-      color: #e6eef7;
-      background: rgba(255, 255, 255, 0.055);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 13px;
-      font-size: 16px;
-
-      &::after {
-        top: 14px;
-        right: auto;
-        bottom: 14px;
-        left: 0;
-        width: 3px;
-        height: auto;
-        transform: scaleY(0);
-      }
-
-      &:hover,
-      &.active {
-        background: rgba(255, 95, 41, 0.14);
-        border-color: rgba(255, 132, 79, 0.32);
-      }
-
-      &:hover::after,
-      &.active::after {
-        transform: scaleY(1);
-      }
+      padding: 9px 16px;
+      font-size: 0.95rem;
+      white-space: nowrap;
     }
   }
 
-  .mobile-actions {
-    display: grid;
-    gap: 10px;
-    margin-top: auto;
-    padding-top: 30px;
-  }
-
-  .mobile-action {
+  .desktop-actions {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    width: 100%;
-    min-height: 52px;
-    padding: 0 16px;
-    color: #fff;
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    border-radius: 13px;
-    font-size: 15px;
-    font-weight: 800;
-
-    &--listings { background: rgba(255, 255, 255, 0.1); }
-    &--dark { background: rgba(255, 255, 255, 0.07); }
-    &--orange { border-color: transparent; justify-content: center; }
   }
 
-  /* dropdown-ის საყრდენი = მთელი სტრიქონი, რომ პანელს არ გასცდეს */
-  .mobile-secondary-row {
-    position: relative;
-    display: flex;
-    gap: 10px;
-    margin-bottom: 4px;
-
-    .notification-wrapper {
-      position: static;
-      flex: 1 1 auto;
-    }
-
-    .notification-button {
-      width: 100%;
-      height: 52px;
-      border-radius: 13px;
-    }
-
-    .profile-avatar-button {
-      flex: 0 0 auto;
-      width: 52px;
-      height: 52px;
-    }
-
-    .notification-dropdown {
-      position: absolute;
-      top: auto;
-      right: 0;
-      bottom: calc(100% + 10px);
-      left: 0;
-      width: 100%;
-      max-width: 100%;
-      max-height: min(50vh, 320px);
-      animation: dropdown-enter-up 180ms ease both;
-    }
+  // ჩამოშლილი სია ღილაკის ქვეშ
+  .notification-dropdown {
+    position: absolute;
+    top: calc(100% + 14px);
+    right: 0;
+    left: auto;
+    width: 380px;
+    max-height: none;
+    overflow: visible;
   }
 }
 
-@media (max-width: 480px) {
-  .navbar__inner {
-    width: calc(100% - 20px);
-  }
-
-  .brand__mark {
-    width: 39px;
-    height: 39px;
-    border-radius: 12px;
-
-    svg {
-      width: 22px;
-      height: 22px;
-    }
+// პატარა ეკრანები
+@media (max-width: 420px) {
+  .navbar {
+    padding-left: 14px;
+    padding-right: 14px;
   }
 
   .brand__text {
-    font-size: 19px;
-  }
-
-  .road {
-    height: 39px;
-  }
-
-  .road__car {
-    width: 60px;
-    height: 29px;
-    animation-duration: 8s;
+    font-size: 1.2rem;
   }
 }
-
-/* =========================================================
-   REDUCED MOTION — მანქანა საერთოდ იმალება
-   ========================================================= */
 
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
-    animation-duration: 0.001ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.001ms !important;
+    animation: none !important;
+    transition: none !important;
   }
 
   .road__car {
+    left: 40%;
+  }
+}
+
+// =====================================================
+// დესკტოპის "მცურავი" ნავბარი (მაკეტის მიხედვით)
+// HTML უცვლელია, იცვლება მხოლოდ სტილი 1240px-დან
+// =====================================================
+@media (min-width: 1240px) {
+  :host {
+    --nav-h: 92px;
+  }
+
+  .navbar {
+    top: 10px;
+    left: 20px;
+    right: 20px;
+    margin-left: 0;   // მობილურის 1% აქ ზედმეტია (left/right უკვე გვაქვს)
+    margin-right: 0;
+    height: 76px;
+    padding: 0 26px;
+    background: rgba(255, 255, 255, 0.9);
+    -webkit-backdrop-filter: blur(14px) saturate(1.2);
+    backdrop-filter: blur(14px) saturate(1.2);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    border-radius: 38px;
+    box-shadow: 0 14px 36px rgba(20, 36, 107, 0.16);
+
+    &__pattern,
+    &__glow {
+      border-radius: inherit;
+    }
+
+    &__inner {
+      min-height: 76px;
+      max-width: none;   // 1320px-იანი ლიმიტი აქ ზედმეტია და შიგთავსს ავიწროებს
+      padding-top: 0;
+    }
+  }
+
+  // გზა და მანქანა მაკეტში არ არის
+  .road {
+    display: none;
+  }
+
+  // ლოგო + ვერტიკალური გამყოფი
+  .brand {
+    &__mark {
+      width: auto;
+      height: 52px;
+    }
+
+    &__text {
+      font-size: 1.55rem;
+    }
+
+    &::after {
+      content: '';
+      width: 1.5px;
+      height: 42px;
+      margin-left: 22px;
+      background: rgba(20, 36, 107, 0.25);
+    }
+  }
+
+  // ლინკები: ხატულა + ტექსტი, აქტიურს ნარინჯისფერი ხაზი ქვემოთ
+  .nav-menu {
+    margin-left: 4px;
+  }
+
+  .nav-links {
+    justify-content: flex-start;
+    gap: 6px;
+
+    li {
+      --icon-size: 0px;
+    }
+
+    li:nth-child(1) {
+      --icon-size: 21px;
+      --icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2.6 1.8 11.7a1 1 0 0 0 .7 1.7H5V21a1 1 0 0 0 1 1h4.2v-6h3.6v6H18a1 1 0 0 0 1-1v-7.6h2.5a1 1 0 0 0 .7-1.7L12 2.6z'/%3E%3C/svg%3E");
+    }
+
+    li:nth-child(2) {
+      --icon-size: 21px;
+      --icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm1.2 15h-2.4v-6.2h2.4V17zm0-8.4h-2.4V6.2h2.4v2.4z'/%3E%3C/svg%3E");
+    }
+
+    li:nth-child(3) {
+      --icon-size: 21px;
+      --icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6 2h8l6 6v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1zm7 1.8V9h5.2L13 3.8zM8 13h8v1.6H8V13zm0 3.4h8V18H8v-1.6z'/%3E%3C/svg%3E");
+    }
+
+    li:nth-child(4) {
+      --icon-size: 21px;
+      --icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6.6 10.8a15 15 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25c1.1.37 2.3.57 3.6.57a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.3.2 2.5.57 3.6a1 1 0 0 1-.25 1l-2.2 2.2z'/%3E%3C/svg%3E");
+    }
+
+    li:nth-child(5) {
+      --icon-size: 21px;
+      --icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M3.5 21V11h3.6v10H3.5zm6.7 0V3h3.6v18h-3.6zm6.7 0v-7h3.6v7h-3.6z'/%3E%3C/svg%3E");
+    }
+
+    a {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      padding: 10px 14px;
+      font-weight: 700;
+      color: var(--navy);
+      background: transparent;
+      border-radius: 10px;
+
+      // ხატულა (მუქი ლურჯი, ფერს ტექსტიდან იღებს)
+      &::before {
+        content: '';
+        flex: none;
+        width: var(--icon-size, 0px);
+        height: var(--icon-size, 0px);
+        margin-right: calc(var(--icon-size, 0px) * 0.45);
+        background: currentColor;
+        -webkit-mask: var(--icon, none) center / contain no-repeat;
+        mask: var(--icon, none) center / contain no-repeat;
+      }
+
+      // ქვედა ხაზი
+      &::after {
+        content: '';
+        position: absolute;
+        left: 14px;
+        right: 14px;
+        bottom: -4px;
+        height: 3px;
+        background: var(--orange);
+        border-radius: 3px;
+        transform: scaleX(0);
+        transform-origin: left;
+        transition: transform 0.25s ease;
+      }
+
+      &:hover {
+        color: var(--orange);
+        background: transparent;
+      }
+
+      &:hover::after,
+      &.active::after {
+        transform: scaleX(1);
+      }
+
+      &.active {
+        color: var(--navy-deep);
+        background: transparent;
+      }
+    }
+  }
+
+  // მარჯვენა ღილაკები
+  .desktop-login {
+    background: var(--white);
+    border: 1.5px solid var(--navy);
+    padding: 10px 26px;
+
+    &:hover {
+      background: var(--sky);
+    }
+  }
+
+  .desktop-actions {
+    gap: 12px;
+
+    .notification-button {
+      color: var(--navy);
+      background: transparent;
+      border-color: transparent;
+      box-shadow: none;
+
+      &:hover {
+        color: var(--orange);
+        background: var(--orange-soft);
+      }
+    }
+
+    .notification-badge {
+      background: #ef4444;
+    }
+  }
+}
+
+// =====================================================
+// დესკტოპის შეკუმშვა: ყველაფერი ეტევა, დიზაინი იგივეა
+// (ეს ბლოკები აუცილებლად ფაილის ბოლოში უნდა იყოს)
+// =====================================================
+
+// ძალიან ფართო არაა: ყველაფერს ოდნავ ვამცირებთ
+@media (min-width: 1240px) and (max-width: 1799px) {
+  .navbar {
+    left: 14px;
+    right: 14px;
+    margin-left: 0;
+    margin-right: 0;
+    padding: 0 18px;
+
+    &__inner {
+      gap: 10px;
+    }
+  }
+
+  .brand {
+    flex: none;
+
+    &__mark {
+      width: auto;
+      height: 44px;
+    }
+
+    &__text {
+      font-size: 1.35rem;
+    }
+
+    &::after {
+      height: 34px;
+      margin-left: 12px;
+    }
+  }
+
+  .nav-menu {
+    min-width: 0;
+    margin-left: 0;
+  }
+
+  .nav-links {
+    gap: 2px;
+
+    a {
+      padding: 9px;
+      font-size: 0.88rem;
+
+      &::before {
+        width: calc(var(--icon-size, 0px) * 0.85);
+        height: calc(var(--icon-size, 0px) * 0.85);
+        margin-right: 6px;
+      }
+
+      &::after {
+        left: 9px;
+        right: 9px;
+      }
+    }
+  }
+
+  .desktop-actions {
+    flex: none;
+    gap: 8px;
+  }
+
+  .desktop-listings,
+  .desktop-register,
+  .desktop-ride {
+    padding: 9px 14px;
+    font-size: 0.88rem;
+  }
+
+  .desktop-login {
+    padding: 9px 18px;
+    font-size: 0.88rem;
+  }
+
+  .desktop-actions .notification-button {
+    min-width: 40px;
+    height: 40px;
+    padding: 0 8px;
+  }
+
+  .profile-avatar-button {
+    width: 40px;
+    height: 40px;
+  }
+}
+
+// საშუალო ეკრანები: ხატულები და გამყოფი იმალება
+@media (min-width: 1240px) and (max-width: 1399px) {
+  .brand::after {
+    display: none;
+  }
+
+  .nav-links a::before {
+    display: none;
+  }
+}
+
+// ვიწრო დესკტოპი: კიდევ უფრო კომპაქტური
+@media (min-width: 1240px) and (max-width: 1319px) {
+  .navbar {
+    padding: 0 14px;
+  }
+
+  .navbar__inner {
+    gap: 6px;
+  }
+
+  .brand__text {
+    font-size: 1.25rem;
+  }
+
+  .nav-links a {
+    padding: 8px 7px;
+    font-size: 0.84rem;
+
+    &::after {
+      left: 7px;
+      right: 7px;
+    }
+  }
+
+  .desktop-actions {
+    gap: 6px;
+  }
+
+  .desktop-listings,
+  .desktop-register,
+  .desktop-ride {
+    padding: 9px 11px;
+    font-size: 0.84rem;
+  }
+
+  .desktop-listings__dot {
     display: none;
   }
 }

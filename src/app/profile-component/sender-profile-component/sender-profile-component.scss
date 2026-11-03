@@ -1,891 +1,491 @@
-@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap');
+// =============================================================
+//  Sender profile (გამგზავნის პროფილი) — გადაზიდვა დიზაინის სტილი
+//  თემა: ნარინჯისფერი + მუქი ლურჯი, ბარათები როგორც ბილეთი/ბირკა
+// =============================================================
 
-// ---- Design tokens (Sass vars) ------------------------------------------------
-// ---- მუქი თემა: ფონი = მოწითალო-ყავისფერი (მარცხნივ ზემოთ) → მუქი ლურჯი (მარჯვნივ ქვემოთ)
-$paper:         #221F2A;   // "ამოჭრილი" წრეებისთვის (perforation / tear)
-$paper-alt:     #353142;   // შიდა ბლოკების ფონი
-$paper-alt-hi:  #3F3A50;   // hover / focus ვარიანტი
-$card:          #2A2733;   // ქარდების ფონი
-$card-hi:       #363244;   // ღილაკის გრადიენტის ზედა ნაწილი
-$ink:           #F4F0F7;   // მთავარი ტექსტი
-$ink-soft:      #C9C3D6;   // მეორადი ტექსტი
-$muted:         #9A93AB;   // მიჩუმებული ტექსტი
-$line:          #453F55;   // ხაზები / საზღვრები
+$orange:        #ff6a00;
+$orange-light:  #ff8a2b;
+$orange-soft:   #fff1e6;
+$navy:          #1b2a6b;
+$blue:          #2f5fd8;
+$blue-soft:     #e8f0ff;
+$green:         #1fa463;
+$green-soft:    #e3f6ec;
+$red:           #e11d48;
+$red-soft:      #ffe9ee;
+$text:          #1b2a4e;
+$muted:         #6b7796;
+$line:          #e4eaf6;
+$card:          #ffffff;
+$page-bg:       #eef4ff;
 
-$primary:       #4F7FF0;
-$primary-dark:  #3A63CF;
-$primary-soft:  #27335C;
-$primary-text:  #9DBBFF;   // ლურჯი ტექსტი მუქ ფონზე
+$radius-lg: 28px;
+$radius-md: 20px;
+$radius-sm: 14px;
 
-$accent:        #F0873A;
-$accent-dark:   #DE7523;
-$accent-soft:   #3F2C24;
+$shadow-card:   0 18px 48px rgba(27, 42, 107, 0.10);
+$shadow-soft:   0 8px 24px rgba(27, 42, 107, 0.08);
+$shadow-orange: 0 10px 24px rgba(255, 106, 0, 0.35);
 
-$teal:          #1AA093;
-$teal-text:     #4FD6C6;
-$teal-soft:     #1F3A3D;
+$font: 'Noto Sans Georgian', 'BPG Nino Mtavruli', 'Segoe UI', system-ui, sans-serif;
 
-$red:           #FF6B86;
-$red-soft:      #432733;
+@mixin mobile { @media (max-width: 768px) { @content; } }
+@mixin tablet { @media (max-width: 1024px) { @content; } }
 
-$amber:         #E0A93A;
-$amber-soft:    #40341F;
-
-$radius-lg: 22px;
-$radius-md: 16px;
-$radius-sm: 10px;
-
-$shadow-card:       0 10px 28px -14px rgba(0, 0, 0, 0.55);
-$shadow-card-hover: 0 18px 36px -16px rgba(0, 0, 0, 0.65);
-$transition: all 0.28s cubic-bezier(0.4, 0, 0.2, 1);
-
-$font-display: 'Bricolage Grotesque', 'Inter', system-ui, sans-serif;
-$font-body:    'Inter', system-ui, -apple-system, sans-serif;
-$font-mono:    'JetBrains Mono', 'SFMono-Regular', monospace;
-
-// ---- გვერდის ფონი (ბადე + გრადიენტები) --------------------------------------
-$page-bg:
-  linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-  linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-  radial-gradient(ellipse 75% 65% at 35% 8%, rgba(78, 40, 40, 0.8) 0%, rgba(78, 40, 40, 0) 70%),
-  radial-gradient(ellipse 75% 65% at 92% 100%, rgba(26, 36, 60, 0.95) 0%, rgba(26, 36, 60, 0) 70%),
-  linear-gradient(135deg, #2F2328 0%, #231F2B 50%, #1A2030 100%);
-
-// ---- ბრეიქფოინთები ------------------------------------------------------------
-$bp-tablet:       900px;
-$bp-mobile:       600px;
-$bp-small-mobile: 400px;
-
-@mixin tablet-down       { @media (max-width: $bp-tablet) { @content; } }
-@mixin mobile-down       { @media (max-width: $bp-mobile) { @content; } }
-@mixin small-mobile-down { @media (max-width: $bp-small-mobile) { @content; } }
-
-@mixin card-surface($radius: $radius-lg) {
-  background: $card;
-  border: 1px solid $line;
-  border-radius: $radius;
-  box-shadow: $shadow-card;
-}
-
-@mixin dashed-tear($bg: $paper) {
-  position: relative;
-  height: 0;
-  border-top: 2px dashed $line;
-
-  &::before,
-  &::after {
-    content: '';
-    position: absolute;
-    top: -7px;
-    width: 14px;
-    height: 14px;
-    border-radius: 50%;
-    background: $bg;
-  }
-  &::before { left: -7px; }
-  &::after  { right: -7px; }
-}
-
-@mixin eyebrow($color: $primary-text) {
-  display: block;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  color: $color;
-}
-
-@mixin pill-button($from, $to, $shadow-color: $from) {
-  background: linear-gradient(135deg, $from 0%, $to 100%);
-  color: #fff;
-  border: none;
+@mixin pill-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 999px;
+  font-family: inherit;
+  font-weight: 800;
   cursor: pointer;
-  transition: $transition;
+  transition: transform 0.2s, box-shadow 0.2s, background 0.2s, color 0.2s;
 
-  &:hover:not(:disabled) {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 20px -8px rgba($shadow-color, 0.5);
-  }
-  &:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-    transform: none;
-  }
+  &:hover:not(:disabled) { transform: translateY(-2px); }
+  &:disabled { opacity: 0.55; cursor: not-allowed; box-shadow: none; }
 }
 
-// ---- გამოჩენის ანიმაცია (ერთიანი, ყველა ქარდისთვის) -------------------------
-@mixin reveal($duration: 0.5s, $delay: 0s) {
-  opacity: 0;
-  animation: cardAppear $duration cubic-bezier(0.22, 1, 0.36, 1) $delay both;
-}
+:host { display: block; }
 
-@keyframes cardAppear {
-  from {
-    opacity: 0;
-    transform: translateY(16px) scale(0.985);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-:host {
-  --paper: #{$paper};
-  --paper-alt: #{$paper-alt};
-  --card: #{$card};
-  --ink: #{$ink};
-  --ink-soft: #{$ink-soft};
-  --muted: #{$muted};
-  --line: #{$line};
-  --primary: #{$primary};
-  --primary-dark: #{$primary-dark};
-  --primary-soft: #{$primary-soft};
-  --accent: #{$accent};
-  --accent-soft: #{$accent-soft};
-  --teal: #{$teal};
-  --teal-soft: #{$teal-soft};
-  --red: #{$red};
-  --red-soft: #{$red-soft};
-  --amber: #{$amber};
-  --amber-soft: #{$amber-soft};
-  --radius-lg: #{$radius-lg};
-  --radius-md: #{$radius-md};
-  --radius-sm: #{$radius-sm};
-
-  display: block;
+// -------------------------------------------------------------
+//  SHELL
+// -------------------------------------------------------------
+.profile-shell {
   position: relative;
-  z-index: 0;
-  isolation: isolate;
   min-height: 100vh;
-  min-height: 100dvh;
-  color: $ink;
-  color-scheme: dark;
-  background: #231F2B;
-  overflow: hidden;   // ფონის ფენა არ გამოვიდეს კომპონენტის საზღვრებიდან
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 28px 20px 120px;
+  font-family: $font;
+  color: $text;
 
-  // ფონი: გრადიენტი + ბადე — მხოლოდ პროფილის კომპონენტის ფარგლებში
-  // (იყო position: fixed, რის გამოც ფუტერს ფარავდა)
+  // სრულეკრანიანი ცისფერი ფონი + ტალღა ქვემოთ
   &::before {
     content: '';
-    position: absolute;
+    position: fixed;
     inset: 0;
+    z-index: -2;
+    background:
+      radial-gradient(1000px 420px at 75% -8%, #cfe0ff 0%, transparent 60%),
+      linear-gradient(180deg, #e6f0ff 0%, #f4f8ff 50%, #ffffff 100%);
+  }
+
+  &::after {
+    content: '';
+    position: fixed;
+    left: -10%;
+    right: -10%;
+    bottom: -190px;
+    height: 260px;
     z-index: -1;
+    border-radius: 50% 50% 0 0;
+    background: linear-gradient(100deg, $orange 0%, $orange-light 28%, $blue 60%, $navy 100%);
+    opacity: 0.85;
     pointer-events: none;
-    background: $page-bg;
-    background-size: 60px 60px, 60px 60px, auto, auto, auto;
-    background-position: 0 0, 0 0, 0 0, 0 0, 0 0;
-    background-repeat: repeat, repeat, no-repeat, no-repeat, no-repeat;
   }
 
-  *, *::before, *::after {
-    box-sizing: border-box;
+  button:focus-visible,
+  .field__input:focus-visible {
+    outline: 3px solid rgba($blue, 0.45);
+    outline-offset: 2px;
   }
 
-  ::placeholder {
-    color: $muted;
-    opacity: 0.8;
-  }
-
-  ::selection {
-    background: rgba($primary, 0.45);
-    color: #fff;
-  }
+  @include mobile { padding: 18px 14px 100px; }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  :host * {
-    animation-duration: 0.001ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.001ms !important;
-  }
-}
-
-/* Page Shell */
-.profile-shell {
-  max-width: 1180px;
-  margin: 0 auto;
-  padding: clamp(16px, 3vw, 32px) clamp(12px, 4vw, 20px) 60px;
-  font-family: $font-body;
-  color: $ink;
-  overflow-x: hidden;
-
-  @include mobile-down {
-    padding: 16px 12px 36px;
-  }
-}
-
-/* Header */
+// -------------------------------------------------------------
+//  HEADER
+// -------------------------------------------------------------
 .route-header {
-  @include card-surface;
-  @include reveal(0.45s, 0s);
-  padding: 20px 24px 16px;
-  margin-bottom: 24px;
-
-  @include mobile-down {
-    padding: 16px 16px 14px;
-    margin-bottom: 18px;
-  }
+  margin-bottom: 28px;
 
   &__path {
     display: flex;
     align-items: center;
     gap: 6px;
+    max-width: 260px;
     margin-bottom: 14px;
+
+    .waypoint {
+      width: 14px;
+      height: 14px;
+      flex: 0 0 14px;
+      border-radius: 50%;
+      background: #fff;
+      border: 3px solid $blue;
+      box-shadow: 0 0 0 4px rgba($blue, 0.15);
+
+      &--end {
+        border-color: $orange;
+        box-shadow: 0 0 0 4px rgba($orange, 0.2);
+        background: $orange;
+      }
+    }
+
+    .dash-line {
+      flex: 1;
+      border-top: 3px dashed $orange;
+      opacity: 0.6;
+      filter: drop-shadow(0 0 4px rgba($orange, 0.5));
+    }
   }
 
   &__row {
     display: flex;
-    justify-content: space-between;
     align-items: flex-end;
+    justify-content: space-between;
     gap: 16px;
-
-    @include mobile-down {
-      flex-direction: column;
-      align-items: stretch;
-      gap: 12px;
-    }
+    flex-wrap: wrap;
   }
 
   &__eyebrow {
-    @include eyebrow($primary-text);
-    margin-bottom: 4px;
+    display: inline-block;
+    margin-bottom: 8px;
+    padding: 5px 14px;
+    border-radius: 999px;
+    background: $orange-soft;
+    color: $orange;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.06em;
   }
 
   &__title {
-    font-family: $font-display;
-    font-size: clamp(22px, 4vw, 28px);
-    font-weight: 700;
-    letter-spacing: -0.4px;
     margin: 0;
-    color: $ink;
+    font-size: clamp(28px, 4.4vw, 44px);
+    line-height: 1.15;
+    font-weight: 900;
+    color: $navy;
   }
 
   &__actions {
     display: flex;
     gap: 10px;
-    flex-shrink: 0;
-
-    @include mobile-down {
-      width: 100%;
-    }
   }
-}
-
-.waypoint {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: $primary;
-  flex-shrink: 0;
-
-  &--end { background: $accent; }
-}
-
-.dash-line {
-  flex: 1;
-  height: 2px;
-  background-image: linear-gradient(to right, $line 0 8px, transparent 8px 14px);
-  background-size: 14px 2px;
-  background-repeat: repeat-x;
 }
 
 .btn-ghost {
-  background: $paper-alt;
-  border: 1px solid $line;
-  color: $ink-soft;
-  padding: 10px 16px;
-  border-radius: $radius-sm;
-  font-weight: 600;
-  font-size: 13.5px;
-  cursor: pointer;
-  transition: $transition;
-  white-space: nowrap;
+  @include pill-btn;
+  padding: 10px 20px;
+  border: 1.5px solid $navy;
+  background: rgba(255, 255, 255, 0.85);
+  color: $navy;
+  font-size: 14px;
 
-  &:hover {
-    background: $primary-soft;
-    color: $primary-text;
-    border-color: $primary;
-  }
+  &:hover:not(:disabled) { background: $navy; color: #fff; }
 
-  &--icon { padding: 10px 14px; }
-
-  @include mobile-down {
-    flex: 1;
+  &--icon {
+    width: 42px;
+    height: 42px;
+    padding: 0;
+    font-size: 20px;
+    line-height: 1;
   }
 }
 
-/* Grid Layout */
+// -------------------------------------------------------------
+//  GRID
+// -------------------------------------------------------------
 .profile-grid {
   display: grid;
-  grid-template-columns: minmax(280px, 320px) minmax(0, 1fr);
-  gap: clamp(16px, 2.5vw, 26px);
+  grid-template-columns: 340px minmax(0, 1fr);
+  gap: 24px;
   align-items: start;
 
-  @include tablet-down {
-    grid-template-columns: 1fr;
-  }
+  @include tablet { grid-template-columns: 1fr; }
 }
 
-/* Tag Card */
+.profile-sidebar-column {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  position: sticky;
+  top: 20px;
+
+  @include tablet { position: static; }
+}
+
+.profile-main-column {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  min-width: 0;
+}
+
+// -------------------------------------------------------------
+//  TAG CARD (ბირკა)
+// -------------------------------------------------------------
 .tag-card {
   position: relative;
-  @include card-surface;
-  @include reveal(0.5s, 0.06s);
-  padding: 32px 22px 22px;
-  text-align: center;
-  transition: $transition;
-
-  &:hover {
-    box-shadow: $shadow-card-hover;
-
-    @media (min-width: #{$bp-mobile + 1}) {
-      transform: rotate(-0.5deg);
-    }
-  }
+  padding: 52px 22px 22px;
+  background: $card;
+  border-radius: $radius-lg;
+  box-shadow: $shadow-card;
+  overflow: hidden;
 
   &__strap {
     position: absolute;
-    top: -10px;
+    top: 0;
     left: 50%;
+    width: 46px;
+    height: 34px;
     transform: translateX(-50%);
-    width: 3px;
-    height: 22px;
-    background: $line;
-    border-radius: 2px;
+    background: linear-gradient(180deg, $navy, $blue);
+    border-radius: 0 0 10px 10px;
   }
 
   &__grommet {
     position: absolute;
-    top: 12px;
+    top: 14px;
     left: 50%;
+    width: 16px;
+    height: 16px;
     transform: translateX(-50%);
-    width: 18px;
-    height: 18px;
     border-radius: 50%;
-    background: $paper;
-    border: 3px solid $line;
+    background: #fff;
+    box-shadow: inset 0 2px 4px rgba(27, 42, 107, 0.35);
   }
 
-  &__top { padding-top: 6px; }
+  &__top {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 6px;
+    padding-bottom: 20px;
+  }
 
   &__avatar {
-    width: 80px;
-    height: 80px;
-    margin: 0 auto 14px;
+    width: 84px;
+    height: 84px;
+    display: grid;
+    place-items: center;
+    margin-bottom: 6px;
     border-radius: 50%;
-    background: linear-gradient(135deg, $teal 0%, $accent 100%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-family: $font-display;
-    font-size: 28px;
-    font-weight: 700;
+    background: linear-gradient(135deg, $orange-light, $orange);
     color: #fff;
-    box-shadow: 0 8px 18px -6px rgba(26, 160, 147, 0.5), 0 0 0 5px $accent-soft;
-    border: 3px solid $card;
-    outline: 1px solid $line;
+    font-size: 30px;
+    font-weight: 900;
+    box-shadow: $shadow-orange, 0 0 0 5px #fff, 0 0 0 7px rgba($orange, 0.25);
   }
 
-  &__name {
-    font-family: $font-display;
-    font-size: 19px;
-    font-weight: 700;
-    color: $ink;
-    overflow-wrap: anywhere;
-  }
-
-  &__email {
-    font-size: 13px;
-    color: $muted;
-    margin: 3px 0 12px;
-    word-break: break-word;
-    overflow-wrap: anywhere;
-  }
+  &__name  { font-size: 21px; font-weight: 900; color: $navy; }
+  &__email { font-size: 13px; color: $muted; word-break: break-all; }
 
   &__stamp {
-    display: inline-block;
-    padding: 5px 14px;
-    border-radius: 20px;
-    font-size: 11px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.6px;
-    border: 1.5px dashed currentColor;
+    margin-top: 6px;
+    padding: 6px 16px;
+    border-radius: 999px;
+    font-size: 12.5px;
+    font-weight: 800;
+    border: 1.5px solid currentColor;
+
+    &.stamp--sender { color: $blue;   background: $blue-soft; }
   }
 
+  // პერფორაცია: წყვეტილი ხაზი + გვერდით ნახევარწრიანი ამონაჭრები
   &__perforation {
-    margin: 20px -22px;
-    height: 0;
-    border-top: 2px dashed $line;
     position: relative;
+    height: 0;
+    margin: 0 -22px 20px;
+    border-top: 2px dashed $line;
 
     &::before,
     &::after {
       content: '';
       position: absolute;
-      top: -8px;
-      width: 16px;
-      height: 16px;
+      top: -11px;
+      width: 22px;
+      height: 22px;
       border-radius: 50%;
-      background: $paper;
+      background: $page-bg;
     }
-    &::before { left: -8px; }
-    &::after  { right: -8px; }
+    &::before { left: -11px; }
+    &::after  { right: -11px; }
   }
 
   &__status {
-    background: $paper-alt;
-    border-radius: $radius-sm;
-    padding: 12px;
     margin-bottom: 18px;
+    text-align: center;
   }
 
   &__actions {
-    display: flex;
-    flex-direction: column;
+    display: grid;
     gap: 10px;
-    margin-bottom: 20px;
+    margin-bottom: 18px;
   }
 
   &__stats {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(2, 1fr);
     gap: 10px;
-    border-top: 1px dashed $line;
-    padding-top: 16px;
   }
-}
-
-.stamp {
-  &--driver { color: $teal-text;    background: $teal-soft; }
-  &--sender { color: $primary-text; background: $primary-soft; }
 }
 
 .status-line {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
-  gap: 6px;
-  font-size: 13px;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 12.5px;
   font-weight: 700;
-  margin-bottom: 4px;
-  flex-wrap: wrap;
-  text-align: center;
 
-  &--ok   { color: $teal-text; .status-dot { background: $teal-text; } }
-  &--warn { color: $red;       .status-dot { background: $red; } }
-}
+  .status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: currentColor;
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.7);
+  }
 
-.status-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  flex-shrink: 0;
+  &--ok   { background: $green-soft;  color: $green; }
+  &--warn { background: $orange-soft; color: $orange; }
 }
 
 .status-phone {
-  font-size: 12px;
-  color: $muted;
-  font-family: $font-mono;
+  margin-top: 8px;
+  font-size: 18px;
+  font-weight: 900;
+  color: $navy;
+  letter-spacing: 0.02em;
 }
 
 .btn-tag {
-  width: 100%;
-  padding: 12px;
-  border-radius: $radius-sm;
-  border: none;
-  font-weight: 700;
-  font-size: 14px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  transition: $transition;
+  @include pill-btn;
   position: relative;
+  min-height: 48px;
+  padding: 10px 18px;
+  font-size: 14px;
+  border: 1.5px solid transparent;
 
   &--outline {
-    background: $paper-alt;
-    color: $ink;
-    border: 1.5px solid $line;
-
-    &:hover {
-      border-color: $primary;
-      color: $primary-text;
-    }
+    background: #fff;
+    border-color: $navy;
+    color: $navy;
+    &:hover:not(:disabled) { background: $navy; color: #fff; }
   }
 
   &--solid {
-    @include pill-button($teal, $teal);
+    background: linear-gradient(135deg, $orange-light, $orange);
+    color: #fff;
+    box-shadow: $shadow-orange;
+
+    &.has-unread { animation: unread-pulse 2.2s ease-in-out infinite; }
   }
 }
 
 .unread-badge {
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 999px;
   background: #fff;
-  color: $accent-dark;
-  font-size: 11px;
-  padding: 2px 7px;
-  border-radius: 10px;
-  font-weight: 800;
-  animation: badgePulse 1.8s ease-in-out infinite;
+  color: $orange;
+  font-size: 12px;
+  font-weight: 900;
 }
 
-.notice-stack {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-bottom: 20px;
-}
-
-.notice-card {
-  position: relative;
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  padding: 14px 40px 14px 16px;
-  border-radius: 12px;
-  color: $ink;
-  animation: fadeIn 0.25s ease both;
-
-  &--rejected {
-    background: rgba(255, 107, 134, 0.12);
-    border: 1px solid rgba(255, 107, 134, 0.35);
-  }
-
-  &__body {
-    display: flex;
-    align-items: flex-start;
-    gap: 8px;
-    font-size: 14px;
-  }
-
-  &__close {
-    position: absolute;
-    top: 8px;
-    right: 10px;
-    background: none;
-    border: none;
-    font-size: 16px;
-    cursor: pointer;
-    color: $red;
-    opacity: 0.8;
-
-    &:hover { opacity: 1; }
-    &:disabled { opacity: 0.4; cursor: default; }
-  }
-}
-
-@keyframes badgePulse {
-  0%, 100% { transform: scale(1); }
-  50%      { transform: scale(1.12); }
+@keyframes unread-pulse {
+  0%, 100% { box-shadow: $shadow-orange; }
+  50%      { box-shadow: 0 10px 30px rgba($orange, 0.6); }
 }
 
 .stat-chip {
-  background: $paper-alt;
-  padding: 12px;
+  padding: 14px 10px;
+  text-align: center;
   border-radius: $radius-sm;
-  @include reveal(0.4s, 0.16s);
+  background: $blue-soft;
 
-  &--accent { background: $accent-soft; }
+  &__value { font-size: 24px; font-weight: 900; color: $navy; line-height: 1.2; }
+  &__label { margin-top: 2px; font-size: 12px; color: $muted; font-weight: 600; }
 
-  &:nth-child(2) { animation-delay: 0.22s; }
-
-  &__value {
-    font-family: $font-display;
-    font-size: 18px;
-    font-weight: 700;
-    color: $ink;
-  }
-
-  &__label {
-    font-size: 11px;
-    color: $muted;
-    font-weight: 600;
-  }
-}
-
-/* Manifest Card */
-.manifest-card {
-  margin-top: 18px;
-  @include card-surface;
-  @include reveal(0.5s, 0.14s);
-  padding: 18px;
-
-  &__title {
-    font-size: 12px;
-    font-weight: 700;
-    color: $muted;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-  }
-}
-
-.manifest-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  margin-top: 12px;
-
-  @include small-mobile-down {
-    grid-template-columns: 1fr;
-  }
-}
-
-.manifest-item {
-  min-width: 0;
-  background: $paper-alt;
-  padding: 10px 12px;
-  border-radius: $radius-sm;
-  @include reveal(0.4s, 0.2s);
-
-  &:nth-child(2) { animation-delay: 0.26s; }
-
-  &__label {
-    font-size: 11px;
-    color: $muted;
-  }
-
-  &__value {
-    font-size: 14px;
-    font-weight: 700;
-    margin-top: 2px;
-    color: $ink;
-    overflow-wrap: anywhere;
-  }
-}
-
-.plate-chip {
-  display: inline-block;
-  background: #12111A;
-  color: #fff;
-  padding: 2px 8px 4px;
-  border-radius: 5px;
-  font-family: $font-mono;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-  border: 1px solid $line;
-  border-bottom: 2px solid $accent;
+  &--accent { background: $orange-soft; .stat-chip__value { color: $orange; } }
 }
 
 .skeleton-block {
-  padding: 22px;
+  padding: 40px 20px;
   text-align: center;
+  border-radius: $radius-md;
+  background: linear-gradient(90deg, #f1f5ff 25%, #e4ecff 50%, #f1f5ff 75%);
+  background-size: 200% 100%;
   color: $muted;
-  font-style: italic;
-}
-
-/* Main Column */
-.profile-main-column {
-  display: flex;
-  flex-direction: column;
-  gap: clamp(18px, 2.5vw, 24px);
-  min-width: 0;
-}
-
-/* Accordion — თითოეული სექციის დამოუკიდებელი ღილაკი */
-.accordion-section {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.section-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  margin-bottom: 16px;
-  gap: 12px;
-  flex-wrap: wrap;
-  @include reveal(0.4s, 0.05s);
-
-  @include mobile-down {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  &__eyebrow {
-    @include eyebrow($accent);
-    margin-bottom: 2px;
-  }
-
-  h2 {
-    font-family: $font-display;
-    font-size: clamp(18px, 2.4vw, 20px);
-    font-weight: 700;
-    margin: 0;
-    color: $ink;
-  }
-
-  &__buttons {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    align-items: center;
-
-    @include mobile-down {
-      width: 100%;
-
-      .btn-cta,
-      .btn-toggle {
-        flex: 1;
-      }
-    }
-  }
-}
-
-/* ===== "ნახვა / დამალვა" ღილაკი ======================================= */
-.btn-toggle {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  padding: 8px 10px 8px 18px;
-  background: linear-gradient(180deg, $card-hi 0%, $card 100%);
-  border: 1.5px solid $line;
-  border-radius: 999px;
-  color: $ink-soft;
-  font-family: $font-body;
-  font-size: 13px;
   font-weight: 700;
-  letter-spacing: 0.2px;
-  white-space: nowrap;
-  cursor: pointer;
-  box-shadow: 0 2px 8px -3px rgba(0, 0, 0, 0.5);
-  transition: $transition;
-  -webkit-tap-highlight-color: transparent;
-
-  &:hover {
-    background: linear-gradient(135deg, $primary 0%, $primary-dark 100%);
-    border-color: $primary;
-    color: #fff;
-    transform: translateY(-2px);
-    box-shadow: 0 10px 20px -8px rgba($primary, 0.6);
-
-    .btn-toggle__count {
-      background: #fff;
-      color: $primary-dark;
-      box-shadow: none;
-    }
-  }
-
-  &:active {
-    transform: translateY(0) scale(0.97);
-    box-shadow: 0 3px 8px -4px rgba($primary, 0.5);
-  }
-
-  &:focus-visible {
-    outline: none;
-    box-shadow: 0 0 0 3px $primary-soft, 0 0 0 5px rgba($primary, 0.7);
-  }
-
-  &__count {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 24px;
-    height: 24px;
-    padding: 0 8px;
-    border-radius: 999px;
-    background: $primary-soft;
-    color: $primary-text;
-    font-family: $font-mono;
-    font-size: 11.5px;
-    font-weight: 700;
-    line-height: 1;
-    box-shadow: inset 0 0 0 1px rgba($primary, 0.3);
-    transition: $transition;
-  }
-
-  // თუ ღილაკს მხოლოდ ტექსტი აქვს (counter-ის გარეშე), padding სიმეტრიული იყოს
-  &:not(:has(.btn-toggle__count)) {
-    padding: 10px 18px;
-  }
-
-  @include mobile-down {
-    width: 100%;
-    padding: 10px 14px 10px 18px;
-
-    &:not(:has(.btn-toggle__count)) {
-      padding: 11px 18px;
-    }
-  }
+  animation: shimmer 1.6s linear infinite;
 }
 
-.btn-cta {
-  @include pill-button($accent, $accent-dark);
-  padding: 11px 18px;
-  border-radius: $radius-sm;
-  font-weight: 700;
-  font-size: 14px;
-  white-space: nowrap;
+@keyframes shimmer { to { background-position: -200% 0; } }
 
-  @include mobile-down {
-    width: 100%;
-  }
-}
-
-/* Form */
+// -------------------------------------------------------------
+//  FORM PANEL
+// -------------------------------------------------------------
 .form-panel {
-  @include card-surface;
-  @include reveal(0.4s, 0s);
-  padding: clamp(20px, 3vw, 30px);
+  padding: 28px;
+  background: $card;
+  border-radius: $radius-lg;
+  box-shadow: $shadow-card;
+  border-top: 5px solid $orange;
 
   &__header {
     margin-bottom: 22px;
 
-    h3 {
-      font-family: $font-display;
-      margin: 4px 0 4px 0;
-      font-size: 20px;
-      color: $ink;
-    }
-
-    p {
-      color: $muted;
-      margin: 0;
-      font-size: 14px;
-    }
+    h3 { margin: 6px 0 4px; font-size: 24px; font-weight: 900; color: $navy; }
+    p  { margin: 0; color: $muted; font-size: 14px; }
   }
 
   &__eyebrow {
-    @include eyebrow($primary-text);
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 999px;
+    background: $orange-soft;
+    color: $orange;
+    font-size: 12px;
+    font-weight: 800;
   }
 
   &__actions {
     display: flex;
-    gap: 12px;
-    margin-top: 12px;
     flex-wrap: wrap;
-
-    .btn-primary,
-    .btn-secondary {
-      flex: 1 1 140px;
-    }
+    gap: 12px;
+    margin-top: 8px;
   }
+
+  @include mobile { padding: 18px; border-radius: $radius-md; }
+}
+
+.profile-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
 }
 
 .field-grid {
-  &--2 {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 16px;
+  display: grid;
+  gap: 16px;
 
-    @include mobile-down {
-      grid-template-columns: 1fr;
-    }
+  &--2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    @include mobile { grid-template-columns: 1fr; }
   }
 
   &__divider {
-    font-size: 13px;
-    font-weight: 700;
-    color: $primary-text;
-    margin: 22px 0 12px 0;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    padding-top: 14px;
-    border-top: 1px dashed $line;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 6px 0 -2px;
+    font-size: 14px;
+    font-weight: 800;
+    color: $navy;
+
+    &::after {
+      content: '';
+      flex: 1;
+      border-top: 2px dashed $line;
+    }
   }
 }
 
@@ -893,625 +493,518 @@ $bp-small-mobile: 400px;
   display: flex;
   flex-direction: column;
   gap: 6px;
-  margin-bottom: 16px;
-  min-width: 0;
 
-  &__label {
-    font-size: 13px;
-    font-weight: 600;
-    color: $ink-soft;
-  }
+  &__label { font-size: 13px; font-weight: 700; color: $muted; }
 
   &__input {
     width: 100%;
-    background: $paper-alt;
-    border: 1.5px solid $line;
+    padding: 13px 16px;
     border-radius: $radius-sm;
-    padding: 12px 14px;
-    color: $ink;
-    font-size: 14px;
-    font-family: $font-body;
-    outline: none;
-    transition: $transition;
+    border: 1.5px solid $line;
+    background: #f9fbff;
+    color: $text;
+    font-family: inherit;
+    font-size: 15px;
+    transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
 
     &:focus {
-      border-color: $primary;
-      background: $paper-alt-hi;
-      box-shadow: 0 0 0 3px rgba($primary, 0.3);
+      outline: none;
+      background: #fff;
+      border-color: $orange;
+      box-shadow: 0 0 0 4px rgba($orange, 0.15);
     }
 
     &:disabled {
-      opacity: 0.55;
+      background: #eef1f8;
+      color: $muted;
       cursor: not-allowed;
     }
   }
 
-  &__hint {
-    font-size: 12px;
-    color: $red;
-  }
+  &__hint { font-size: 12.5px; font-weight: 600; color: $red; }
 }
 
-.btn-primary,
-.btn-secondary {
-  padding: 12px 24px;
-  border-radius: $radius-sm;
-  font-weight: 700;
-  font-size: 14px;
-  cursor: pointer;
-  border: none;
-  transition: $transition;
-}
-
+// -------------------------------------------------------------
+//  BUTTONS
+// -------------------------------------------------------------
 .btn-primary {
-  @include pill-button($primary, $primary-dark);
+  @include pill-btn;
+  padding: 12px 24px;
+  border: 0;
+  background: linear-gradient(135deg, $orange-light, $orange);
+  color: #fff;
+  font-size: 14px;
+  box-shadow: $shadow-orange;
 }
 
 .btn-secondary {
-  background: $paper-alt;
-  color: $ink;
-  border: 1.5px solid $line;
+  @include pill-btn;
+  padding: 11px 22px;
+  border: 1.5px solid $navy;
+  background: #fff;
+  color: $navy;
+  font-size: 14px;
 
-  &:hover {
-    background: $paper-alt-hi;
-    border-color: $muted;
+  &:hover:not(:disabled) { background: $navy; color: #fff; }
+}
+
+.btn-cta {
+  @include pill-btn;
+  padding: 10px 20px;
+  border: 0;
+  background: linear-gradient(135deg, $blue, $navy);
+  color: #fff;
+  font-size: 13.5px;
+  box-shadow: 0 10px 22px rgba($navy, 0.28);
+}
+
+.btn-toggle {
+  @include pill-btn;
+  padding: 9px 16px;
+  border: 1.5px solid $line;
+  background: #fff;
+  color: $navy;
+  font-size: 13px;
+
+  &:hover:not(:disabled) { border-color: $navy; }
+
+  &__count {
+    min-width: 24px;
+    height: 24px;
+    padding: 0 7px;
+    display: inline-grid;
+    place-items: center;
+    border-radius: 999px;
+    background: $orange;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 900;
   }
+}
+
+.btn-details {
+  @include pill-btn;
+  padding: 8px 16px;
+  border: 1.5px solid $navy;
+  background: transparent;
+  color: $navy;
+  font-size: 13px;
+
+  &:hover:not(:disabled) { background: $navy; color: #fff; }
+}
+
+.btn-delete {
+  @include pill-btn;
+  padding: 8px 14px;
+  border: 1.5px solid rgba($red, 0.35);
+  background: $red-soft;
+  color: $red;
+  font-size: 13px;
+
+  &:hover:not(:disabled) { background: $red; color: #fff; border-color: $red; }
 }
 
 .alert-error {
-  margin-top: 16px;
-  padding: 12px 14px;
-  background: $red-soft;
-  border: 1px solid rgba(255, 107, 134, 0.35);
+  padding: 12px 16px;
   border-radius: $radius-sm;
+  background: $red-soft;
+  border-left: 4px solid $red;
   color: $red;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 700;
 }
 
-/* ===== Stub Cards ===================================================== */
+// -------------------------------------------------------------
+//  SECTIONS
+// -------------------------------------------------------------
+.accordion-section {
+  padding: 24px;
+  background: rgba(255, 255, 255, 0.88);
+  border-radius: $radius-lg;
+  box-shadow: $shadow-card;
+  backdrop-filter: blur(6px);
+
+  @include mobile { padding: 16px; border-radius: $radius-md; }
+}
+
+.section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+
+  &__eyebrow {
+    display: inline-block;
+    margin-bottom: 4px;
+    font-size: 12px;
+    font-weight: 800;
+    color: $orange;
+  }
+
+  h2 {
+    margin: 0;
+    font-size: 19px;
+    line-height: 1.35;
+    font-weight: 900;
+    color: $navy;
+  }
+
+  &__buttons {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  // კონტენტთან დაშორება, როცა სექცია გახსნილია
+  & + * { margin-top: 20px; }
+}
+
+// -------------------------------------------------------------
+//  STUB CARD (ბილეთი)
+// -------------------------------------------------------------
 .stub-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 360px));
-  justify-content: start;
-  gap: 16px;
-
-  @include mobile-down {
-    grid-template-columns: minmax(0, 1fr);
-    justify-content: stretch;
-    max-width: 380px;
-    margin: 0 auto;
-  }
-
-  @include small-mobile-down {
-    max-width: 100%;
-  }
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 18px;
 }
 
 .stub-card {
-  @include card-surface;
-  overflow: hidden;
-  transition: $transition;
+  position: relative;
   display: flex;
   flex-direction: column;
-  position: relative;
-  min-width: 0;
-  color: $ink;
-  animation: cardAppear 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-  opacity: 0;
+  overflow: hidden;
+  background: #fff;
+  border-radius: $radius-md;
+  border: 1px solid $line;
+  box-shadow: $shadow-soft;
+  animation: stub-in 0.4s ease both;
+  transition: box-shadow 0.2s, transform 0.2s;
 
-  p {
-    color: $ink-soft;
-    margin: 6px 0;
-    font-size: 14px;
-    line-height: 1.5;
-
-    strong { color: $ink; }
-  }
-
-  &:hover {
-    transform: translateY(-4px);
-    border-color: $primary;
-    box-shadow: $shadow-card-hover, 0 0 0 1px rgba(240, 135, 58, 0.18);
-
-    .stub-card__media img {
-      transform: scale(1.05);
-    }
-  }
+  &:hover { box-shadow: $shadow-card; transform: translateY(-2px); }
 
   &__media {
-    height: 140px;
-    width: 100%;
     position: relative;
-    background: linear-gradient(160deg, $teal-soft 0%, $paper-alt 100%);
+    aspect-ratio: 16 / 9;
+    background: $blue-soft;
     overflow: hidden;
 
-    img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      transition: transform 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
-    }
+    img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  }
 
-    &-placeholder {
-      height: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 42px;
-      opacity: 0.8;
-    }
+  &__media-placeholder {
+    width: 100%;
+    height: 100%;
+    display: grid;
+    place-items: center;
+    font-size: 44px;
+    background: linear-gradient(135deg, $blue-soft, $orange-soft);
+  }
 
-    &-count {
-      position: absolute;
-      bottom: 10px;
-      right: 10px;
-      background: rgba(10, 8, 16, 0.7);
-      color: #fff;
-      padding: 3px 10px;
-      border-radius: 12px;
-      font-size: 11px;
-      font-weight: 700;
-    }
+  &__media-count {
+    position: absolute;
+    right: 10px;
+    bottom: 10px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: rgba($navy, 0.8);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 800;
   }
 
   &__route {
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 16px 16px 6px;
-    min-width: 0;
+    padding: 16px 18px 6px;
   }
 
   &__body {
-    padding: 6px 16px 4px;
-    flex-grow: 1;
-    min-width: 0;
+    flex: 1;
+    padding: 8px 18px 16px;
+
+    p { margin: 0 0 6px; font-size: 14px; line-height: 1.6; color: $muted; }
+    strong { color: $navy; font-weight: 800; }
   }
 
   &__info {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 6px;
-    background: $paper-alt;
-    padding: 12px 8px;
-    border-radius: 12px;
-    text-align: center;
-
-    @include small-mobile-down {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-
-      > :last-child:nth-child(odd) {
-        grid-column: 1 / -1;
-      }
-    }
-  }
-
-  &__earnings {
-    margin: 12px 0 4px;
-    padding: 10px 14px;
-    background: $teal-soft;
-    border-radius: 12px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
     gap: 8px;
-    font-size: 12px;
-    color: $teal-text;
-    font-weight: 700;
-
-    &-value {
-      color: $accent;
-      font-weight: 800;
-    }
+    margin-top: 6px;
   }
 
+  // ხევადი ხაზი ბილეთის შუაში
   &__tear {
-    @include dashed-tear($paper);
-    margin: 14px 0 0;
+    position: relative;
+    height: 0;
+    border-top: 2px dashed $line;
+
+    &::before,
+    &::after {
+      content: '';
+      position: absolute;
+      top: -11px;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: #f2f7ff;
+      border: 1px solid $line;
+    }
+    &::before { left: -12px; }
+    &::after  { right: -12px; }
   }
 
   &__footer {
-    padding: 14px 16px;
     display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
     align-items: center;
+    justify-content: space-between;
     gap: 10px;
-    background: $paper-alt;
-    color: $ink-soft;
+    flex-wrap: wrap;
+    padding: 14px 18px;
     font-size: 13px;
-
-    &-actions {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-      flex-wrap: wrap;
-    }
+    font-weight: 700;
+    color: $muted;
   }
 
   &__id {
-    font-family: $font-mono;
-    font-size: 12px;
+    font-size: 12.5px;
+    font-weight: 700;
     color: $muted;
-    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+
+  &__footer-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
   }
 }
 
-.route-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  flex-shrink: 0;
+@keyframes stub-in {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
 
-  &--from { background: $primary; }
-  &--to   { background: $accent; }
+// მარშრუტის ხაზი ბარათში: ● თბილისი ┄┄┄ ბათუმი ●
+.route-dot {
+  width: 12px;
+  height: 12px;
+  flex: 0 0 12px;
+  border-radius: 50%;
+  border: 3px solid $blue;
+  background: #fff;
+
+  &--to { border-color: $orange; background: $orange; }
 }
 
 .route-name {
-  font-family: $font-display;
-  font-size: 14px;
-  font-weight: 700;
-  color: $ink;
+  font-size: 15px;
+  font-weight: 800;
+  color: $navy;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  min-width: 0;
 }
 
 .route-track {
   flex: 1;
-  height: 2px;
   min-width: 16px;
-  background-image: linear-gradient(
-    to right,
-    $primary 0 5px, transparent 5px 11px,
-    $accent 11px 16px, transparent 16px 22px
-  );
-  background-size: 22px 2px;
-  background-repeat: repeat-x;
-  background-position: 0 0;
-  animation: trackFlow 2.4s linear infinite;
-}
-
-@keyframes trackFlow {
-  to { background-position: -22px 0; }
+  border-top: 2px dashed $orange;
+  opacity: 0.55;
 }
 
 .info-cell {
-  min-width: 0;
+  padding: 10px;
+  border-radius: 12px;
+  background: #f4f8ff;
 
-  &__label {
-    font-size: 10.5px;
-    color: $muted;
-    font-weight: 600;
-    margin-bottom: 2px;
-  }
-
-  &__value {
-    font-size: 13px;
-    font-weight: 700;
-    color: $ink;
-    overflow-wrap: anywhere;
-  }
-
-  &--accent {
-    .info-cell__value {
-      color: $accent;
-      font-weight: 800;
-    }
-    .info-cell__label {
-      color: $accent;
-    }
-  }
+  &__label { font-size: 11px; color: $muted; margin-bottom: 4px; }
+  &__value { font-size: 13px; font-weight: 800; color: $text; line-height: 1.35; }
 }
 
-/* ===== "დეტალები →" ღილაკი ============================================ */
-.btn-details {
+.status-badge {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  background: $primary-soft;
-  border: 1.5px solid rgba($primary, 0.25);
-  color: $primary-text;
-  padding: 7px 14px;
+  padding: 6px 14px;
   border-radius: 999px;
-  font-family: $font-body;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.2px;
-  cursor: pointer;
-  transition: $transition;
-  white-space: nowrap;
-
-  &:hover:not(:disabled) {
-    background: linear-gradient(135deg, $primary 0%, $primary-dark 100%);
-    border-color: transparent;
-    color: #fff;
-    transform: translateX(3px);
-    box-shadow: 0 8px 16px -8px rgba($primary, 0.7);
-  }
-
-  &:active:not(:disabled) {
-    transform: translateX(0) scale(0.97);
-  }
-
-  &:focus-visible {
-    outline: none;
-    box-shadow: 0 0 0 3px $primary-soft, 0 0 0 5px rgba($primary, 0.7);
-  }
-
-  &:disabled {
-    opacity: 0.55;
-    cursor: not-allowed;
-  }
-}
-
-// ტრიპ-მოთხოვნის სტატუსის ბეჯი — ფონის ფერი მოდის [style.background-color]-დან
-// TS-ში, აქ მხოლოდ ფორმა/ტიპოგრაფიაა განსაზღვრული.
-.status-badge {
-  display: inline-block;
-  padding: 5px 12px;
-  border-radius: 20px;
-  font-size: 11px;
-  font-weight: 700;
+  background: $blue; // [style.background-color] გადაფარავს
   color: #fff;
+  font-size: 12px;
+  font-weight: 800;
   white-space: nowrap;
-  letter-spacing: 0.2px;
-  box-shadow: 0 2px 8px -3px rgba(0, 0, 0, 0.5);
 }
 
-.btn-delete {
-  padding: 6px 12px;
-  border-radius: 8px;
-  border: 1px solid $red;
-  background: transparent;
-  color: $red;
-  font-size: 0.85rem;
-  cursor: pointer;
-  transition: background 0.15s ease;
-  white-space: nowrap;
-
-  &:hover:not(:disabled) {
-    background: rgba(255, 107, 134, 0.14);
-  }
-
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-}
-
+// -------------------------------------------------------------
+//  EMPTY STATE
+// -------------------------------------------------------------
 .empty-panel {
+  padding: 36px 20px;
   text-align: center;
-  padding: clamp(28px, 6vw, 44px) 20px;
-  background: rgba($card, 0.75);
-  border: 1.5px dashed $line;
-  border-radius: $radius-lg;
-  @include reveal(0.45s, 0.1s);
+  border-radius: $radius-md;
+  border: 2px dashed rgba($orange, 0.35);
+  background: $orange-soft;
 
-  &__icon {
-    font-size: 34px;
-    margin-bottom: 10px;
-  }
-
-  &__title {
-    font-family: $font-display;
-    font-size: 16px;
-    font-weight: 700;
-    color: $ink;
-  }
-
-  &__sub {
-    font-size: 13px;
-    color: $muted;
-    margin-top: 4px;
-  }
+  &__icon  { font-size: 44px; margin-bottom: 8px; }
+  &__title { font-size: 18px; font-weight: 900; color: $navy; }
+  &__sub   { margin-top: 4px; font-size: 14px; color: $muted; }
 }
 
-/* Settings */
+// -------------------------------------------------------------
+//  SETTINGS
+// -------------------------------------------------------------
 .settings-block {
-  @include reveal(0.4s, 0.08s);
+  padding: 22px;
+  background: rgba(255, 255, 255, 0.88);
+  border-radius: $radius-lg;
+  box-shadow: $shadow-card;
 
   &__eyebrow {
-    @include eyebrow($muted);
-    letter-spacing: 0.8px;
-    margin-bottom: 10px;
+    display: block;
+    margin-bottom: 14px;
+    font-size: 13px;
+    font-weight: 800;
+    color: $orange;
   }
 }
 
 .settings-list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 
 .settings-row {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
+  gap: 14px;
   width: 100%;
-  padding: 14px 16px;
-  background: $card;
-  border: 1px solid $line;
-  border-radius: $radius-md;
-  color: $ink;
-  cursor: pointer;
-  transition: $transition;
+  padding: 14px 18px;
+  border: 1.5px solid $line;
+  border-radius: $radius-sm;
+  background: #fff;
+  font-family: inherit;
   text-align: left;
-  gap: 12px;
-  @include reveal(0.4s, 0.14s);
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s, transform 0.2s;
 
-  &:nth-child(2) { animation-delay: 0.2s; }
+  &:hover { border-color: $navy; transform: translateX(3px); }
 
-  &:hover {
-    border-color: $primary;
+  &__left { display: flex; align-items: center; gap: 14px; }
 
-    @media (min-width: #{$bp-mobile + 1}) {
-      transform: translateX(3px);
-    }
-  }
-
-  &__left {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    min-width: 0;
-  }
-
-  &__icon { font-size: 18px; flex-shrink: 0; }
-
-  &__title {
-    font-size: 14px;
-    font-weight: 700;
-  }
-
-  &__sub {
-    font-size: 12px;
-    color: $muted;
-  }
-
-  &__arrow {
+  &__icon {
+    width: 42px;
+    height: 42px;
+    display: grid;
+    place-items: center;
+    border-radius: 12px;
+    background: $blue-soft;
     font-size: 18px;
-    color: $muted;
-    flex-shrink: 0;
   }
 
-  &--danger:hover {
-    border-color: $red;
+  &__title { font-size: 15px; font-weight: 800; color: $navy; }
+  &__sub   { margin-top: 2px; font-size: 12.5px; color: $muted; }
+  &__arrow { font-size: 26px; color: $muted; line-height: 1; }
 
-    .settings-row__title {
-      color: $red;
-    }
+  &--danger {
+    border-color: rgba($red, 0.25);
+
+    .settings-row__icon  { background: $red-soft; }
+    .settings-row__title { color: $red; }
+
+    &:hover { border-color: $red; background: $red-soft; }
   }
 }
 
-/* ===== Modals =========================================================
- * `100vh`-ს ნაცვლად `100dvh` — მობილურ ბრაუზერებში `vh` მოიცავს
- * ადრესბარის ფარულ სიმაღლესაც. `overscroll-behavior: contain` კი
- * შიდა სქროლს ფონურ გვერდს არ გადასცემს.
- * ========================================================================= */
+// -------------------------------------------------------------
+//  MODALS
+// -------------------------------------------------------------
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  height: 100vh;
-  height: 100dvh;
-  background: rgba(10, 8, 16, 0.62);
-  backdrop-filter: blur(6px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
   z-index: 1000;
+  display: grid;
+  place-items: center;
   padding: 20px;
-  animation: fadeIn 0.2s ease-out;
-
-  @include mobile-down {
-    padding: 12px;
-    align-items: center;
-  }
+  background: rgba(14, 22, 58, 0.72);
+  backdrop-filter: blur(6px);
+  animation: fade-in 0.2s ease both;
 }
 
 .modal-panel {
-  background: $card;
-  border: 1px solid $line;
-  border-radius: $radius-lg;
-  color: $ink;
-  width: 100%;
-  max-width: 600px;
-  max-height: 80vh;
-  max-height: 80dvh;
   position: relative;
-  overflow: auto;
-  overscroll-behavior: contain;
-  box-shadow: 0 24px 48px -14px rgba(0, 0, 0, 0.7);
-  padding: 24px;
-  animation: modalPop 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
+  width: 100%;
+  max-width: 520px;
+  max-height: 88vh;
+  overflow-y: auto;
+  padding: 28px;
+  background: #fff;
+  border-radius: $radius-lg;
+  border-top: 5px solid $orange;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.4);
+  font-family: $font;
+  color: $text;
 
-  h3 {
-    font-family: $font-display;
-    color: $ink;
-    margin: 0 0 12px;
-  }
+  h3 { margin: 0 0 18px; padding-right: 36px; font-size: 20px; font-weight: 900; color: $navy; }
 
-  @include mobile-down {
-    max-height: 80vh;
-    max-height: 80dvh;
-    padding: 18px;
-    border-radius: $radius-md;
-  }
-}
-
-@keyframes modalPop {
-  from {
-    opacity: 0;
-    transform: translateY(14px) scale(0.97);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
+  @include mobile { padding: 20px; border-radius: $radius-md; }
 }
 
 .modal-close {
   position: absolute;
   top: 14px;
   right: 14px;
-  background: $paper-alt;
-  border: none;
-  color: $ink;
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border: 0;
   border-radius: 50%;
+  background: $blue-soft;
+  color: $navy;
+  font-size: 14px;
+  font-weight: 900;
   cursor: pointer;
-  z-index: 10;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: $transition;
+  transition: background 0.2s, color 0.2s;
 
-  &:hover {
-    background: $red-soft;
-    color: $red;
-  }
+  &:hover { background: $orange; color: #fff; }
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
 
-.detail-list {
+// მოდალში არსებული detail-list
+.modal-panel .detail-list {
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  margin-top: 4px;
+
+  .detail-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 12px 0;
+    border-bottom: 1px dashed $line;
+
+    &:last-child { border-bottom: 0; }
+
+    .label { font-size: 14px; color: $muted; }
+    .value { font-size: 15px; font-weight: 800; color: $text; text-align: right; }
+  }
 }
 
-.detail-item {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 12px 4px;
-  border-bottom: 1px solid $line;
-  flex-wrap: wrap;
-
-  &:last-child {
-    border-bottom: none;
+// ჩატი მობილურზე სრულ ეკრანზე
+.mobile-chat-modal {
+  @include mobile {
+    position: fixed;
+    inset: 0;
+    z-index: 1100;
   }
+}
 
-  .label {
-    flex-shrink: 0;
-    font-size: 13px;
-    font-weight: 500;
-    color: $muted;
-  }
-
-  .value {
-    text-align: right;
-    font-size: 14px;
-    font-weight: 600;
-    color: $ink;
-    word-break: break-word;
-  }
+@media (prefers-reduced-motion: reduce) {
+  .stub-card,
+  .modal-backdrop,
+  .skeleton-block,
+  .btn-tag--solid.has-unread { animation: none; }
 }

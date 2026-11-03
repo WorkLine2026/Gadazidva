@@ -1,380 +1,456 @@
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@400;500;600;700&display=swap');
+// =====================================================
+// "წესები და პირობები" გვერდი — ნარინჯისფერი + მუქი ლურჯი
+// კლასების სახელები ძველი სტილის იდენტურია, HTML-ის შეცვლა არ სჭირდება
+// =====================================================
 
-// Design Tokens
-$color-dark-bg: #0f1419;
-$color-dark-card: #1a1f2e;
-$color-dark-border: #2a2f3f;
-$color-gold: #d4af37;
-$color-gold-hover: #e5c158;
-$color-text-primary: #ffffff;
-$color-text-secondary: #b0b9c8;
-$color-blue-accent: #1e40af;
-$color-orange-accent: #f97316;
-$color-red-warning: #ef4444;
-$color-green-success: #10b981;
-
-$font-family-georgian: 'Noto Sans Georgian', sans-serif;
-$font-size-base: 16px;
-
-// Spacing
-$spacing-xs: 8px;
-$spacing-sm: 12px;
-$spacing-md: 16px;
-$spacing-lg: 24px;
-$spacing-xl: 32px;
-$spacing-2xl: 48px;
-
-// Breakpoints
-$breakpoint-mobile: 640px;
-$breakpoint-tablet: 1024px;
-
-// ============================================
-// MAIN CONTAINER
-// ============================================
 .rules {
-  font-family: $font-family-georgian;
-  color: $color-text-primary;
-  background: linear-gradient(135deg, $color-dark-bg 0%, #1a1f2e 50%, #0f1419 100%);
-  padding: $spacing-2xl $spacing-lg;
-  min-height: 100vh;
+  --navy: #14246b;
+  --navy-deep: #0d1a54;
+  --blue: #2a55d6;
+  --sky: #eaf2ff;
+  --sky-2: #d9e8ff;
+  --orange: #ff6a00;
+  --orange-2: #ff8f1f;
+  --orange-soft: #fff0e2;
+  --text: #1a2350;
+  --muted: #5b6590;
+  --line: #e3e9f6;
+  --white: #ffffff;
 
-  @media (max-width: $breakpoint-mobile) {
-    padding: $spacing-xl $spacing-md;
+  --shadow: 0 10px 30px rgba(20, 36, 107, 0.1);
+  --shadow-sm: 0 4px 14px rgba(20, 36, 107, 0.07);
+
+  display: block;
+  overflow: hidden;
+  color: var(--text);
+  background: linear-gradient(180deg, #f4f8ff 0%, #ffffff 45%);
+  font-family: 'Noto Sans Georgian', 'FiraGO', 'Sylfaen', system-ui, sans-serif;
+  line-height: 1.75;
+
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  a {
+    color: var(--orange);
+    font-weight: 700;
+    text-underline-offset: 3px;
+
+    &:focus-visible {
+      outline: 3px solid var(--blue);
+      outline-offset: 4px;
+      border-radius: 4px;
+    }
+  }
+
+  [id] {
+    scroll-margin-top: 24px;
   }
 }
 
-// ============================================
-// HEADER SECTION
-// ============================================
+// =====================================================
+// სათაური
+// =====================================================
 .rules-header {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: clamp(52px, 7vw, 84px) 24px 72px;
   text-align: center;
-  margin-bottom: $spacing-2xl;
-  max-width: 900px;
-  margin-left: auto;
-  margin-right: auto;
-  padding-bottom: $spacing-2xl;
-  border-bottom: 2px solid $color-dark-border;
+  background: linear-gradient(120deg, #f6faff 0%, #dcebff 55%, #ffeedd 100%);
+  overflow: hidden;
+  isolation: isolate;
+
+  // ზედა მარჯვენა ტალღები
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    z-index: -1;
+    border-radius: 50%;
+  }
+
+  &::before {
+    top: -170px;
+    right: -120px;
+    width: 420px;
+    height: 300px;
+    background: linear-gradient(135deg, var(--orange-2), var(--orange));
+    transform: rotate(-18deg);
+  }
+
+  &::after {
+    top: -190px;
+    right: -170px;
+    width: 460px;
+    height: 300px;
+    background: var(--blue);
+    opacity: 0.9;
+    transform: rotate(-12deg);
+  }
 }
 
 .rules-title {
-  font-size: 52px;
-  font-weight: 700;
-  margin-bottom: $spacing-lg;
-  background: linear-gradient(135deg, $color-gold, $color-gold-hover);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-
-  @media (max-width: $breakpoint-mobile) {
-    font-size: 36px;
-  }
+  width: 100%;
+  margin: 0;
+  font-size: clamp(2rem, 5vw, 3.2rem);
+  font-weight: 800;
+  line-height: 1.25;
+  text-align: center;
+  color: var(--navy);
 }
 
 .rules-subtitle {
-  font-size: 18px;
-  color: $color-text-secondary;
-  margin-bottom: $spacing-lg;
-  line-height: 1.6;
-
-  @media (max-width: $breakpoint-mobile) {
-    font-size: 16px;
-  }
+  width: 100%;
+  max-width: 780px;
+  margin: 14px auto 0;
+  font-size: clamp(0.98rem, 1.7vw, 1.1rem);
+  font-weight: 500;
+  text-align: center;
+  color: var(--muted);
 }
 
 .rules-meta {
   display: flex;
   justify-content: center;
-  gap: $spacing-lg;
-  flex-wrap: wrap;
+  margin-top: 18px;
 }
 
 .rules-updated {
-  color: $color-gold;
-  font-size: 14px;
-  font-weight: 500;
-}
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 16px;
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: var(--navy);
+  background: rgba(255, 255, 255, 0.88);
+  border-radius: 999px;
+  box-shadow: var(--shadow-sm);
 
-// ============================================
-// TABLE OF CONTENTS
-// ============================================
-.rules-toc {
-  background: rgba($color-gold, 0.03);
-  border: 1px solid $color-dark-border;
-  border-radius: 12px;
-  padding: $spacing-xl;
-  margin-bottom: $spacing-2xl;
-  max-width: 900px;
-  margin-left: auto;
-  margin-right: auto;
-  top: 20px;
-  
-
-  @media (max-width: $breakpoint-tablet) {
-    position: static;
+  &::before {
+    content: '↻';
+    font-size: 1rem;
+    color: var(--orange);
   }
 }
 
+// =====================================================
+// სარჩევი
+// =====================================================
+.rules-toc {
+  position: relative;
+  z-index: 1;
+  width: min(1050px, calc(100% - 48px));
+  margin: -36px auto 32px;
+  padding: 24px 26px 26px;
+  background: var(--white);
+  border-radius: 24px;
+  box-shadow: 0 20px 50px rgba(20, 36, 107, 0.14);
+}
+
 .toc-title {
-  font-size: 20px;
-  font-weight: 600;
-  color: $color-gold;
-  margin-bottom: $spacing-lg;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 16px;
+  font-size: 1.18rem;
+  font-weight: 800;
+  color: var(--navy);
+
+  &::before {
+    content: '☰';
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 36px;
+    height: 36px;
+    font-size: 0.95rem;
+    color: var(--white);
+    background: linear-gradient(135deg, var(--orange-2), var(--orange));
+    border-radius: 12px;
+    box-shadow: 0 6px 14px rgba(255, 106, 0, 0.35);
+  }
 }
 
 .toc-list {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: $spacing-md;
-
-  @media (max-width: $breakpoint-mobile) {
-    grid-template-columns: 1fr;
-  }
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
 }
 
 .toc-link {
-  color: $color-text-secondary;
-  text-decoration: none;
-  padding: $spacing-sm $spacing-md;
-  border-radius: 6px;
-  transition: all 0.2s ease;
-  font-size: 14px;
-  display: inline-block;
-  cursor: pointer;
-
-  &:hover {
-    color: $color-gold;
-    background: rgba($color-gold, 0.1);
-    transform: translateX(4px);
-  }
-}
-
-// ============================================
-// MAIN CONTENT
-// ============================================
-.rules-content {
-  max-width: 900px;
-  margin-left: auto;
-  margin-right: auto;
-  margin-bottom: $spacing-2xl;
-}
-
-// Section
-.rule-section {
-  margin-bottom: $spacing-2xl;
-  scroll-margin-top: 100px;
-}
-
-.section-title {
-  font-size: 32px;
+  display: block;
+  min-height: 44px;
+  padding: 9px 14px;
+  font-size: 0.88rem;
   font-weight: 700;
-  color: $color-gold;
-  margin-bottom: $spacing-lg;
-  padding-bottom: $spacing-lg;
-  border-bottom: 2px solid $color-dark-border;
+  line-height: 1.45;
+  text-decoration: none;
+  color: var(--navy);
+  background: var(--sky);
+  border: 1.5px solid transparent;
+  border-radius: 12px;
+  transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease, color 0.18s ease;
 
-  @media (max-width: $breakpoint-mobile) {
-    font-size: 24px;
+  &:hover {
+    transform: translateY(-2px);
+    color: var(--orange);
+    background: var(--white);
+    border-color: var(--orange);
   }
 }
 
-// Block
+// =====================================================
+// შინაარსი
+// =====================================================
+.rules-content {
+  width: min(940px, calc(100% - 48px));
+  margin: 0 auto;
+  padding: 4px 0 76px;
+
+  // ზოგ ადგილას HTML-ში inline style-ია, ამიტომ !important
+  p[style] {
+    margin-top: 12px !important;
+  }
+
+  ul + p {
+    margin-top: 12px;
+  }
+}
+
+.rule-section {
+  margin: 26px 0;
+  padding: clamp(20px, 3.8vw, 34px);
+  background: var(--white);
+  border-radius: 24px;
+  border-top: 5px solid var(--orange);
+  box-shadow: var(--shadow);
+
+  // ფერები მონაცვლეობით: ნარინჯისფერი / ლურჯი
+  &:nth-child(even) {
+    border-top-color: var(--blue);
+
+    .section-title::before {
+      color: var(--blue);
+      background: var(--sky);
+    }
+
+    .rule-list li::marker {
+      color: var(--blue);
+    }
+  }
+
+  .section-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 0 0 20px;
+    padding-bottom: 16px;
+    border-bottom: 1.5px solid var(--line);
+    font-size: clamp(1.25rem, 2.6vw, 1.6rem);
+    font-weight: 800;
+    line-height: 1.4;
+    color: var(--navy);
+
+    &::before {
+      content: '§';
+      display: grid;
+      place-items: center;
+      flex: none;
+      width: 42px;
+      height: 42px;
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: var(--orange);
+      background: var(--orange-soft);
+      border-radius: 14px;
+    }
+  }
+}
+
 .rule-block {
-  background: $color-dark-card;
-  border: 1px solid $color-dark-border;
-  border-radius: 12px;
-  padding: $spacing-lg;
-  margin-bottom: $spacing-lg;
-  transition: all 0.3s ease;
+  margin: 16px 0 0;
+  padding: 17px 20px;
+  background: #f8faff;
+  border-left: 4px solid var(--sky-2);
+  border-radius: 0 16px 16px 0;
+  transition: border-color 0.2s ease, background 0.2s ease;
+
+  &:first-of-type {
+    margin-top: 0;
+  }
 
   &:hover {
-    border-color: $color-gold;
-    box-shadow: 0 8px 32px rgba($color-gold, 0.1);
+    background: var(--white);
+    border-left-color: var(--orange);
+    box-shadow: var(--shadow-sm);
   }
 }
 
 .block-title {
-  font-size: 18px;
-  font-weight: 600;
-  color: $color-gold;
-  margin-bottom: $spacing-md;
+  margin: 0 0 8px;
+  font-size: 1.03rem;
+  font-weight: 800;
   line-height: 1.5;
+  color: var(--navy);
 }
 
 .block-text {
-  color: $color-text-secondary;
-  font-size: 15px;
-  line-height: 1.7;
   margin: 0;
+  font-size: 0.96rem;
+  color: var(--muted);
+  overflow-wrap: anywhere;
 
   strong {
-    color: $color-gold;
+    color: var(--navy);
   }
 }
 
 .rule-list {
-  list-style: none;
-  padding: 0;
-  margin: $spacing-md 0;
+  display: grid;
+  gap: 7px;
+  margin: 11px 0 0;
+  padding-left: 23px;
+  font-size: 0.94rem;
+  color: var(--muted);
 
   li {
-    color: $color-text-secondary;
-    margin-bottom: $spacing-sm;
-    padding-left: $spacing-lg;
-    position: relative;
-    font-size: 14px;
-    line-height: 1.6;
+    padding-left: 3px;
 
-    &::before {
-      content: '▸';
-      position: absolute;
-      left: 0;
-      color: $color-orange-accent;
-      font-weight: bold;
-      font-size: 18px;
-    }
-
-    strong {
-      color: $color-gold;
+    &::marker {
+      color: var(--orange);
     }
   }
 }
 
-// ============================================
-// FINAL NOTE
-// ============================================
+// =====================================================
+// ბოლო შენიშვნა
+// =====================================================
 .rules-final {
-  background: linear-gradient(135deg, rgba($color-gold, 0.1), rgba($color-orange-accent, 0.1));
-  border: 2px solid $color-dark-border;
-  border-radius: 16px;
-  padding: $spacing-xl;
-  text-align: center;
-  max-width: 900px;
-  margin-left: auto;
-  margin-right: auto;
+  position: relative;
+  margin-top: 30px;
+  padding: 26px 28px;
+  color: var(--white);
+  background: linear-gradient(135deg, var(--navy-deep), var(--navy) 55%, var(--blue));
+  border-radius: 24px;
+  overflow: hidden;
+  isolation: isolate;
+
+  &::after {
+    content: '';
+    position: absolute;
+    z-index: -1;
+    right: -80px;
+    bottom: -110px;
+    width: 280px;
+    height: 180px;
+    background: linear-gradient(135deg, var(--orange-2), var(--orange));
+    border-radius: 50%;
+    transform: rotate(-14deg);
+    opacity: 0.9;
+  }
 }
 
 .final-note {
-  color: $color-text-secondary;
-  font-size: 16px;
-  line-height: 1.7;
   margin: 0;
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.92);
 
   strong {
-    color: $color-gold;
+    color: var(--orange-2);
+  }
+
+  a {
+    color: var(--white);
+  }
+
+  & + & {
+    margin-top: 12px !important;
+    text-align: center;
   }
 }
 
-// ============================================
-// RESPONSIVE ADJUSTMENTS
-// ============================================
-@media (max-width: $breakpoint-mobile) {
-  .rules {
-    padding: $spacing-lg $spacing-md;
+// =====================================================
+// ადაპტირება
+// =====================================================
+@media (max-width: 800px) {
+  .toc-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .rule-block {
-    padding: $spacing-md;
-  }
-
-  .block-title {
-    font-size: 16px;
-  }
-
-  .block-text {
-    font-size: 14px;
-  }
-
-  .rule-list li {
-    padding-left: $spacing-md;
-    font-size: 13px;
+  .rules-content {
+    width: min(700px, calc(100% - 36px));
   }
 }
 
-// ============================================
-// PRINT STYLES
-// ============================================
-@media print {
-  .rules {
-    background: white;
-    color: black;
-    padding: 20px;
-  }
-
-  .rules-title,
-  .section-title,
-  .block-title {
-    color: #000;
-  }
-
-  .rule-block {
-    background: #f9f9f9;
-    border: 1px solid #ddd;
-    page-break-inside: avoid;
-  }
-
-  .toc-link:hover {
-    background: none;
+@media (max-width: 540px) {
+  .rules-header {
+    padding: 44px 18px 60px;
   }
 
   .rules-toc {
-    position: static;
-    background: #f9f9f9;
+    width: calc(100% - 28px);
+    margin-top: -28px;
+    padding: 18px 15px;
+    border-radius: 20px;
+  }
+
+  .toc-list {
+    grid-template-columns: 1fr;
+    gap: 7px;
+  }
+
+  .toc-link {
+    min-height: 40px;
+  }
+
+  .rules-content {
+    width: calc(100% - 28px);
+    padding-bottom: 52px;
+  }
+
+  .rule-section {
+    margin: 18px 0;
+    padding: 18px 14px;
+    border-radius: 20px;
+
+    .section-title {
+      gap: 9px;
+      font-size: 1.15rem;
+
+      &::before {
+        width: 34px;
+        height: 34px;
+        border-radius: 11px;
+      }
+    }
+  }
+
+  .rule-block {
+    padding: 14px 12px;
+  }
+
+  .block-text,
+  .rule-list {
+    font-size: 0.9rem;
+  }
+
+  .rules-final {
+    padding: 20px 16px;
   }
 }
 
-// ============================================
-// SCROLLBAR STYLING
-// ============================================
-::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
-}
-
-::-webkit-scrollbar-track {
-  background: $color-dark-bg;
-}
-
-::-webkit-scrollbar-thumb {
-  background: $color-gold;
-  border-radius: 5px;
-
-  &:hover {
-    background: $color-gold-hover;
-  }
-}
-
-// ============================================
-// ANIMATION
-// ============================================
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.rule-section {
-  animation: fadeInUp 0.6s ease-out;
-}
-
-// ============================================
-// ACCESSIBILITY
-// ============================================
-a {
-  &:focus {
-    outline: 2px solid $color-gold;
-    outline-offset: 2px;
-  }
-}
-
-.block-text,
-.rule-list li {
-  &:focus-visible {
-    outline: 2px solid $color-gold;
-    outline-offset: 4px;
+@media (prefers-reduced-motion: reduce) {
+  .rules *,
+  .rules *::before,
+  .rules *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }

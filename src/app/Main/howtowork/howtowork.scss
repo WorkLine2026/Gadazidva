@@ -1,487 +1,581 @@
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Georgian:wght@400;500;600;700&display=swap');
+// =====================================================
+// "როგორ მუშაობს" გვერდი — ნარინჯისფერი + მუქი ლურჯი
+// ფონტი იგივეა, რაც მთავარ გვერდზე (Noto Sans Georgian)
+// =====================================================
 
-// Design Tokens
-$color-dark-bg: #0f1419;
-$color-dark-card: #1a1f2e;
-$color-dark-border: #2a2f3f;
-$color-gold: #d4af37;
-$color-gold-hover: #e5c158;
-$color-text-primary: #ffffff;
-$color-text-secondary: #b0b9c8;
-$color-blue-accent: #1e40af;
-$color-orange-accent: #f97316;
-$color-success: #10b981;
+:host {
+  --navy: #14246b;
+  --navy-deep: #0d1a54;
+  --blue: #2a55d6;
+  --sky: #eaf2ff;
+  --sky-2: #d9e8ff;
+  --orange: #ff6a00;
+  --orange-2: #ff8f1f;
+  --orange-soft: #fff0e2;
+  --text: #1a2350;
+  --muted: #5b6590;
+  --line: #e3e9f6;
+  --white: #ffffff;
 
-$font-family-georgian: 'Noto Sans Georgian', sans-serif;
-$font-size-base: 16px;
+  --radius: 20px;
+  --radius-sm: 14px;
+  --shadow: 0 10px 30px rgba(20, 36, 107, 0.1);
+  --shadow-sm: 0 4px 14px rgba(20, 36, 107, 0.08);
 
-// Spacing
-$spacing-xs: 8px;
-$spacing-sm: 12px;
-$spacing-md: 16px;
-$spacing-lg: 24px;
-$spacing-xl: 32px;
-$spacing-2xl: 48px;
+  display: block;
+  color: var(--text);
+  background: linear-gradient(180deg, #f4f8ff 0%, #ffffff 50%);
+  font-family: 'Noto Sans Georgian', 'FiraGO', 'Segoe UI', system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  overflow-x: hidden;
 
-// Breakpoints
-$breakpoint-mobile: 640px;
-$breakpoint-tablet: 1024px;
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
 
-// Utilities
-.how-it-works {
-  font-family: $font-family-georgian;
-  color: $color-text-primary;
-  background: linear-gradient(135deg, $color-dark-bg 0%, #1a1f2e 50%, #0f1419 100%);
-  padding: $spacing-2xl $spacing-lg;
-  min-height: 100vh;
+  h1, h2, h3, p, ul {
+    margin: 0;
+  }
 
-  @media (max-width: $breakpoint-mobile) {
-    padding: $spacing-xl $spacing-md;
+  ul {
+    padding: 0;
+    list-style: none;
   }
 }
 
-// ============================================
-// INTRO SECTION
-// ============================================
+// =====================================================
+// შესავალი
+// =====================================================
 .how-intro {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 72px 20px 80px;
   text-align: center;
-  margin-bottom: $spacing-2xl;
-  max-width: 800px;
-  margin-left: auto;
-  margin-right: auto;
+  background: linear-gradient(120deg, #f6faff 0%, #dcebff 55%, #ffeedd 100%);
+  overflow: hidden;
+  isolation: isolate;
+
+  // ტალღები მაკეტის მსგავსად
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    z-index: -1;
+    border-radius: 50%;
+  }
+
+  &::before {
+    top: -170px;
+    right: -120px;
+    width: 420px;
+    height: 300px;
+    background: linear-gradient(135deg, var(--orange-2), var(--orange));
+    transform: rotate(-18deg);
+  }
+
+  &::after {
+    top: -190px;
+    right: -170px;
+    width: 460px;
+    height: 300px;
+    background: var(--blue);
+    opacity: 0.9;
+    transform: rotate(-12deg);
+  }
 }
 
 .how-title {
-  font-size: 48px;
-  font-weight: 700;
-  margin-bottom: $spacing-lg;
-  background: linear-gradient(135deg, $color-gold, $color-gold-hover);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-
-  @media (max-width: $breakpoint-mobile) {
-    font-size: 32px;
-  }
+  width: 100%;
+  max-width: 22ch;
+  margin: 0 auto 14px;
+  text-align: center;
+  font-size: clamp(2rem, 4.6vw, 3.3rem);
+  font-weight: 800;
+  line-height: 1.2;
+  color: var(--navy);
 }
 
 .how-description {
-  font-size: 18px;
-  color: $color-text-secondary;
-  line-height: 1.6;
-
-  @media (max-width: $breakpoint-mobile) {
-    font-size: 16px;
-  }
+  width: 100%;
+  max-width: 56ch;
+  margin: 0 auto;
+  text-align: center;
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: var(--muted);
 }
 
-// ============================================
-// TWO-COLUMN FLOWS
-// ============================================
+// =====================================================
+// ორი სვეტი: გამგზავნი / მძღოლი
+// =====================================================
 .how-flows {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: $spacing-2xl;
-  margin-bottom: $spacing-2xl;
-
-  @media (max-width: $breakpoint-tablet) {
-    grid-template-columns: 1fr;
-    gap: $spacing-xl;
-  }
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 32px;
+  align-items: start;
+  max-width: 1240px;
+  margin: -36px auto 0;
+  padding: 0 20px 64px;
 }
 
 .flow-column {
-  background: $color-dark-card;
-  border: 1px solid $color-dark-border;
-  border-radius: 16px;
-  padding: $spacing-xl;
-  backdrop-filter: blur(10px);
-  transition: all 0.3s ease;
+  --accent: var(--orange);
+  --accent-2: var(--orange-2);
+  --accent-soft: var(--orange-soft);
+  --accent-glow: rgba(255, 106, 0, 0.35);
 
-  &:hover {
-    border-color: $color-gold;
-    box-shadow: 0 8px 32px rgba($color-gold, 0.1);
-  }
-
-  &.sender-flow {
-    border-left: 4px solid $color-blue-accent;
-  }
+  padding: 28px 24px 28px;
+  background: var(--white);
+  border-radius: 28px;
+  box-shadow: 0 20px 50px rgba(20, 36, 107, 0.12);
+  border-top: 6px solid var(--accent);
 
   &.driver-flow {
-    border-left: 4px solid $color-orange-accent;
+    --accent: var(--blue);
+    --accent-2: #5b82f0;
+    --accent-soft: var(--sky);
+    --accent-glow: rgba(42, 85, 214, 0.35);
   }
 }
 
-// Flow Header
 .flow-header {
-  margin-bottom: $spacing-xl;
-  padding-bottom: $spacing-lg;
-  border-bottom: 2px solid $color-dark-border;
+  margin-bottom: 28px;
 }
 
 .flow-title {
-  font-size: 28px;
-  font-weight: 700;
-  margin-bottom: $spacing-md;
   display: flex;
   align-items: center;
-  gap: $spacing-md;
-
-  @media (max-width: $breakpoint-mobile) {
-    font-size: 24px;
-  }
+  gap: 12px;
+  font-size: clamp(1.4rem, 2.6vw, 1.8rem);
+  font-weight: 800;
+  color: var(--navy);
 }
 
 .flow-icon {
-  font-size: 32px;
-  display: inline-block;
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 48px;
+  height: 48px;
+  font-size: 1.5rem;
+  background: var(--accent-soft);
+  border-radius: 16px;
 }
 
 .flow-subtitle {
-  color: $color-text-secondary;
-  font-size: 14px;
+  margin-top: 8px;
+  font-weight: 500;
+  color: var(--muted);
 }
 
-// ============================================
-// STEPS CONTAINER
-// ============================================
+// =====================================================
+// ნაბიჯები
+// =====================================================
 .steps-container {
   display: flex;
   flex-direction: column;
-  gap: $spacing-lg;
-  margin-bottom: $spacing-xl;
+  gap: 22px;
 }
 
 .step-card {
-  background: rgba($color-gold, 0.02);
-  border: 1px solid $color-dark-border;
-  border-radius: 12px;
-  padding: $spacing-lg;
-  display: flex;
-  gap: $spacing-lg;
-  transition: all 0.3s ease;
   position: relative;
-  overflow: hidden;
+  display: grid;
+  grid-template-columns: 46px minmax(0, 1fr);
+  gap: 16px;
 
-  &::before {
+  // რიგით ნაბიჯებს შორის დამაკავშირებელი ხაზი
+  &:not(:last-child)::before {
     content: '';
     position: absolute;
-    left: 0;
-    top: 0;
-    height: 100%;
-    width: 4px;
-    background: linear-gradient(180deg, $color-gold, transparent);
-    opacity: 0;
-    transition: opacity 0.3s ease;
-  }
-
-  &:hover {
-    border-color: $color-gold;
-    background: rgba($color-gold, 0.05);
-    box-shadow: 0 4px 16px rgba($color-gold, 0.1);
-
-    &::before {
-      opacity: 1;
-    }
+    left: 22px;
+    top: 52px;
+    bottom: -22px;
+    width: 2px;
+    background: repeating-linear-gradient(
+      to bottom,
+      var(--accent) 0 6px,
+      transparent 6px 12px
+    );
+    opacity: 0.45;
   }
 }
 
 .step-number {
-  min-width: 56px;
-  width: 56px;
-  height: 56px;
-  background: linear-gradient(135deg, $color-gold, $color-gold-hover);
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--white);
+  background: linear-gradient(135deg, var(--accent-2), var(--accent));
   border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  font-size: 24px;
-  color: $color-dark-bg;
-  flex-shrink: 0;
+  box-shadow: 0 8px 18px var(--accent-glow);
 }
 
 .step-content {
-  flex: 1;
+  padding: 18px 20px 20px;
+  background: var(--white);
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+
+  &:hover {
+    transform: translateY(-3px);
+    border-color: var(--accent);
+    box-shadow: var(--shadow);
+  }
 }
 
 .step-title {
-  font-size: 18px;
-  font-weight: 600;
-  margin-bottom: $spacing-md;
-  color: $color-text-primary;
+  margin-bottom: 6px;
+  font-size: 1.15rem;
+  font-weight: 800;
+  line-height: 1.35;
+  color: var(--navy);
 }
 
 .step-description {
-  color: $color-text-secondary;
-  margin-bottom: $spacing-md;
-  font-size: 14px;
-  line-height: 1.6;
+  color: var(--muted);
 }
 
 .step-details {
-  list-style: none;
-  padding: 0;
-  margin: 0 0 $spacing-md 0;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  margin-top: 12px;
 
   li {
-    color: $color-text-secondary;
-    margin-bottom: $spacing-sm;
-    padding-left: $spacing-md;
     position: relative;
-    font-size: 14px;
-    line-height: 1.5;
+    padding-left: 28px;
+    font-size: 0.95rem;
 
+    // ჩეკმარკი
     &::before {
-      content: '▸';
+      content: '✓';
       position: absolute;
       left: 0;
-      color: $color-gold;
-      font-weight: bold;
+      top: 2px;
+      display: grid;
+      place-items: center;
+      width: 19px;
+      height: 19px;
+      font-size: 0.65rem;
+      font-weight: 800;
+      color: var(--white);
+      background: var(--accent);
+      border-radius: 50%;
     }
 
     strong {
-      color: $color-gold;
+      color: var(--navy);
     }
   }
 }
 
 .step-note {
-  background: rgba($color-gold, 0.08);
-  border-left: 3px solid $color-gold;
-  padding: $spacing-sm $spacing-md;
-  border-radius: 4px;
-  font-size: 13px;
-  color: $color-text-secondary;
-
-  strong {
-    color: $color-gold;
-  }
+  margin-top: 14px;
+  padding: 10px 14px;
+  font-size: 0.9rem;
+  color: var(--navy);
+  background: var(--accent-soft);
+  border-left: 4px solid var(--accent);
+  border-radius: 0 12px 12px 0;
 }
 
-// ============================================
-// FLOW BENEFITS
-// ============================================
+// =====================================================
+// უპირატესობები
+// =====================================================
 .flow-benefits {
-  background: rgba($color-gold, 0.03);
-  border: 1px solid $color-dark-border;
-  border-radius: 12px;
-  padding: $spacing-lg;
-  margin-top: $spacing-xl;
+  margin-top: 32px;
+  padding: 22px 20px;
+  background: var(--accent-soft);
+  border-radius: var(--radius);
 }
 
 .benefits-title {
-  font-size: 18px;
-  font-weight: 600;
-  margin-bottom: $spacing-lg;
-  color: $color-gold;
+  margin-bottom: 14px;
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--navy);
 }
 
 .benefits-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: $spacing-md;
+  gap: 10px;
 }
 
 .benefit-item {
   display: flex;
   align-items: center;
-  gap: $spacing-md;
-  padding: $spacing-sm;
-  border-radius: 8px;
-  transition: all 0.2s ease;
-
-  &:hover {
-    background: rgba($color-gold, 0.08);
-  }
+  gap: 12px;
+  padding: 10px 14px;
+  background: var(--white);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-sm);
 }
 
 .benefit-icon {
-  font-size: 24px;
-  min-width: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 38px;
+  height: 38px;
+  font-size: 1.15rem;
+  background: var(--accent-soft);
+  border-radius: 12px;
 }
 
 .benefit-text {
-  color: $color-text-secondary;
-  font-size: 14px;
-  line-height: 1.5;
+  font-size: 0.93rem;
+  font-weight: 600;
+  line-height: 1.45;
+  color: var(--navy);
 }
 
-// ============================================
-// FAQ SECTION
-// ============================================
+// =====================================================
+// FAQ
+// =====================================================
 .how-faq {
-  background: $color-dark-card;
-  border: 1px solid $color-dark-border;
-  border-radius: 16px;
-  padding: $spacing-xl;
-  margin-bottom: $spacing-2xl;
-  backdrop-filter: blur(10px);
+  padding: 64px 20px 72px;
+  background: linear-gradient(180deg, #ffffff, var(--sky));
 }
 
 .faq-title {
-  font-size: 32px;
-  font-weight: 700;
+  margin: 0 auto 36px;
   text-align: center;
-  margin-bottom: $spacing-2xl;
-  color: $color-gold;
-
-  @media (max-width: $breakpoint-mobile) {
-    font-size: 24px;
-  }
+  font-size: clamp(1.6rem, 3.2vw, 2.3rem);
+  font-weight: 800;
+  color: var(--navy);
 }
 
 .faq-container {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: $spacing-lg;
-
-  @media (max-width: $breakpoint-tablet) {
-    grid-template-columns: 1fr;
-  }
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  max-width: 1100px;
+  margin: 0 auto;
 }
 
 .faq-item {
-  background: rgba($color-gold, 0.02);
-  border: 1px solid $color-dark-border;
-  border-radius: 12px;
-  padding: $spacing-lg;
-  transition: all 0.3s ease;
+  padding: 20px 22px;
+  background: var(--white);
+  border-radius: var(--radius);
+  border-left: 5px solid var(--orange);
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+  &:nth-child(even) {
+    border-left-color: var(--blue);
+  }
 
   &:hover {
-    border-color: $color-gold;
-    box-shadow: 0 4px 16px rgba($color-gold, 0.1);
+    transform: translateY(-3px);
+    box-shadow: var(--shadow);
   }
 }
 
 .faq-question {
-  font-size: 16px;
-  font-weight: 600;
-  color: $color-gold;
-  margin-bottom: $spacing-md;
-  line-height: 1.5;
+  margin-bottom: 8px;
+  font-size: 1.05rem;
+  font-weight: 800;
+  line-height: 1.4;
+  color: var(--navy);
 }
 
 .faq-answer {
-  color: $color-text-secondary;
-  font-size: 14px;
-  line-height: 1.6;
-  margin: 0;
+  font-size: 0.95rem;
+  color: var(--muted);
 }
 
-// ============================================
-// CTA SECTION
-// ============================================
+// =====================================================
+// CTA
+// =====================================================
 .how-cta {
+  position: relative;
+  padding: 72px 20px;
   text-align: center;
-  background: linear-gradient(135deg, rgba($color-gold, 0.1), rgba($color-orange-accent, 0.1));
-  border: 1px solid $color-dark-border;
-  border-radius: 16px;
-  padding: $spacing-2xl;
-  margin-top: $spacing-2xl;
+  color: var(--white);
+  background: linear-gradient(135deg, var(--navy-deep), var(--navy) 55%, var(--blue));
+  overflow: hidden;
+  isolation: isolate;
 
-  @media (max-width: $breakpoint-mobile) {
-    padding: $spacing-xl;
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    z-index: -1;
+    border-radius: 50%;
+  }
+
+  &::before {
+    top: -120px;
+    right: -100px;
+    width: 380px;
+    height: 240px;
+    background: linear-gradient(135deg, var(--orange-2), var(--orange));
+    transform: rotate(-16deg);
+  }
+
+  &::after {
+    bottom: -130px;
+    left: -90px;
+    width: 400px;
+    height: 220px;
+    background: rgba(255, 255, 255, 0.12);
+    transform: rotate(10deg);
   }
 }
 
 .cta-title {
-  font-size: 36px;
-  font-weight: 700;
-  margin-bottom: $spacing-lg;
-  background: linear-gradient(135deg, $color-gold, $color-gold-hover);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-
-  @media (max-width: $breakpoint-mobile) {
-    font-size: 28px;
-  }
+  font-size: clamp(1.7rem, 3.6vw, 2.5rem);
+  font-weight: 800;
 }
 
 .cta-description {
-  color: $color-text-secondary;
-  font-size: 16px;
-  margin-bottom: $spacing-lg;
-  line-height: 1.6;
+  max-width: 48ch;
+  margin: 10px auto 0;
+  font-size: 1.08rem;
+  font-weight: 500;
+  opacity: 0.92;
 }
 
 .cta-buttons {
   display: flex;
-  gap: $spacing-md;
-  justify-content: center;
   flex-wrap: wrap;
-
-  @media (max-width: $breakpoint-mobile) {
-    flex-direction: column;
-  }
+  justify-content: center;
+  gap: 14px;
+  margin-top: 30px;
 }
 
-// ============================================
-// BUTTON STYLES
-// ============================================
+// =====================================================
+// ღილაკები
+// =====================================================
 .button {
-  padding: $spacing-md $spacing-lg;
-  border: none;
-  border-radius: 8px;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  font-family: $font-family-georgian;
-  text-decoration: none;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: $spacing-sm;
-
-  &:active {
-    transform: scale(0.98);
-  }
-}
-
-.button-primary {
-  background: linear-gradient(135deg, $color-gold, $color-gold-hover);
-  color: $color-dark-bg;
+  padding: 15px 30px;
+  font: inherit;
+  font-size: 1.02rem;
+  font-weight: 700;
+  line-height: 1.3;
+  text-align: center;
+  border: 1.5px solid transparent;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.2s ease;
 
   &:hover {
-    box-shadow: 0 8px 24px rgba($color-gold, 0.3);
     transform: translateY(-2px);
   }
-}
 
-.button-secondary {
-  background: rgba($color-orange-accent, 0.2);
-  color: $color-orange-accent;
-  border: 1px solid $color-orange-accent;
+  &:active {
+    transform: translateY(0);
+  }
 
-  &:hover {
-    background: rgba($color-orange-accent, 0.3);
-    border-color: $color-gold;
-    color: $color-gold;
+  &:focus-visible {
+    outline: 3px solid var(--white);
+    outline-offset: 3px;
+  }
+
+  &-primary {
+    color: var(--white);
+    background: linear-gradient(135deg, var(--orange-2), var(--orange));
+    box-shadow: 0 8px 20px rgba(255, 106, 0, 0.4);
+
+    &:hover {
+      box-shadow: 0 12px 26px rgba(255, 106, 0, 0.5);
+    }
+  }
+
+  &-secondary {
+    color: var(--navy);
+    background: rgba(255, 255, 255, 0.92);
+
+    &:hover {
+      background: var(--white);
+      box-shadow: var(--shadow-sm);
+    }
   }
 }
 
-// ============================================
-// RESPONSIVE ADJUSTMENTS
-// ============================================
-@media (max-width: $breakpoint-mobile) {
+// =====================================================
+// ადაპტირება
+// =====================================================
+@media (max-width: 1040px) {
+  .how-flows {
+    grid-template-columns: 1fr;
+    max-width: 760px;
+  }
+}
+
+@media (max-width: 760px) {
+  .faq-container {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 520px) {
+  .how-intro {
+    padding: 52px 16px 64px;
+  }
+
+  .how-flows {
+    padding: 0 12px 48px;
+  }
+
+  .flow-column {
+    padding: 22px 14px;
+  }
+
   .step-card {
-    flex-direction: column;
-    align-items: flex-start;
+    grid-template-columns: 38px minmax(0, 1fr);
+    gap: 10px;
+
+    &:not(:last-child)::before {
+      left: 18px;
+      top: 44px;
+    }
   }
 
   .step-number {
-    min-width: 48px;
-    width: 48px;
-    height: 48px;
-    font-size: 20px;
+    width: 38px;
+    height: 38px;
+    font-size: 1.05rem;
   }
 
-  .flow-benefits {
-    margin-top: $spacing-lg;
+  .step-content {
+    padding: 14px;
+  }
+
+  .how-faq,
+  .how-cta {
+    padding-top: 48px;
+    padding-bottom: 48px;
+  }
+
+  .cta-buttons .button {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
   }
 }
