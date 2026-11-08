@@ -32,6 +32,17 @@
           <div class="tag-card__name">{{ firstName }} {{ lastName }}</div>
           <div class="tag-card__email">{{ email }}</div>
           <span class="tag-card__stamp stamp--driver">{{ getRoleLabel() }}</span>
+
+          <!-- ⭐ რეიტინგი -->
+          <div class="rating-row">
+            <ng-container *ngIf="ratingCount > 0; else noRating">
+              <app-star-rating [value]="ratingAvg" [readonly]="true" size="sm"></app-star-rating>
+              <span class="rating-row__text">{{ ratingAvg | number:'1.1-1' }} ({{ ratingCount }})</span>
+            </ng-container>
+            <ng-template #noRating>
+              <span class="rating-row__text rating-row__text--empty">ჯერ შეფასება არ გაქვთ</span>
+            </ng-template>
+          </div>
         </div>
 
         <div class="tag-card__perforation" aria-hidden="true"></div>
@@ -469,6 +480,15 @@
 
             <div class="stub-card__footer">
               <div class="stub-card__id">{{ formatDateTime(offer.completedAt) }}</div>
+              <div class="stub-card__footer-actions">
+                <button
+                  *ngIf="!hasReviewed(offer)"
+                  class="btn-details"
+                  (click)="openReview(offer)">
+                  ⭐ შეაფასე გამგზავნი
+                </button>
+                <span *ngIf="hasReviewed(offer)" class="reviewed-badge">⭐ შეფასებულია</span>
+              </div>
             </div>
           </div>
         </div>
@@ -666,6 +686,16 @@
     </div>
   </div>
 </div>
+
+<!-- ⭐ Review Modal -->
+<app-review-modal
+  *ngIf="showReviewModal"
+  [offerId]="reviewOfferId"
+  [targetName]="reviewTargetName"
+  [targetRole]="reviewTargetRole"
+  (submitted)="onReviewSubmitted()"
+  (closed)="closeReview()">
+</app-review-modal>
 
 <!-- Delete Account Modal -->
 <app-delete-account-modal

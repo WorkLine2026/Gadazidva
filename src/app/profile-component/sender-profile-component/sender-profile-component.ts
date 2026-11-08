@@ -14,6 +14,8 @@ import { ConversationsListComponent, Conversation } from '../../chat/conversatio
 import { ChatModalImprovedComponent } from '../../chat/chat-modal-component/chat-modal-component';
 import { SocketNotificationService } from '../../services/Socketnotification.service';
 import { DeleteAccountModalComponent } from '../delete-account-modal-component/delete-account-modal-component';
+import { ReviewModalComponent } from '../../Product-Colection/review-modal-component/review-modal-component';
+import { StarRatingComponent } from '../../Product-Colection/star-rating-component/star-rating-component';
 
 interface ParcelRequest {
   _id: string;
@@ -47,6 +49,8 @@ const PICKUP_NOTIFICATION_TYPES = [
     ConversationsListComponent,
     ChatModalImprovedComponent,
     DeleteAccountModalComponent,
+    ReviewModalComponent,
+    StarRatingComponent,
   ]
 })
 export class SenderProfileComponent implements OnInit, OnDestroy {
@@ -92,6 +96,16 @@ export class SenderProfileComponent implements OnInit, OnDestroy {
   showDeleteAccountModal = false;
   isDeletingAccount = false;
   deleteAccountError: string | null = null;
+
+  // ⭐ რეიტინგი
+  ratingAvg = 0;
+  ratingCount = 0;
+
+  // ⭐ შეფასების მოდალი
+  showReviewModal = false;
+  reviewOfferId = '';
+  reviewTargetName = '';
+  reviewTargetRole: 'driver' | 'sender' = 'driver';
 
   // 💬 Portal
   @ViewChild('chatPortal') chatPortalTemplate!: TemplateRef<any>;
@@ -156,6 +170,7 @@ export class SenderProfileComponent implements OnInit, OnDestroy {
         if (PICKUP_NOTIFICATION_TYPES.includes(latest.type)) {
           this.loadPickupOffers();
           this.loadOutgoingTripRequests();
+          this.loadRatingStats();
         }
       });
   }
@@ -194,6 +209,7 @@ export class SenderProfileComponent implements OnInit, OnDestroy {
           this.loadUserRequests();
           this.loadPickupOffers();
           this.loadOutgoingTripRequests();
+          this.loadRatingStats();
         } else {
           this.errorMessage = res.message ?? 'მომხმარებლის ინფორმაცია ვერ ჩაიკითხა';
         }
@@ -211,6 +227,25 @@ export class SenderProfileComponent implements OnInit, OnDestroy {
 
         this.errorMessage = 'მომხმარებლის ინფორმაცია ვერ ჩაიკითხა';
         this.cdr.detectChanges();
+      }
+    });
+  }
+
+  // ⭐ ჩემი რეიტინგის ჩატვირთვა
+  private loadRatingStats(): void {
+    if (!this.userId) return;
+
+    this.parcelService.getUserRatingStats(this.userId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+      next: (res) => {
+        const stats = res.stats ?? res.data;
+        this.ratingAvg = stats?.ratingAvg ?? 0;
+        this.ratingCount = stats?.ratingCount ?? 0;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Error loading rating stats:', err);
       }
     });
   }
@@ -343,8 +378,9 @@ export class SenderProfileComponent implements OnInit, OnDestroy {
       next: (res) => {
         this.completingOfferId = null;
         if (res.success) {
-          alert('✅ დადასტურებულია — მიწოდება დასრულდა');
           this.loadPickupOffers();
+          // ⭐ დადასტურების შემდეგ მაშინვე გამოდის მძღოლის შეფასების ფანჯარა
+          this.openReview(offer);
         } else {
           alert('❌ ' + (res.message || 'ოპერაცია ვერ შესრულდა'));
         }
@@ -356,6 +392,39 @@ export class SenderProfileComponent implements OnInit, OnDestroy {
         this.cdr.detectChanges();
       }
     });
+  }
+
+  // ============================================================
+  // ⭐ შეფასების სისტემა
+  // ============================================================
+
+  // გამგზავნი აფასებს მძღოლს
+  openReview(offer: PickupOffer): void {
+    const driver = this.driverOf(offer);
+    this.reviewOfferId = offer._id;
+    this.reviewTargetName = driver ? `${driver.firstName} ${driver.lastName}` : 'მძღოლი';
+    this.reviewTargetRole = 'driver';
+    this.showReviewModal = true;
+    this.cdr.detectChanges();
+  }
+
+  closeReview(): void {
+    this.showReviewModal = false;
+    this.reviewOfferId = '';
+    this.cdr.detectChanges();
+  }
+
+  onReviewSubmitted(): void {
+    this.showReviewModal = false;
+    this.reviewOfferId = '';
+    this.loadPickupOffers();
+    this.loadRatingStats();
+    this.cdr.detectChanges();
+    alert('✅ მადლობა შეფასებისთვის!');
+  }
+
+  hasReviewed(offer: PickupOffer): boolean {
+    return !!offer.reviewedBySender;
   }
 
   driverOf(offer: PickupOffer): any {

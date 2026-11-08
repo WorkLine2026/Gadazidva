@@ -114,6 +114,8 @@ export interface PickupOffer {
   status: 'pending' | 'accepted' | 'rejected' | 'in-transit' | 'delivered' | 'cancelled';
   driverConfirmedComplete: boolean;
   senderConfirmedComplete: boolean;
+  reviewedBySender?: boolean;   // გამგზავნმა უკვე შეაფასა მძღოლი
+  reviewedByDriver?: boolean;   // მძღოლმა უკვე შეაფასა გამგზავნი
   createdAt: string;
   updatedAt?: string;
   respondedAt?: string;
@@ -152,6 +154,19 @@ export interface OfferResponse extends ApiResponse<PickupOffer> {}
 
 export interface OffersListResponse extends ApiResponse<PickupOffer[]> {
   offers?: PickupOffer[];
+}
+export interface OffersListResponse extends ApiResponse<PickupOffer[]> {
+  offers?: PickupOffer[];
+}
+
+// ⭐ ახალი — აქ ჩასვი
+export interface RatingStats {
+  ratingAvg: number;
+  ratingCount: number;
+}
+
+export interface RatingStatsResponse extends ApiResponse<RatingStats> {
+  stats?: RatingStats;
 }
 
 // ============ 📨 TRIP PICKUP REQUESTS (გამგზავნის მოთხოვნა კონკრეტულ მგზავრობაზე) ============
@@ -916,6 +931,30 @@ export class ParcelService {
       this.ensureAuthenticated();
       return this.http.delete<ApiResponse<null>>(
         `${this.apiUrl}/pickup-offers/${offerId}`,
+        { headers: this.getAuthHeaders() }
+      );
+    } catch (err) {
+      return throwError(() => err);
+    }
+  }
+  submitOfferReview(offerId: string, rating: number, comment?: string): Observable<ApiResponse<null>> {
+    try {
+      this.ensureAuthenticated();
+      return this.http.post<ApiResponse<null>>(
+        `${this.apiUrl}/pickup-offers/${offerId}/review`,
+        { rating, comment },
+        { headers: this.getAuthHeaders() }
+      );
+    } catch (err) {
+      return throwError(() => err);
+    }
+  }
+
+  getUserRatingStats(userId: string): Observable<RatingStatsResponse> {
+    try {
+      this.ensureAuthenticated();
+      return this.http.get<RatingStatsResponse>(
+        `${environment.apiUrl}/users/${userId}/rating-stats`,
         { headers: this.getAuthHeaders() }
       );
     } catch (err) {

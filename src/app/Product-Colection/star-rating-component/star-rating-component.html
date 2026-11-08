@@ -1,0 +1,12 @@
+<span class="stars" [ngClass]="'stars--' + size" [class.stars--readonly]="readonly" role="radiogroup" aria-label="შეფასება">
+  <button
+    type="button"
+    class="star"
+    *ngFor="let s of stars"
+    [class.star--on]="s <= displayValue"
+    [disabled]="readonly"
+    [attr.aria-label]="s + ' ვარსკვლავი'"
+    (mouseenter)="onEnter(s)"
+    (mouseleave)="onLeave()"
+    (click)="select(s)">★</button>
+</span>

@@ -1,0 +1,45 @@
+$color-primary: #2563eb;
+$color-accent: #f97316;
+$star-off: #d1d5db;
+$star-on: #f59e0b;
+
+:host {
+  display: inline-block;
+}
+
+.stars {
+  display: inline-flex;
+  gap: 4px;
+
+  &--sm .star { font-size: 16px; }
+  &--md .star { font-size: 22px; }
+  &--lg .star { font-size: 32px; }
+}
+
+.star {
+  background: none;
+  border: none;
+  padding: 0;
+  line-height: 1;
+  color: $star-off;
+  cursor: pointer;
+  transition: color 0.15s ease, transform 0.12s ease;
+
+  &--on {
+    color: $star-on;
+  }
+
+  &:not(:disabled):hover {
+    transform: scale(1.18);
+  }
+
+  &:focus-visible {
+    outline: 2px solid $color-primary;
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  &:disabled {
+    cursor: default;
+  }
+}

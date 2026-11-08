@@ -1,0 +1,37 @@
+<div class="review-backdrop" (click)="close()">
+  <div class="review-panel" (click)="$event.stopPropagation()">
+    <button type="button" class="review-close" (click)="close()" aria-label="დახურვა">✕</button>
+
+    <div class="review-header">
+      <span class="review-header__eyebrow">შეფასება</span>
+      <h3>⭐ შეაფასეთ {{ roleLabel }}</h3>
+      <p class="review-header__name">{{ targetName }}</p>
+    </div>
+
+    <div class="review-stars">
+      <app-star-rating [(value)]="rating" size="lg"></app-star-rating>
+      <span class="review-stars__label" *ngIf="rating > 0">{{ ratingLabels[rating] }}</span>
+    </div>
+
+    <textarea
+      class="review-textarea"
+      rows="3"
+      maxlength="500"
+      [(ngModel)]="comment"
+      placeholder="კომენტარი (არასავალდებულო)"></textarea>
+    <div class="review-counter">{{ comment.length }} / 500</div>
+
+    <div *ngIf="error" class="review-error">⚠️ {{ error }}</div>
+
+    <div class="review-actions">
+      <button
+        type="button"
+        class="review-btn review-btn--primary"
+        (click)="submit()"
+        [disabled]="!rating || isSubmitting">
+        {{ isSubmitting ? 'იგზავნება…' : '✅ გაგზავნა' }}
+      </button>
+      <button type="button" class="review-btn" (click)="close()" [disabled]="isSubmitting">მოგვიანებით</button>
+    </div>
+  </div>
+</div>
