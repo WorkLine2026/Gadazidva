@@ -61,7 +61,7 @@ $font: 'Noto Sans Georgian', 'BPG Nino Mtavruli', 'Segoe UI', system-ui, sans-se
   font-family: $font;
   color: $text;
 
-  // სრულეკრანიანი ცისფერი ფონი + ტალღა ქვემოთ
+  // სრულეკრანიანი ცისფერი ფონი (ტალღა მოშორებულია)
   &::before {
     content: '';
     position: fixed;
@@ -70,20 +70,6 @@ $font: 'Noto Sans Georgian', 'BPG Nino Mtavruli', 'Segoe UI', system-ui, sans-se
     background:
       radial-gradient(1000px 420px at 75% -8%, #cfe0ff 0%, transparent 60%),
       linear-gradient(180deg, #e6f0ff 0%, #f4f8ff 50%, #ffffff 100%);
-  }
-
-  &::after {
-    content: '';
-    position: fixed;
-    left: -10%;
-    right: -10%;
-    bottom: -190px;
-    height: 260px;
-    z-index: -1;
-    border-radius: 50% 50% 0 0;
-    background: linear-gradient(100deg, $orange 0%, $orange-light 28%, $blue 60%, $navy 100%);
-    opacity: 0.85;
-    pointer-events: none;
   }
 
   button:focus-visible,
