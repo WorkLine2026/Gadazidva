@@ -1,357 +1,322 @@
-<nav class="bottom-navbar">
+<!-- ============================== -->
+<!-- BACKDROP -->
+<!-- ============================== -->
+<div class="sheet-backdrop" *ngIf="hasOpenSheet" (click)="closeSheets()" aria-hidden="true"></div>
 
 
-  <a
-    class="nav-item home-item"
-    routerLink="/"
-    routerLinkActive="active"
-    [routerLinkActiveOptions]="{ exact: true }">
+<!-- ============================== -->
+<!-- ADD / ACCOUNT SHEET -->
+<!-- (ბარის გარეთაა, რომ backdrop-filter-მა position:fixed არ დააზიანოს) -->
+<!-- ============================== -->
+<div class="sheet sheet--add" *ngIf="isAddMenuOpen" role="menu"
+     [attr.aria-label]="isLoggedIn ? 'დამატების მენიუ' : 'შესვლის მენიუ'">
 
-    <span class="nav-icon-wrap">
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        class="icon">
+  <p class="sheet__title">{{ isLoggedIn ? 'რა გსურს?' : 'მოგესალმებით Ggzavna.ge-ზე' }}</p>
 
-        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-        <polyline points="9 22 9 12 15 12 15 22"></polyline>
+  <!-- ===== LOGGED IN: როლზე დამოკიდებული ქმედებები ===== -->
+  <ng-container *ngIf="isLoggedIn; else guestActions">
+    <button
+      *ngFor="let action of actions"
+      type="button"
+      class="add-option"
+      [ngClass]="action.kind === 'send' ? 'add-option--send' : 'add-option--ride'"
+      role="menuitem"
+      (click)="go(action.path)">
 
+      <span class="option-icon">
+        <svg *ngIf="action.kind === 'send'" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M21 8v13H3V8"></path>
+          <path d="M1 3h22v5H1z"></path>
+          <path d="M10 12h4"></path>
+        </svg>
+        <svg *ngIf="action.kind === 'ride'" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect x="1" y="6" width="15" height="12" rx="2"></rect>
+          <path d="M16 10h4l3 3v5h-7z"></path>
+          <circle cx="6" cy="18" r="2"></circle>
+          <circle cx="18" cy="18" r="2"></circle>
+        </svg>
+      </span>
+
+      <span class="option-content">
+        <strong>{{ action.label }}</strong>
+        <small>{{ action.hint }}</small>
+      </span>
+
+      <svg class="option-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
+           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <polyline points="9 18 15 12 9 6"></polyline>
       </svg>
-    </span>
+    </button>
+  </ng-container>
 
-    <span class="label">
-      მთავარი
-    </span>
+  <!-- ===== GUEST: შესვლა / რეგისტრაცია ===== -->
+  <ng-template #guestActions>
+    <button type="button" class="add-option add-option--ride" role="menuitem" (click)="go('/login')">
+      <span class="option-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+          <circle cx="12" cy="7" r="4"></circle>
+        </svg>
+      </span>
+      <span class="option-content">
+        <strong>შესვლა</strong>
+        <small>უკვე გაქვს ანგარიში</small>
+      </span>
+      <svg class="option-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
+           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <polyline points="9 18 15 12 9 6"></polyline>
+      </svg>
+    </button>
 
-  </a>
+    <button type="button" class="add-option add-option--send" role="menuitem" (click)="go('/register')">
+      <span class="option-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+          <circle cx="9" cy="7" r="4"></circle>
+          <line x1="19" y1="8" x2="19" y2="14"></line>
+          <line x1="16" y1="11" x2="22" y2="11"></line>
+        </svg>
+      </span>
+      <span class="option-content">
+        <strong>უფასო რეგისტრაცია</strong>
+        <small>დაახლოებით 1–2 წუთი</small>
+      </span>
+      <svg class="option-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
+           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <polyline points="9 18 15 12 9 6"></polyline>
+      </svg>
+    </button>
+  </ng-template>
 
+  <!-- ===== ინფორმაციული ბმულები ===== -->
+  <div class="info-row" *ngIf="sheetInfoLinks.length > 0">
+    <a *ngFor="let link of sheetInfoLinks" class="info-chip" [routerLink]="link.path" (click)="closeSheets()">
+      {{ link.label }}
+    </a>
+  </div>
 
-
-
-  <ng-container *ngIf="isLoggedIn">
-
-
-    <div
-      class="add-menu"
-      [class.open]="isAddMenuOpen">
-
-      <div
-        class="add-backdrop"
-        *ngIf="isAddMenuOpen"
-        (click)="closeAddMenu()">
-      </div>
-
-
-      <!-- ============================== -->
-      <!-- ACTIONS -->
-      <!-- ============================== -->
-
-      <div class="add-options">
-
-     
-        <button
-          type="button"
-          class="add-option listings-option"
-          (click)="navigateToAllListings()">
-
-          <span class="option-icon">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round">
-
-              <line x1="8" y1="6" x2="21" y2="6"></line>
-              <line x1="8" y1="12" x2="21" y2="12"></line>
-              <line x1="8" y1="18" x2="21" y2="18"></line>
-              <line x1="3" y1="6" x2="3.01" y2="6"></line>
-              <line x1="3" y1="12" x2="3.01" y2="12"></line>
-              <line x1="3" y1="18" x2="3.01" y2="18"></line>
-
-            </svg>
-          </span>
-
-          <span class="option-content">
-            <strong>განცხადებები</strong>
-            <small>ყველა გზავნილი და რეისი</small>
-          </span>
-
-        </button>
-
-        <button
-          type="button"
-          class="add-option send-option"
-          (click)="navigateToDashboard()">
-
-          <span class="option-icon">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round">
-
-              <path d="M22 2L11 13"></path>
-              <path d="M22 2L15 22L11 13L2 9L22 2Z"></path>
-
-            </svg>
-          </span>
-
-          <span class="option-content">
-            <strong>გაგზავნა</strong>
-            <small>გზავნილის დამატება</small>
-          </span>
-
-        </button>
+</div>
 
 
-        <!-- ADD RIDE -->
+<!-- ============================== -->
+<!-- NOTIFICATIONS SHEET -->
+<!-- ============================== -->
+<div class="sheet sheet--notif" *ngIf="isLoggedIn && isNotifOpen" role="region" aria-label="შეტყობინებები">
 
-        <button
-          type="button"
-          class="add-option ride-option"
-          (click)="navigateToAddRide()">
+  <div class="notif-header">
+    <h2>შეტყობინებები</h2>
+    <button type="button" class="link-button" *ngIf="notifications.length > 0" (click)="clearAllNotifications()">
+      გასუფთავება
+    </button>
+  </div>
 
-          <span class="option-icon">
+  <ul class="notif-list" *ngIf="notifications.length > 0; else emptyNotifications">
+    <li *ngFor="let item of notifications; trackBy: trackByIndex">
+      <button type="button" class="notif-item" (click)="onNotificationClick(item)">
 
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round">
-
-              <rect
-                x="1"
-                y="6"
-                width="15"
-                height="12"
-                rx="2">
-              </rect>
-
-              <path d="M16 10h4l3 3v5h-7z"></path>
-
-              <circle cx="6" cy="18" r="2"></circle>
-              <circle cx="18" cy="18" r="2"></circle>
-
-            </svg>
-
-          </span>
-
-          <span class="option-content">
-            <strong>რეისი</strong>
-            <small>მგზავრობის დამატება</small>
-          </span>
-
-        </button>
-
-      </div>
-
-
-      <!-- ============================== -->
-      <!-- PLUS BUTTON -->
-      <!-- ============================== -->
-
-      <button
-        type="button"
-        class="plus-button"
-        [class.open]="isAddMenuOpen"
-        (click)="toggleAddMenu()"
-        [attr.aria-expanded]="isAddMenuOpen"
-        aria-label="დამატება">
-
-        <span class="plus-circle">
-
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            class="plus-icon">
-
-            <line
-              x1="12"
-              y1="5"
-              x2="12"
-              y2="19">
-            </line>
-
-            <line
-              x1="5"
-              y1="12"
-              x2="19"
-              y2="12">
-            </line>
-
-          </svg>
-
+        <span class="notif-item__icon" [ngClass]="'notif-item__icon--' + accentFor(item.type)" aria-hidden="true">
+          <ng-container [ngSwitch]="iconFor(item.type)">
+            <ng-container *ngSwitchCase="'box'">▣</ng-container>
+            <ng-container *ngSwitchCase="'check'">✓</ng-container>
+            <ng-container *ngSwitchCase="'x'">×</ng-container>
+            <ng-container *ngSwitchCase="'flag'">⚑</ng-container>
+            <ng-container *ngSwitchCase="'truck'">▰</ng-container>
+            <ng-container *ngSwitchCase="'chat'">◌</ng-container>
+            <ng-container *ngSwitchDefault>●</ng-container>
+          </ng-container>
         </span>
 
-        <span class="plus-label">
-          დამატება
+        <span class="notif-item__body">
+          <strong>{{ item.title }}</strong>
+          <span class="notif-item__text">{{ item.body }}</span>
+          <small>{{ timeAgo(item) }}</small>
+        </span>
+
+        <span class="notif-item__dot" *ngIf="isUnread(item)">
+          <span class="sr-only">წაუკითხავი</span>
         </span>
 
       </button>
+    </li>
+  </ul>
 
+  <ng-template #emptyNotifications>
+    <div class="notif-empty">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M18 9C18 5.686 15.314 3 12 3C8.686 3 6 5.686 6 9C6 16 3 17 3 18H21C21 17 18 16 18 9Z"></path>
+        <path d="M10 21H14"></path>
+      </svg>
+      <p>ახალი შეტყობინება არ არის</p>
+    </div>
+  </ng-template>
+
+  <div class="notif-footer">
+    <button type="button" class="link-button" (click)="goToProfile()">გახსენი პროფილი</button>
+  </div>
+
+</div>
+
+
+<!-- ============================== -->
+<!-- BAR -->
+<!-- ============================== -->
+<nav class="bottom-navbar" aria-label="ქვედა ნავიგაცია">
+
+  <div class="bar" *ngIf="isLoggedIn; else guestBar">
+
+    <!-- მთავარი -->
+    <a class="nav-item" routerLink="/" routerLinkActive="active"
+       [routerLinkActiveOptions]="{ exact: true }" (click)="closeSheets()">
+      <span class="nav-icon-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round" class="icon" aria-hidden="true">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+          <polyline points="9 22 9 12 15 12 15 22"></polyline>
+        </svg>
+      </span>
+      <span class="label">მთავარი</span>
+    </a>
+
+    <!-- განცხადებები -->
+    <a class="nav-item" routerLink="/listing" routerLinkActive="active" (click)="closeSheets()">
+      <span class="nav-icon-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round" class="icon" aria-hidden="true">
+          <line x1="8" y1="6" x2="21" y2="6"></line>
+          <line x1="8" y1="12" x2="21" y2="12"></line>
+          <line x1="8" y1="18" x2="21" y2="18"></line>
+          <line x1="3" y1="6" x2="3.01" y2="6"></line>
+          <line x1="3" y1="12" x2="3.01" y2="12"></line>
+          <line x1="3" y1="18" x2="3.01" y2="18"></line>
+        </svg>
+      </span>
+      <span class="label">განცხადებები</span>
+    </a>
+
+    <!-- PLUS (ამანათის გაგზავნა / მგზავრობის დამატება) -->
+    <div class="add-slot">
+      <button type="button" class="plus-button" [class.open]="isAddMenuOpen"
+              (click)="toggleAddMenu()" [attr.aria-expanded]="isAddMenuOpen"
+              aria-haspopup="true" aria-label="დამატება">
+        <span class="plus-circle">
+          <svg viewBox="0 0 24 24" class="plus-icon" fill="none" stroke="currentColor"
+               stroke-width="2.6" stroke-linecap="round" aria-hidden="true">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+        </span>
+        <span class="plus-label">დამატება</span>
+      </button>
     </div>
 
-
-    <!-- ============================== -->
-    <!-- PROFILE -->
-    <!-- ============================== -->
-
-    <a
-      class="nav-item profile-item"
-      routerLink="/profile"
-      routerLinkActive="active">
-
-      <span class="profile-avatar">
-        {{ getUserInitials() }}
+    <!-- შეტყობინებები -->
+    <button type="button" class="nav-item nav-item--button" [class.active]="isNotifOpen"
+            (click)="toggleNotifications()"
+            [attr.aria-label]="'შეტყობინებები' + (unreadCount > 0 ? ', წაუკითხავი: ' + unreadCount : '')"
+            aria-haspopup="true" [attr.aria-expanded]="isNotifOpen">
+      <span class="nav-icon-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"
+             stroke-linecap="round" stroke-linejoin="round" class="icon" aria-hidden="true">
+          <path d="M18 9C18 5.686 15.314 3 12 3C8.686 3 6 5.686 6 9C6 16 3 17 3 18H21C21 17 18 16 18 9Z"></path>
+          <path d="M10 21H14"></path>
+        </svg>
+        <span class="badge" *ngIf="unreadCount > 0" aria-hidden="true">
+          {{ unreadCount > 9 ? '9+' : unreadCount }}
+        </span>
       </span>
+      <span class="label">შეტყობინება</span>
+    </button>
 
-      <span class="label">
-        პროფილი
+    <!-- პროფილი (როლის მიხედვით: driverProfile / senderProfile) -->
+    <a class="nav-item profile-item" [routerLink]="profilePath" routerLinkActive="active"
+       (click)="closeSheets()">
+      <span class="nav-icon-wrap">
+        <span class="profile-avatar">{{ getUserInitials() }}</span>
       </span>
-
+      <span class="label">პროფილი</span>
     </a>
 
-  </ng-container>
+  </div>
 
 
   <!-- ====================================== -->
-  <!-- GUEST USER -->
+  <!-- GUEST -->
   <!-- ====================================== -->
+  <ng-template #guestBar>
+    <div class="bar">
 
-  <ng-container *ngIf="!isLoggedIn">
+      <a class="nav-item" routerLink="/" routerLinkActive="active"
+         [routerLinkActiveOptions]="{ exact: true }" (click)="closeSheets()">
+        <span class="nav-icon-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round" class="icon" aria-hidden="true">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+            <polyline points="9 22 9 12 15 12 15 22"></polyline>
+          </svg>
+        </span>
+        <span class="label">მთავარი</span>
+      </a>
 
-    <!-- HOW IT WORKS -->
+      <a class="nav-item" routerLink="/listing" routerLinkActive="active" (click)="closeSheets()">
+        <span class="nav-icon-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round" class="icon" aria-hidden="true">
+            <line x1="8" y1="6" x2="21" y2="6"></line>
+            <line x1="8" y1="12" x2="21" y2="12"></line>
+            <line x1="8" y1="18" x2="21" y2="18"></line>
+            <line x1="3" y1="6" x2="3.01" y2="6"></line>
+            <line x1="3" y1="12" x2="3.01" y2="12"></line>
+            <line x1="3" y1="18" x2="3.01" y2="18"></line>
+          </svg>
+        </span>
+        <span class="label">განცხადებები</span>
+      </a>
 
-    <a
-      class="nav-item"
-      routerLink="/howtowork"
-      routerLinkActive="active">
+      <!-- შესვლა / რეგისტრაცია -->
+      <div class="add-slot">
+        <button type="button" class="plus-button" [class.open]="isAddMenuOpen"
+                (click)="toggleAddMenu()" [attr.aria-expanded]="isAddMenuOpen"
+                aria-haspopup="true" aria-label="შესვლა ან რეგისტრაცია">
+          <span class="plus-circle">
+            <svg viewBox="0 0 24 24" class="plus-icon plus-icon--user" fill="none" stroke="currentColor"
+                 stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+          </span>
+          <span class="plus-label">შესვლა</span>
+        </button>
+      </div>
 
-      <span class="nav-icon-wrap">
+      <a class="nav-item" routerLink="/howtowork" routerLinkActive="active" (click)="closeSheets()">
+        <span class="nav-icon-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round" class="icon" aria-hidden="true">
+            <circle cx="12" cy="12" r="10"></circle>
+            <path d="M9.09 9a3 3 0 1 1 5.83 1c0 2-3 3-3 3"></path>
+            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+          </svg>
+        </span>
+        <span class="label">როგორ მუშაობს</span>
+      </a>
 
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          class="icon">
+      <a class="nav-item" routerLink="/rules" routerLinkActive="active" (click)="closeSheets()">
+        <span class="nav-icon-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round" class="icon" aria-hidden="true">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+          </svg>
+        </span>
+        <span class="label">წესები</span>
+      </a>
 
-          <circle cx="12" cy="12" r="10"></circle>
-
-          <path
-            d="M9.09 9a3 3 0 1 1 5.83 1c0 2-3 3-3 3">
-          </path>
-
-          <line
-            x1="12"
-            y1="17"
-            x2="12.01"
-            y2="17">
-          </line>
-
-        </svg>
-
-      </span>
-
-      <span class="label">
-        როგორ მუშაობს
-      </span>
-
-    </a>
-
-
-    <!-- RULES -->
-
-    <a
-      class="nav-item"
-      routerLink="/rules"
-      routerLinkActive="active">
-
-      <span class="nav-icon-wrap">
-
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          class="icon">
-
-          <path
-            d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z">
-          </path>
-
-          <polyline points="14 2 14 8 20 8"></polyline>
-
-        </svg>
-
-      </span>
-
-      <span class="label">
-        წესები
-      </span>
-
-    </a>
-
-
-    <!-- LOGIN -->
-
-    <a
-      class="nav-item"
-      routerLink="/android-login"
-      routerLinkActive="active">
-
-      <span class="nav-icon-wrap">
-
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          class="icon">
-
-          <path
-            d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2">
-          </path>
-
-          <circle
-            cx="12"
-            cy="7"
-            r="4">
-          </circle>
-
-        </svg>
-
-      </span>
-
-      <span class="label">
-        შესვლა
-      </span>
-
-    </a>
-
-  </ng-container>
+    </div>
+  </ng-template>
 
 </nav>

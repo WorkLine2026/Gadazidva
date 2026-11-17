@@ -3,11 +3,16 @@ import {
   OnInit,
   OnDestroy,
   ChangeDetectorRef,
-  ViewEncapsulation
+  ViewEncapsulation,
+  ViewChild,
+  ElementRef,
+  Renderer2,
+  PLATFORM_ID,
+  Inject
 } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { CommonModule } from '@angular/common';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
@@ -17,6 +22,8 @@ import { SocketNotificationService } from '../../services/Socketnotification.ser
 import { ConversationsListComponent, Conversation } from '../../chat/conversations-list-component/conversations-list-component';
 import { ChatModalImprovedComponent } from '../../chat/chat-modal-component/chat-modal-component';
 import { DeleteAccountModalComponent } from '../../profile-component/delete-account-modal-component/delete-account-modal-component';
+import { ReviewModalComponent } from '../../Product-Colection/review-modal-component/review-modal-component';
+import { StarRatingComponent } from '../../Product-Colection/star-rating-component/star-rating-component';
 
 interface ParcelRequest {
   _id: string;
@@ -39,11 +46,6 @@ const PICKUP_NOTIFICATION_TYPES = [
   'trip_pickup_request_rejected'
 ];
 
-// 🛠️ FIX: აქ ადრე ერთდროულად ჰქონდა `templateUrl` + `template: ''` და
-// `styleUrl` + `styles: []` — ეს ორაზროვნებაა Angular-ისთვის: ორივე
-// property ერთდროულად ერთსა და იმავე დანიშნულებას (template/styles)
-// ავსებდა კონფლიქტურად, რაც prerender-ის დროს კომპონენტის half-initialized
-// მდგომარეობასაც უწყობდა ხელს. ახლა მხოლოდ templateUrl/styleUrl რჩება.
 @Component({
   selector: 'app-sender-profile-android',
   standalone: true,
@@ -54,7 +56,9 @@ const PICKUP_NOTIFICATION_TYPES = [
     ReactiveFormsModule,
     ConversationsListComponent,
     ChatModalImprovedComponent,
-    DeleteAccountModalComponent
+    DeleteAccountModalComponent,
+    ReviewModalComponent,
+    StarRatingComponent
   ],
   encapsulation: ViewEncapsulation.ShadowDom
 })
@@ -75,11 +79,13 @@ export class SenderProfileAndroidComponent implements OnInit, OnDestroy {
   isSaving = false;
   errorMessage: string | null = null;
 
-  // 🛠️ FIX: profileForm ახლა იქმნება ერთხელ, სინქრონულად ngOnInit-ში.
+  // 🛠️ FIX: profileForm იქმნება ერთხელ, სინქრონულად ngOnInit-ში.
   // FormGroup-ის ობიექტი აღარასდროს იცვლება ახლით — მხოლოდ patchValue-ით
-  // ახლდება, რაც ხსნის prerender-ის დროს "_rawValidators of undefined"
-  // შეცდომას (იხ. initProfileForm()).
+  // ახლდება, რაც ხსნის prerender-ის დროს "_rawValidators of undefined" შეცდომას.
   profileForm!: FormGroup;
+
+  // ✅ თითოეული სექციის გახსნა/დახურვის მდგომარეობა (accordion)
+  openSections: { [key: string]: boolean } = {};
 
   // ===== REQUESTS & OFFERS =====
   userRequests: ParcelRequest[] = [];
@@ -91,6 +97,16 @@ export class SenderProfileAndroidComponent implements OnInit, OnDestroy {
   sentCompleted: PickupOffer[] = [];
   outgoingTripRequests: TripPickupRequest[] = [];
   dismissingRequestId: string | null = null;
+
+  // ⭐ რეიტინგი
+  ratingAvg = 0;
+  ratingCount = 0;
+
+  // ⭐ შეფასების მოდალი
+  showReviewModal = false;
+  reviewOfferId = '';
+  reviewTargetName = '';
+  reviewTargetRole: 'driver' | 'sender' = 'driver';
 
   // ===== MODALS =====
   showConversations = false;
@@ -107,6 +123,17 @@ export class SenderProfileAndroidComponent implements OnInit, OnDestroy {
   isDeletingAccount = false;
   deleteAccountError: string | null = null;
 
+  // ===== CHAT MODAL PORTAL =====
+  @ViewChild('chatModalRoot') chatModalRoot?: ElementRef<HTMLElement>;
+  private chatModalOriginalParent: Node | null = null;
+  private chatModalOriginalNextSibling: Node | null = null;
+  private chatModalMovedToBody = false;
+  private injectedPortalStyles: HTMLStyleElement[] = [];
+  private bodyOverflowBeforeLock: string | null = null;
+
+  // 🖥️ SSR/PRERENDER SAFETY — document.body/document.head მხოლოდ ბრაუზერშია უსაფრთხო
+  private isBrowser: boolean;
+
   private destroy$ = new Subject<void>();
   private lastHandledNotification: any = null;
 
@@ -116,18 +143,24 @@ export class SenderProfileAndroidComponent implements OnInit, OnDestroy {
     private smsService: SmsVerificationService,
     private parcelService: ParcelService,
     private socketService: SocketNotificationService,
-    private cdr: ChangeDetectorRef
-  ) {}
+    private cdr: ChangeDetectorRef,
+    private renderer: Renderer2,
+    private hostEl: ElementRef<HTMLElement>,
+    @Inject(PLATFORM_ID) platformId: Object
+  ) {
+    this.isBrowser = isPlatformBrowser(platformId);
+  }
 
   ngOnInit(): void {
+    // 🛠️ FIX: FormGroup-ის ინსტანცია იქმნება ერთხელ და დაუყოვნებლივ,
+    // სანამ template-მა [formGroup]="profileForm" პირველად დააბაინდოს
+    // (auth-შემოწმებამდეც, რომ redirect-ის დროს profileForm არასდროს იყოს undefined).
+    this.initProfileForm();
+
     if (!this.smsService.isAuthenticated()) {
       this.router.navigate(['/login']);
       return;
     }
-
-    // 🛠️ FIX: FormGroup-ის ინსტანცია იქმნება ერთხელ და დაუყოვნებლივ,
-    // სანამ template-მა [formGroup]="profileForm" პირველად დააბაინდოს.
-    this.initProfileForm();
 
     this.loadUserData();
 
@@ -148,20 +181,28 @@ export class SenderProfileAndroidComponent implements OnInit, OnDestroy {
         if (PICKUP_NOTIFICATION_TYPES.includes(latest.type)) {
           this.loadPickupOffers();
           this.loadOutgoingTripRequests();
+          this.loadRatingStats();
         }
       });
   }
 
   ngOnDestroy(): void {
+    this.restoreChatModalFromBody();
     this.destroy$.next();
     this.destroy$.complete();
   }
 
+  // ===== ACCORDION =====
+  toggleSection(key: string): void {
+    this.openSections[key] = !this.openSections[key];
+  }
+
+  isSectionOpen(key: string): boolean {
+    return !!this.openSections[key];
+  }
+
   // ===== DATA LOADING =====
-  // ✅ FIX: ყველა HTTP subscription-ს ახლა აქვს takeUntil(this.destroy$),
-  // რომ prerender-ის დროს განადგურებული კომპონენტის callback-მა ვერ
-  // გამოიძახოს cdr.detectChanges() და ვერ გამოიწვიოს "_rawValidators of
-  // undefined" შეცდომა უკვე დანგრეულ FormGroupDirective-ზე.
+  // ✅ FIX: ყველა HTTP subscription-ს აქვს takeUntil(this.destroy$).
   private loadUserData(): void {
     this.isLoading = true;
     this.cdr.detectChanges();
@@ -177,6 +218,7 @@ export class SenderProfileAndroidComponent implements OnInit, OnDestroy {
             this.loadUserRequests();
             this.loadPickupOffers();
             this.loadOutgoingTripRequests();
+            this.loadRatingStats();
           } else {
             this.errorMessage = res.message ?? 'ინფორმაცია ვერ ჩაიტვირთა';
           }
@@ -191,6 +233,25 @@ export class SenderProfileAndroidComponent implements OnInit, OnDestroy {
           }
           this.errorMessage = 'ინფორმაცია ვერ ჩაიტვირთა';
           this.cdr.detectChanges();
+        }
+      });
+  }
+
+  // ⭐ ჩემი რეიტინგის ჩატვირთვა
+  private loadRatingStats(): void {
+    if (!this.userId) return;
+
+    this.parcelService.getUserRatingStats(this.userId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (res) => {
+          const stats = res.stats ?? res.data;
+          this.ratingAvg = stats?.ratingAvg ?? 0;
+          this.ratingCount = stats?.ratingCount ?? 0;
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          console.error('Error loading rating stats:', err);
         }
       });
   }
@@ -274,8 +335,9 @@ export class SenderProfileAndroidComponent implements OnInit, OnDestroy {
 
   /**
    * 🛠️ FIX: აღარ ქმნის ახალ FormGroup ინსტანციას ყოველ გამოძახებაზე.
-   * პირველი გამოძახება ცარიელ ფორმას ქმნის, ყოველი შემდგომი — მხოლოდ
-   * patchValue-ით ანახლებს უკვე არსებულს.
+   * პირველი გამოძახება (ngOnInit-იდან) ქმნის ცარიელ ფორმას სწორი
+   * validator-ებით. ყოველი შემდგომი გამოძახება მხოლოდ patchValue-ით
+   * ანახლებს უკვე არსებულ ინსტანციას.
    */
   private initProfileForm(): void {
     if (!this.profileForm) {
@@ -301,6 +363,10 @@ export class SenderProfileAndroidComponent implements OnInit, OnDestroy {
 
   getUserInitials(): string {
     return `${this.firstName.charAt(0)}${this.lastName.charAt(0)}`.toUpperCase() || '?';
+  }
+
+  getRoleLabel(): string {
+    return 'გამგზავნი';
   }
 
   formatPhone(phone: string | undefined): string {
@@ -335,6 +401,10 @@ export class SenderProfileAndroidComponent implements OnInit, OnDestroy {
     return typeof offer.driverId === 'object' ? offer.driverId : null;
   }
 
+  senderOf(offer: PickupOffer): any {
+    return typeof offer.senderId === 'object' ? offer.senderId : null;
+  }
+
   parcelOf(offer: PickupOffer): any {
     return typeof offer.parcelId === 'object' ? offer.parcelId : null;
   }
@@ -354,15 +424,6 @@ export class SenderProfileAndroidComponent implements OnInit, OnDestroy {
       rejected: '❌ უარყოფილია'
     };
     return labels[status] || status;
-  }
-
-  getTripRequestStatusColor(status: string): string {
-    const colors: Record<string, string> = {
-      pending: '#f59e0b',
-      accepted: '#10b981',
-      rejected: '#ef4444'
-    };
-    return colors[status] || '#6b7280';
   }
 
   // ===== ACTIONS =====
@@ -396,13 +457,13 @@ export class SenderProfileAndroidComponent implements OnInit, OnDestroy {
             this.applyUserData(res.user);
             this.isEditing = false;
           } else {
-            this.errorMessage = res.message ?? 'შენახვა ვერ მოხერხდა';
+            this.errorMessage = res.message ?? 'ცვლილებები ვერ შენახდა';
           }
           this.cdr.detectChanges();
         },
         error: (err) => {
           this.isSaving = false;
-          this.errorMessage = err.error?.message || 'შენახვა ვერ მოხერხდა';
+          this.errorMessage = err.error?.message || 'ცვლილებები ვერ შენახდა';
           this.cdr.detectChanges();
         }
       });
@@ -416,8 +477,16 @@ export class SenderProfileAndroidComponent implements OnInit, OnDestroy {
     this.router.navigate(['/request', id]);
   }
 
+  canDeleteRequest(request: ParcelRequest): boolean {
+    return true;
+  }
+
   deleteRequest(id: string): void {
-    if (!confirm('დარწმუნებული ხართ რომ გსურთ განცხადების წაშლა?')) return;
+    const confirmed = confirm(
+      '⚠️ დარწმუნებული ხართ, რომ გსურთ ამ განცხადების წაშლა?\nუკან დაბრუნება შეუძლებელი იქნება.'
+    );
+    if (!confirmed) return;
+
     this.deletingRequestId = id;
     this.cdr.detectChanges();
     this.parcelService.deleteParcelRequest(id)
@@ -428,13 +497,13 @@ export class SenderProfileAndroidComponent implements OnInit, OnDestroy {
           if (res.success) {
             this.userRequests = this.userRequests.filter(r => r._id !== id);
           } else {
-            alert(res.message ?? 'წაშლა ვერ მოხერხდა');
+            alert(res.message ?? 'განცხადების წაშლა ვერ მოხერხდა');
           }
           this.cdr.detectChanges();
         },
         error: (err) => {
           this.deletingRequestId = null;
-          alert(err.error?.message || 'წაშლა ვერ მოხერხდა');
+          alert(err.error?.message || 'განცხადების წაშლა ვერ მოხერხდა');
           this.cdr.detectChanges();
         }
       });
@@ -463,13 +532,13 @@ export class SenderProfileAndroidComponent implements OnInit, OnDestroy {
             this.loadPickupOffers();
             alert(accept ? '✅ დათანხმდით — ნივთი მიწოდების პროცესშია' : 'მოთხოვნა უარყოფილია');
           } else {
-            alert(res.message || 'შეცდომა');
+            alert('❌ ' + (res.message || 'ოპერაცია ვერ შესრულდა'));
           }
           this.cdr.detectChanges();
         },
         error: (err) => {
           this.respondingOfferId = null;
-          alert(err.error?.message || 'შეცდომა');
+          alert('❌ ' + (err.error?.message || 'ოპერაცია ვერ შესრულდა'));
           this.cdr.detectChanges();
         }
       });
@@ -484,20 +553,56 @@ export class SenderProfileAndroidComponent implements OnInit, OnDestroy {
         next: (res) => {
           this.completingOfferId = null;
           if (res.success) {
-            alert('✅ დადასტურებულია — მიწოდება დასრულდა');
             this.loadPickupOffers();
+            // ⭐ დადასტურების შემდეგ მაშინვე გამოდის მძღოლის შეფასების ფანჯარა
+            this.openReview(offer);
           } else {
-            alert(res.message || 'შეცდომა');
+            alert('❌ ' + (res.message || 'ოპერაცია ვერ შესრულდა'));
           }
           this.cdr.detectChanges();
         },
         error: (err) => {
           this.completingOfferId = null;
-          alert(err.error?.message || 'შეცდომა');
+          alert('❌ ' + (err.error?.message || 'ოპერაცია ვერ შესრულდა'));
           this.cdr.detectChanges();
         }
       });
   }
+
+  // ============================================================
+  // ⭐ შეფასების სისტემა
+  // ============================================================
+
+  // გამგზავნი აფასებს მძღოლს
+  openReview(offer: PickupOffer): void {
+    const driver = this.driverOf(offer);
+    this.reviewOfferId = offer._id;
+    this.reviewTargetName = driver ? `${driver.firstName} ${driver.lastName}` : 'მძღოლი';
+    this.reviewTargetRole = 'driver';
+    this.showReviewModal = true;
+    this.cdr.detectChanges();
+  }
+
+  closeReview(): void {
+    this.showReviewModal = false;
+    this.reviewOfferId = '';
+    this.cdr.detectChanges();
+  }
+
+  onReviewSubmitted(): void {
+    this.showReviewModal = false;
+    this.reviewOfferId = '';
+    this.loadPickupOffers();
+    this.loadRatingStats();
+    this.cdr.detectChanges();
+    alert('✅ მადლობა შეფასებისთვის!');
+  }
+
+  hasReviewed(offer: PickupOffer): boolean {
+    return !!offer.reviewedBySender;
+  }
+
+  // ============================================================
 
   dismissTripRequest(req: TripPickupRequest): void {
     this.dismissingRequestId = req._id;
@@ -510,18 +615,21 @@ export class SenderProfileAndroidComponent implements OnInit, OnDestroy {
           if (res.success) {
             this.outgoingTripRequests = this.outgoingTripRequests.filter(r => r._id !== req._id);
           } else {
-            alert(res.message || 'წაშლა ვერ მოხერხდა');
+            alert('❌ ' + (res.message || 'წაშლა ვერ მოხერხდა'));
           }
           this.cdr.detectChanges();
         },
         error: (err) => {
           this.dismissingRequestId = null;
-          alert(err.error?.message || 'წაშლა ვერ მოხერხდა');
+          alert('❌ ' + (err.error?.message || 'წაშლა ვერ მოხერხდა'));
           this.cdr.detectChanges();
         }
       });
   }
 
+  // ============================================================
+  // 💬 ჩატი
+  // ============================================================
   toggleConversations(): void {
     this.showConversations = !this.showConversations;
   }
@@ -556,13 +664,83 @@ export class SenderProfileAndroidComponent implements OnInit, OnDestroy {
     this.showConversations = false;
     this.showChatModal = true;
     this.cdr.detectChanges();
+
+    setTimeout(() => this.moveChatModalToBody(), 0);
   }
 
   closeChatModal(): void {
+    this.restoreChatModalFromBody();
     this.showChatModal = false;
     this.selectedConversation = null;
   }
 
+  private moveChatModalToBody(): void {
+    if (!this.isBrowser) return;
+
+    const el = this.chatModalRoot?.nativeElement;
+    if (!el || this.chatModalMovedToBody) return;
+
+    this.injectPortalStyles();
+
+    this.chatModalOriginalParent = el.parentNode;
+    this.chatModalOriginalNextSibling = el.nextSibling;
+
+    this.renderer.appendChild(document.body, el);
+    this.chatModalMovedToBody = true;
+
+    this.bodyOverflowBeforeLock = document.body.style.overflow || '';
+    this.renderer.setStyle(document.body, 'overflow', 'hidden');
+  }
+
+  private restoreChatModalFromBody(): void {
+    if (!this.isBrowser) return;
+    if (!this.chatModalMovedToBody) return;
+
+    const el = this.chatModalRoot?.nativeElement;
+
+    if (el && this.chatModalOriginalParent) {
+      if (this.chatModalOriginalNextSibling) {
+        this.renderer.insertBefore(this.chatModalOriginalParent, el, this.chatModalOriginalNextSibling);
+      } else {
+        this.renderer.appendChild(this.chatModalOriginalParent, el);
+      }
+    }
+
+    this.renderer.setStyle(document.body, 'overflow', this.bodyOverflowBeforeLock ?? '');
+    this.bodyOverflowBeforeLock = null;
+
+    this.removePortalStyles();
+
+    this.chatModalMovedToBody = false;
+    this.chatModalOriginalParent = null;
+    this.chatModalOriginalNextSibling = null;
+  }
+
+  private injectPortalStyles(): void {
+    if (!this.isBrowser) return;
+
+    const shadowRoot = this.hostEl.nativeElement.shadowRoot;
+    if (!shadowRoot) return;
+
+    const styleEls = shadowRoot.querySelectorAll('style');
+    styleEls.forEach(styleEl => {
+      const clone = styleEl.cloneNode(true) as HTMLStyleElement;
+      clone.setAttribute('data-chat-modal-portal-style', '');
+      document.head.appendChild(clone);
+      this.injectedPortalStyles.push(clone);
+    });
+  }
+
+  private removePortalStyles(): void {
+    if (!this.isBrowser) return;
+
+    this.injectedPortalStyles.forEach(styleEl => styleEl.remove());
+    this.injectedPortalStyles = [];
+  }
+
+  // ============================================================
+  // ACCOUNT
+  // ============================================================
   logout(): void {
     if (confirm('დარწმუნებული ხართ რომ გსურთ გამოსვლა?')) {
       this.socketService.disconnect?.();
@@ -575,11 +753,13 @@ export class SenderProfileAndroidComponent implements OnInit, OnDestroy {
   openDeleteConfirm(): void {
     this.deleteAccountError = null;
     this.showDeleteAccountModal = true;
+    this.cdr.detectChanges();
   }
 
   onDeleteAccountCancelled(): void {
     this.showDeleteAccountModal = false;
     this.deleteAccountError = null;
+    this.cdr.detectChanges();
   }
 
   onDeleteAccountConfirmed(): void {
@@ -596,12 +776,12 @@ export class SenderProfileAndroidComponent implements OnInit, OnDestroy {
           this.smsService.clearAuthToken();
           this.smsService.clearState();
           this.showDeleteAccountModal = false;
-          alert('ანგარიში წაიშალა');
+          alert('ანგარიში და მასთან დაკავშირებული მონაცემები (განცხადებები — გარდა ჩათისა) წაიშალა.');
           this.router.navigate(['/login']);
         },
         error: (err) => {
           this.isDeletingAccount = false;
-          this.deleteAccountError = err.error?.message || 'წაშლა ვერ მოხერხდა';
+          this.deleteAccountError = err.error?.message || 'ანგარიშის წაშლა ვერ მოხერხდა';
           this.cdr.detectChanges();
         }
       });

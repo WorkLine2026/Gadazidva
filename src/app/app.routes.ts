@@ -27,6 +27,9 @@ import { ProfileRedirectComponent } from './android-components/profile-redirect/
 import { AndroidLoginComponent } from './android-components/android-login-component/android-login-component';
 import { SupprotTeam } from './Main/supprot-team/supprot-team';
 
+// პლატფორმის გარდები
+import { nativeOnlyMatch, webOnlyMatch } from './guards/platform.guards';
+
 export const routes: Routes = [
   { path: '', component: HomeComponent },
   { path: 'home', component: HomeComponent },
@@ -34,17 +37,25 @@ export const routes: Routes = [
   { path: 'navbar', component: NavbarComponent },
   { path: 'footer', component: FooterComponent },
   { path: 'rules', component: RulesComponent },
-  { path: 'login', component: LoginComponent },
+
+  // ===== LOGIN =====
+  // აპლიკაციაში — ანდროიდის ლოგინი (URL რჩება /login)
+  { path: 'login', canMatch: [nativeOnlyMatch], component: AndroidLoginComponent },
+  // ვებში — ჩვეულებრივი ლოგინი
+  { path: 'login', canMatch: [webOnlyMatch], component: LoginComponent },
+
   { path: 'register', component: RegisterComponent },
   { path: 'forgot-password', component: ForgotPasswordComponent },
-  { path: 'android-login', component: AndroidLoginComponent },
 
   // ===== პროფილები =====
-  // ვებისთვის
-  { path: 'senderProfile', component: SenderProfileComponent },
-  { path: 'driverProfile', component: DriverProfileComponent },
+  // აპლიკაციაში — Android პროფილები
+  { path: 'senderProfile', canMatch: [nativeOnlyMatch], component: SenderProfileAndroidComponent },
+  { path: 'driverProfile', canMatch: [nativeOnlyMatch], component: DriverProfileAndroidComponent },
+  // ვებში — ჩვეულებრივი პროფილები
+  { path: 'senderProfile', canMatch: [webOnlyMatch], component: SenderProfileComponent },
+  { path: 'driverProfile', canMatch: [webOnlyMatch], component: DriverProfileComponent },
 
-  // Android / Native
+  // ძველი ცალკე Android მისამართები (რომ ProfileRedirectComponent არ გაფუჭდეს)
   { path: 'senderProfile-android', component: SenderProfileAndroidComponent },
   { path: 'driverProfile-android', component: DriverProfileAndroidComponent },
 
@@ -58,6 +69,6 @@ export const routes: Routes = [
   { path: 'trip/:id', component: TripDetailComponent },
   ...adminRoutes,
   { path: 'listing', component: AllListingsComponent },
-  { path: 'support', component:SupprotTeam},
+  { path: 'support', component: SupprotTeam },
   { path: '**', redirectTo: 'home' }
 ];

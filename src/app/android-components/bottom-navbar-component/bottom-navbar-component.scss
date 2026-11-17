@@ -1,1094 +1,646 @@
-// =====================================================
-// BOTTOM NAVBAR
-// PREMIUM DARK / GLASS STYLE
-// =====================================================
+// ShadowDom encapsulation — ყველა სტილი მხოლოდ ამ კომპონენტში მოქმედებს
 
+:host {
+  --navy: #0b2a7a;
+  --navy-soft: #64718f;
+  --orange: #ff6a00;
+  --orange-light: #ff8a1f;
+  --surface: rgba(255, 255, 255, 0.94);
+  --bar-height: 68px;
+  --sheet-bottom: calc(var(--bar-height) + 34px + env(safe-area-inset-bottom, 0px));
 
-// =====================================================
-// VARIABLES
-// =====================================================
+  display: block;
+  font-family: 'Noto Sans Georgian', 'BPG Nino Mtavruli', system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
 
-$orange: #ff5722;
-$orange-light: #ff7043;
-$orange-dark: #e64a19;
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
 
-$blue: #2563eb;
-$blue-light: #3b82f6;
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
 
-$dark-1: #0b1020;
-$dark-2: #111827;
-
-$text: #ffffff;
-$text-muted: #94a3b8;
-
-$border: rgba(255, 255, 255, 0.08);
-
-$font-stack:
-  -apple-system,
-  BlinkMacSystemFont,
-  "Segoe UI",
-  "Helvetica Neue",
-  Arial,
-  sans-serif;
-
-
-// =====================================================
-// NAVBAR
-// =====================================================
+// ======================================
+// BAR
+// ======================================
 
 .bottom-navbar {
-
   position: fixed;
-
   left: 0;
   right: 0;
   bottom: 0;
-
-  height: 72px;
-
-  display: flex;
-  align-items: center;
-  justify-content: space-around;
-
-  padding:
-    0 16px
-    env(safe-area-inset-bottom);
-
-  background:
-    linear-gradient(
-      135deg,
-      rgba(11, 16, 32, 0.96),
-      rgba(15, 23, 42, 0.94)
-    );
-
-  border-top:
-    1px solid rgba(255, 255, 255, 0.08);
-
-  box-shadow:
-    0 -10px 40px rgba(0, 0, 0, 0.35);
-
-  backdrop-filter: blur(22px);
-  -webkit-backdrop-filter: blur(22px);
-
   z-index: 1000;
-
-  font-family: $font-stack;
-
-
-  // ზედა subtle glow
-
-  &::before {
-
-    content: "";
-
-    position: absolute;
-
-    top: 0;
-    left: 12%;
-    right: 12%;
-
-    height: 1px;
-
-    background:
-      linear-gradient(
-        90deg,
-        transparent,
-        rgba(255, 87, 34, 0.45),
-        transparent
-      );
-
-    pointer-events: none;
-
-  }
-
+  padding: 0 12px calc(10px + env(safe-area-inset-bottom, 0px));
+  pointer-events: none;
 }
 
+.bar {
+  pointer-events: auto;
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  align-items: stretch;
+  max-width: 520px;
+  height: var(--bar-height);
+  margin: 0 auto;
+  padding: 0 6px;
+  background: var(--surface);
+  -webkit-backdrop-filter: blur(18px) saturate(1.4);
+  backdrop-filter: blur(18px) saturate(1.4);
+  border: 1px solid rgba(11, 42, 122, 0.07);
+  border-radius: 26px;
+  box-shadow:
+    0 10px 30px rgba(11, 42, 122, 0.16),
+    0 2px 6px rgba(11, 42, 122, 0.08);
+}
 
-// =====================================================
-// NORMAL NAV ITEM
-// =====================================================
+// ======================================
+// NAV ITEM
+// ======================================
 
 .nav-item {
-
   position: relative;
-
-  width: 82px;
-  height: 64px;
-
   display: flex;
   flex-direction: column;
-
   align-items: center;
   justify-content: center;
-
-  gap: 4px;
-
-  color: $text-muted;
-
+  gap: 3px;
+  min-width: 0;
+  padding: 0;
+  color: var(--navy-soft);
+  font-family: inherit;
   text-decoration: none;
-
-  font-size: 10px;
-
-  font-weight: 700;
-
-  letter-spacing: 0.1px;
-
-  border-radius: 16px;
-
-  transition:
-    color 0.25s ease,
-    transform 0.25s ease,
-    background 0.25s ease;
-
+  background: none;
+  border: 0;
+  cursor: pointer;
   -webkit-tap-highlight-color: transparent;
-
-
-  // ===================================================
-  // ICON
-  // ===================================================
+  transition: color 0.2s ease;
 
   .nav-icon-wrap {
-
-    width: 38px;
-    height: 32px;
-
+    position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
-
-    border-radius: 12px;
-
-    transition:
-      background 0.25s ease,
-      transform 0.25s ease;
-
+    width: 46px;
+    height: 30px;
+    border-radius: 15px;
+    transition: background 0.25s ease, transform 0.25s ease;
   }
-
 
   .icon {
-
     width: 22px;
     height: 22px;
-
-    stroke: currentColor;
-
-    transition:
-      transform 0.25s ease,
-      filter 0.25s ease;
-
   }
-
 
   .label {
-
-    line-height: 1;
-
+    max-width: 100%;
+    padding: 0 2px;
+    overflow: hidden;
+    font-size: 10.5px;
+    font-weight: 700;
+    line-height: 1.1;
+    text-overflow: ellipsis;
     white-space: nowrap;
-
   }
 
-
-  // ===================================================
-  // HOVER
-  // ===================================================
-
-  &:hover {
-
-    color: #ffffff;
-
-    .nav-icon-wrap {
-
-      background:
-        rgba(255, 255, 255, 0.05);
-
-    }
-
-    .icon {
-
-      transform: translateY(-1px);
-
-    }
-
+  &:active .nav-icon-wrap {
+    transform: scale(0.9);
   }
-
-
-  // ===================================================
-  // ACTIVE
-  // ===================================================
 
   &.active {
-
-    color: $orange;
-
+    color: var(--orange);
 
     .nav-icon-wrap {
-
-      background:
-        rgba(255, 87, 34, 0.10);
-
+      background: rgba(255, 106, 0, 0.13);
     }
 
-
-    .icon {
-
-      filter:
-        drop-shadow(
-          0 0 8px
-          rgba(255, 87, 34, 0.45)
-        );
-
-    }
-
-
-    &::after {
-
-      content: "";
-
+    &::before {
+      content: '';
       position: absolute;
-
-      bottom: 2px;
-
-      width: 5px;
-      height: 5px;
-
-      border-radius: 50%;
-
-      background: $orange;
-
-      box-shadow:
-        0 0 10px
-        rgba(255, 87, 34, 0.8);
-
+      top: 0;
+      width: 22px;
+      height: 3px;
+      border-radius: 0 0 4px 4px;
+      background: linear-gradient(90deg, var(--orange-light), var(--orange));
     }
-
   }
-
-
-  &:active {
-
-    transform: scale(0.94);
-
-  }
-
 }
 
+// ======================================
+// BADGE (წაუკითხავი შეტყობინებები)
+// ======================================
 
-// =====================================================
+.badge {
+  position: absolute;
+  top: -4px;
+  right: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 4px;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1;
+  background: #e5334b;
+  border: 2px solid #fff;
+  border-radius: 999px;
+  box-sizing: content-box;
+  animation: badge-pop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+// ======================================
 // PROFILE AVATAR
-// =====================================================
+// ======================================
 
 .profile-avatar {
-
-  width: 30px;
-  height: 30px;
-
   display: flex;
   align-items: center;
   justify-content: center;
-
+  width: 28px;
+  height: 28px;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.3px;
+  background: linear-gradient(135deg, var(--navy), #1f57c7);
+  border: 2px solid #fff;
   border-radius: 50%;
-
-  background:
-    linear-gradient(
-      135deg,
-      $orange,
-      $orange-dark
-    );
-
-  color: #ffffff;
-
-  font-size: 10px;
-
-  font-weight: 900;
-
-  border:
-    2px solid
-    rgba(255, 255, 255, 0.15);
-
-  box-shadow:
-    0 5px 16px
-    rgba(255, 87, 34, 0.28);
-
-  transition:
-    transform 0.25s ease,
-    box-shadow 0.25s ease;
-
+  box-shadow: 0 0 0 1.5px rgba(11, 42, 122, 0.25);
+  transition: box-shadow 0.2s ease;
 }
 
-
-.profile-item:hover {
-
-  .profile-avatar {
-
-    transform: scale(1.07);
-
-    box-shadow:
-      0 7px 20px
-      rgba(255, 87, 34, 0.38);
-
-  }
-
+.profile-item.active .profile-avatar {
+  box-shadow: 0 0 0 2px var(--orange);
 }
 
-
-// =====================================================
-// ADD MENU CONTAINER
-// =====================================================
-
-.add-menu {
-
-  position: relative;
-
-  width: 90px;
-  height: 100%;
-
-  display: flex;
-
-  align-items: center;
-  justify-content: center;
-
-  z-index: 1100;
-
-}
-
-
-// =====================================================
-// BACKDROP
-// =====================================================
-
-.add-backdrop {
-
-  position: fixed;
-
-  inset: 0;
-
-  background:
-    rgba(2, 6, 23, 0.48);
-
-  backdrop-filter: blur(3px);
-  -webkit-backdrop-filter: blur(3px);
-
-  z-index: -1;
-
-  animation:
-    backdropAppear 0.25s ease;
-
-}
-
-
-// =====================================================
+// ======================================
 // PLUS BUTTON
-// =====================================================
+// ======================================
+
+.add-slot {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
 
 .plus-button {
-
-  position: absolute;
-
-  bottom: 13px;
-
-  left: 50%;
-
-  width: 68px;
-  height: 68px;
-
-  transform:
-    translateX(-50%);
-
-  border: none;
-
-  padding: 0;
-
-  background: transparent;
-
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 0 0 10px;
+  color: var(--orange);
+  font-family: inherit;
+  background: none;
+  border: 0;
   cursor: pointer;
-
-  z-index: 1200;
-
   -webkit-tap-highlight-color: transparent;
-
-
-  // ===================================================
-  // CIRCLE
-  // ===================================================
 
   .plus-circle {
-
+    display: flex;
+    align-items: center;
+    justify-content: center;
     width: 58px;
     height: 58px;
-
-    display: flex;
-
-    align-items: center;
-    justify-content: center;
-
-    margin: auto;
-
+    margin-top: -26px;
+    color: #fff;
+    background: linear-gradient(135deg, var(--orange-light), var(--orange));
+    border: 4px solid #fff;
     border-radius: 50%;
-
-    background:
-      linear-gradient(
-        145deg,
-        $orange-light 0%,
-        $orange 55%,
-        $orange-dark 100%
-      );
-
-    border:
-      4px solid
-      rgba(15, 23, 42, 0.95);
-
-    box-shadow:
-
-      0 8px 25px
-      rgba(0, 0, 0, 0.35),
-
-      0 0 0 1px
-      rgba(255, 255, 255, 0.12),
-
-      0 0 30px
-      rgba(255, 87, 34, 0.32);
-
-    transition:
-      transform 0.35s cubic-bezier(.4, 0, .2, 1),
-      box-shadow 0.35s ease,
-      background 0.35s ease;
-
+    box-shadow: 0 10px 22px rgba(255, 106, 0, 0.45);
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
   }
-
-
-  // ===================================================
-  // PLUS ICON
-  // ===================================================
 
   .plus-icon {
+    width: 26px;
+    height: 26px;
+    transition: transform 0.3s ease;
 
-    width: 28px;
-    height: 28px;
-
-    fill: none;
-
-    stroke: #ffffff;
-
-    stroke-width: 2.5;
-
-    stroke-linecap: round;
-
-    transition:
-      transform 0.35s
-      cubic-bezier(.4, 0, .2, 1);
-
+    &--user {
+      width: 24px;
+      height: 24px;
+    }
   }
-
-
-  // ===================================================
-  // LABEL
-  // ===================================================
 
   .plus-label {
-
-    display: block;
-
-    margin-top: 2px;
-
-    color: #cbd5e1;
-
-    font-size: 9px;
-
+    font-size: 10.5px;
     font-weight: 800;
-
-    transition:
-      color 0.25s ease;
-
+    line-height: 1.1;
   }
 
-
-  &:hover {
-
-    .plus-circle {
-
-      transform: translateY(-3px) scale(1.04);
-
-      box-shadow:
-
-        0 12px 30px
-        rgba(0, 0, 0, 0.4),
-
-        0 0 38px
-        rgba(255, 87, 34, 0.45);
-
-    }
-
+  &:active .plus-circle {
+    transform: scale(0.92);
   }
-
-
-  &:active {
-
-    .plus-circle {
-
-      transform:
-        translateY(-1px)
-        scale(0.96);
-
-    }
-
-  }
-
-
-  // ===================================================
-  // OPEN STATE
-  // ===================================================
 
   &.open {
-
     .plus-circle {
-
-      background:
-        linear-gradient(
-          145deg,
-          #334155,
-          #1e293b
-        );
-
-      box-shadow:
-
-        0 10px 30px
-        rgba(0, 0, 0, 0.45),
-
-        0 0 25px
-        rgba(148, 163, 184, 0.15);
-
+      background: linear-gradient(135deg, #12378f, var(--navy));
+      box-shadow: 0 10px 22px rgba(11, 42, 122, 0.4);
     }
 
-
-    .plus-icon {
-
-      transform:
-        rotate(45deg);
-
+    .plus-icon:not(.plus-icon--user) {
+      transform: rotate(135deg);
     }
-
 
     .plus-label {
-
-      color: #ffffff;
-
+      color: var(--navy);
     }
-
   }
-
 }
 
+// ======================================
+// BACKDROP + SHEETS
+// ======================================
 
-// =====================================================
-// ADD OPTIONS
-// =====================================================
+.sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 998;
+  background: rgba(8, 20, 56, 0.45);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+  animation: fade-in 0.2s ease;
+}
 
-.add-options {
-
-  position: absolute;
-
-  bottom: 68px;
-
+.sheet {
+  position: fixed;
   left: 50%;
+  bottom: var(--sheet-bottom);
+  z-index: 999;
+  display: grid;
+  gap: 10px;
+  width: min(calc(100% - 24px), 496px);
+  max-height: calc(100vh - var(--sheet-bottom) - 24px);
+  padding: 14px;
+  background: #fff;
+  border-radius: 28px;
+  box-shadow: 0 24px 60px rgba(11, 42, 122, 0.28);
+  transform: translateX(-50%);
+  animation: sheet-up 0.3s cubic-bezier(0.22, 1, 0.36, 1);
 
-  transform:
-    translateX(-50%);
-
-  width: 245px;
-
-  display: flex;
-
-  flex-direction: column;
-
-  gap: 12px;
-
-  pointer-events: none;
-
-  opacity: 0;
-
-  visibility: hidden;
-
-  transition:
-    opacity 0.25s ease,
-    visibility 0.25s ease;
-
-}
-
-
-// =====================================================
-// OPEN MENU
-// =====================================================
-
-.add-menu.open {
-
-  .add-options {
-
-    opacity: 1;
-
-    visibility: visible;
-
-    pointer-events: auto;
-
+  // პატარა "კუდი" ღილაკისკენ
+  &::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    bottom: -7px;
+    width: 18px;
+    height: 18px;
+    background: #fff;
+    border-radius: 3px;
+    transform: translateX(-50%) rotate(45deg);
+    pointer-events: none;
   }
 
+  &--notif {
+    gap: 0;
+    padding: 0;
+    overflow: hidden;
 
-  .add-option {
-
-    opacity: 1;
-
-    transform:
-      translateY(0)
-      scale(1);
-
+    // შეტყობინებების ღილაკი მე-4 სვეტშია (70%)
+    &::after {
+      left: 70%;
+    }
   }
-
 }
 
+.sheet__title {
+  margin: 2px 4px 2px;
+  color: var(--navy-soft);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+}
 
-// =====================================================
-// ADD OPTION
-// =====================================================
+// ======================================
+// ADD OPTIONS
+// ======================================
 
 .add-option {
-
-  width: 100%;
-
-  min-height: 68px;
-
+  position: relative;
+  z-index: 1;
   display: flex;
-
   align-items: center;
-
   gap: 14px;
-
-  padding: 10px 16px;
-
-  border:
-    1px solid
-    rgba(255, 255, 255, 0.09);
-
-  border-radius: 19px;
-
-  color: #ffffff;
-
-  background:
-    linear-gradient(
-      135deg,
-      rgba(15, 23, 42, 0.97),
-      rgba(30, 41, 59, 0.96)
-    );
-
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-
-  box-shadow:
-    0 14px 40px
-    rgba(0, 0, 0, 0.4);
-
-  cursor: pointer;
-
+  width: 100%;
+  padding: 12px 14px;
+  font-family: inherit;
   text-align: left;
-
-  opacity: 0;
-
-  transform:
-    translateY(18px)
-    scale(0.94);
-
-  transition:
-    opacity 0.3s ease,
-    transform 0.3s
-      cubic-bezier(.4, 0, .2, 1),
-    border-color 0.25s ease,
-    background 0.25s ease;
-
+  background: #f5f8ff;
+  border: 1px solid rgba(11, 42, 122, 0.08);
+  border-radius: 20px;
+  cursor: pointer;
   -webkit-tap-highlight-color: transparent;
-
-
-  // ===================================================
-  // ICON
-  // ===================================================
-
-  .option-icon {
-
-    width: 44px;
-    height: 44px;
-
-    flex-shrink: 0;
-
-    display: flex;
-
-    align-items: center;
-    justify-content: center;
-
-    border-radius: 14px;
-
-    background:
-      rgba(255, 87, 34, 0.12);
-
-    color: $orange;
-
-    font-size: 20px;
-
-    transition:
-      transform 0.25s ease,
-      background 0.25s ease;
-
-    svg {
-
-      width: 22px;
-      height: 22px;
-
-      stroke: currentColor;
-
-    }
-
-  }
-
-
-  // ===================================================
-  // CONTENT
-  // ===================================================
-
-  .option-content {
-
-    display: flex;
-
-    flex-direction: column;
-
-    gap: 3px;
-
-    min-width: 0;
-
-  }
-
-
-  strong {
-
-    color: #ffffff;
-
-    font-size: 15px;
-
-    font-weight: 800;
-
-  }
-
-
-  small {
-
-    color: #94a3b8;
-
-    font-size: 11px;
-
-    font-weight: 600;
-
-  }
-
-
-  // ===================================================
-  // HOVER
-  // ===================================================
-
-  &:hover {
-
-    border-color:
-      rgba(255, 87, 34, 0.35);
-
-    background:
-      linear-gradient(
-        135deg,
-        rgba(30, 41, 59, 0.99),
-        rgba(51, 65, 85, 0.96)
-      );
-
-
-    .option-icon {
-
-      transform: scale(1.06);
-
-      background:
-        rgba(255, 87, 34, 0.18);
-
-    }
-
-  }
-
+  transition: transform 0.15s ease;
 
   &:active {
-
-    transform:
-      scale(0.97) !important;
-
+    transform: scale(0.98);
   }
-
-}
-
-
-// =====================================================
-// DIFFERENT ANIMATION DELAYS
-// =====================================================
-
-.add-menu.open {
-
-  .send-option {
-
-    transition-delay: 0.03s;
-
-  }
-
-
-  .ride-option {
-
-    transition-delay: 0.09s;
-
-  }
-
-}
-
-
-// =====================================================
-// SEND OPTION
-// =====================================================
-
-.send-option {
 
   .option-icon {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    color: #fff;
+    border-radius: 15px;
 
-    color: #fb923c;
-
+    svg {
+      width: 24px;
+      height: 24px;
+    }
   }
 
-}
+  .option-content {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
 
-
-// =====================================================
-// RIDE OPTION
-// =====================================================
-
-.ride-option {
-
-  .option-icon {
-
-    color: #60a5fa;
-
-    background:
-      rgba(59, 130, 246, 0.12);
-
-  }
-
-
-  &:hover {
-
-    .option-icon {
-
-      background:
-        rgba(59, 130, 246, 0.18);
-
+    strong {
+      color: var(--navy);
+      font-size: 15px;
+      font-weight: 800;
     }
 
+    small {
+      color: var(--navy-soft);
+      font-size: 12px;
+      line-height: 1.3;
+    }
   }
 
-}
-
-// =====================================================
-// LISTINGS OPTION
-// =====================================================
-
-.listings-option {
-
-  .option-icon {
-
-    color: #4ade80;
-
-    background:
-      rgba(74, 222, 128, 0.12);
-
+  .option-arrow {
+    flex: 0 0 auto;
+    width: 20px;
+    height: 20px;
+    color: var(--navy-soft);
   }
 
-
-  &:hover {
+  &--send {
+    background: #fff5ec;
+    border-color: rgba(255, 106, 0, 0.18);
 
     .option-icon {
+      background: linear-gradient(135deg, var(--orange-light), var(--orange));
+      box-shadow: 0 6px 14px rgba(255, 106, 0, 0.35);
+    }
+  }
 
-      background:
-        rgba(74, 222, 128, 0.18);
+  &--ride {
+    background: #eef3ff;
+    border-color: rgba(31, 87, 199, 0.18);
 
+    .option-icon {
+      background: linear-gradient(135deg, #2a63d4, var(--navy));
+      box-shadow: 0 6px 14px rgba(11, 42, 122, 0.35);
+    }
+  }
+}
+
+// ======================================
+// INFO CHIPS (როგორ მუშაობს / წესები / კონტაქტი)
+// ======================================
+
+.info-row {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-top: 6px;
+  border-top: 1px dashed rgba(11, 42, 122, 0.14);
+}
+
+.info-chip {
+  padding: 8px 14px;
+  color: var(--navy);
+  font-size: 12.5px;
+  font-weight: 700;
+  text-decoration: none;
+  background: #f5f8ff;
+  border: 1px solid rgba(11, 42, 122, 0.1);
+  border-radius: 999px;
+  -webkit-tap-highlight-color: transparent;
+
+  &:active {
+    background: #e6eeff;
+  }
+}
+
+// ======================================
+// NOTIFICATIONS SHEET
+// ======================================
+
+.notif-header,
+.notif-footer {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  background: #fff;
+}
+
+.notif-header {
+  border-bottom: 1px solid rgba(11, 42, 122, 0.08);
+
+  h2 {
+    margin: 0;
+    color: var(--navy);
+    font-size: 16px;
+    font-weight: 800;
+  }
+}
+
+.notif-footer {
+  justify-content: center;
+  border-top: 1px solid rgba(11, 42, 122, 0.08);
+  border-radius: 0 0 28px 28px;
+}
+
+.link-button {
+  padding: 4px 6px;
+  color: var(--orange);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+.notif-list {
+  position: relative;
+  z-index: 1;
+  max-height: min(52vh, 380px);
+  margin: 0;
+  padding: 6px;
+  overflow-y: auto;
+  list-style: none;
+  background: #fff;
+  overscroll-behavior: contain;
+}
+
+.notif-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  width: 100%;
+  padding: 10px;
+  font-family: inherit;
+  text-align: left;
+  background: none;
+  border: 0;
+  border-radius: 16px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+
+  &:active {
+    background: #f5f8ff;
+  }
+
+  &__icon {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    font-size: 17px;
+    font-weight: 800;
+    border-radius: 12px;
+
+    &--orange { color: var(--orange); background: rgba(255, 106, 0, 0.13); }
+    &--teal   { color: #0f9d8a;       background: rgba(15, 157, 138, 0.13); }
+    &--navy   { color: var(--navy);   background: rgba(11, 42, 122, 0.1); }
+    &--red    { color: #e5334b;       background: rgba(229, 51, 75, 0.12); }
+    &--blue   { color: #1f57c7;       background: rgba(31, 87, 199, 0.12); }
+    &--green  { color: #1f9d55;       background: rgba(31, 157, 85, 0.13); }
+  }
+
+  &__body {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+
+    strong {
+      color: var(--navy);
+      font-size: 14px;
+      font-weight: 800;
     }
 
+    small {
+      color: #8b96b0;
+      font-size: 11px;
+    }
   }
 
+  &__text {
+    display: -webkit-box;
+    overflow: hidden;
+    color: var(--navy-soft);
+    font-size: 12.5px;
+    line-height: 1.35;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+
+  &__dot {
+    flex: 0 0 auto;
+    width: 9px;
+    height: 9px;
+    margin-top: 6px;
+    background: var(--orange);
+    border-radius: 50%;
+    box-shadow: 0 0 0 3px rgba(255, 106, 0, 0.18);
+  }
 }
 
-.add-menu.open {
+.notif-empty {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 30px 20px;
+  color: var(--navy-soft);
+  background: #fff;
 
-  .send-option {
-
-    transition-delay: 0.03s;
-
+  svg {
+    width: 38px;
+    height: 38px;
+    opacity: 0.6;
   }
 
-
-  .ride-option {
-
-    transition-delay: 0.09s;
-
+  p {
+    margin: 0;
+    font-size: 13.5px;
+    font-weight: 600;
   }
-
-
-  .listings-option {
-
-    transition-delay: 0.15s;
-
-  }
-
 }
 
-
-// =====================================================
+// ======================================
 // ANIMATIONS
-// =====================================================
+// ======================================
 
-@keyframes backdropAppear {
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
 
+@keyframes sheet-up {
   from {
     opacity: 0;
+    transform: translate(-50%, 24px) scale(0.96);
   }
-
   to {
     opacity: 1;
+    transform: translate(-50%, 0) scale(1);
   }
-
 }
 
-
-// =====================================================
-// MOBILE
-// =====================================================
-
-@media (max-width: 600px) {
-
-  .bottom-navbar {
-
-    height: 68px;
-
-    padding-left: 8px;
-    padding-right: 8px;
-
-  }
-
-
-  .nav-item {
-
-    width: 76px;
-
-    height: 62px;
-
-    font-size: 9px;
-
-  }
-
-
-  .add-menu {
-
-    width: 82px;
-
-  }
-
-
-  .plus-button {
-
-    bottom: 11px;
-
-    .plus-circle {
-
-      width: 58px;
-      height: 58px;
-
-    }
-
-  }
-
-
-  .add-options {
-
-    width: min(
-      245px,
-      calc(100vw - 32px)
-    );
-
-    bottom: 65px;
-
-  }
-
+@keyframes badge-pop {
+  from { transform: scale(0.4); }
+  to   { transform: scale(1); }
 }
-
-
-// =====================================================
-// SMALL PHONES
-// =====================================================
-
-@media (max-width: 380px) {
-
-  .bottom-navbar {
-
-    height: 64px;
-
-  }
-
-
-  .nav-item {
-
-    width: 68px;
-
-    .icon {
-
-      width: 20px;
-      height: 20px;
-
-    }
-
-  }
-
-
-  .plus-button {
-
-    bottom: 8px;
-
-    .plus-circle {
-
-      width: 54px;
-      height: 54px;
-
-    }
-
-  }
-
-
-  .add-options {
-
-    bottom: 61px;
-
-  }
-
-}
-
-
-// =====================================================
-// REDUCE MOTION
-// =====================================================
 
 @media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
 
-  .bottom-navbar *,
-  .bottom-navbar *::before,
-  .bottom-navbar *::after {
-
-    animation-duration: 0.01ms !important;
-
-    animation-iteration-count: 1 !important;
-
-    transition-duration: 0.01ms !important;
-
+// ძალიან პატარა ეკრანები
+@media (max-width: 360px) {
+  .nav-item .label,
+  .plus-button .plus-label {
+    font-size: 9.5px;
   }
 
+  .nav-item .nav-icon-wrap {
+    width: 38px;
+  }
 }

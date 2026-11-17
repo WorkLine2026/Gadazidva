@@ -67,6 +67,10 @@
             <span>შეტყობინებები</span>
             <span *ngIf="unreadCount > 0" class="unread-badge">{{ unreadCount }}</span>
           </button>
+          <!-- ✅ ახალი: ნივთის გაგზავნა -->
+          <button class="btn-tag btn-tag--outline" (click)="openSendFlow()">
+            <span>📦</span> ნივთის გაგზავნა
+          </button>
         </div>
 
         <div class="tag-card__stats">
@@ -503,6 +507,8 @@
           </div>
           <div class="section-head__buttons">
             <button class="btn-cta" (click)="openPickupFlow()">+ ახალი მგზავრობა</button>
+            <!-- ✅ ახალი: ნივთის გაგზავნა -->
+            <button class="btn-cta" (click)="openSendFlow()">📦 ნივთის გაგზავნა</button>
             <button class="btn-toggle" (click)="toggleSection('driverTrips')">
               {{ isSectionOpen('driverTrips') ? '▲ დამალვა' : '▼ ნახვა' }}
               <span class="btn-toggle__count" *ngIf="driverTrips.length > 0">{{ driverTrips.length }}</span>

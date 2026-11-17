@@ -868,8 +868,14 @@ export class DriverProfileComponent implements OnInit, OnDestroy {
     this.router.navigate(['/dashboard']);
   }
 
+  // მგზავრობის დამატება
   openPickupFlow(): void {
     this.router.navigate(['/pickup']);
+  }
+
+  // ✅ ახალი: მძღოლსაც შეუძლია ნივთის გაგზავნა
+  openSendFlow(): void {
+    this.router.navigate(['/send']);
   }
 
   viewTripDetails(tripId: string): void {
@@ -913,7 +919,7 @@ export class DriverProfileComponent implements OnInit, OnDestroy {
   }
 
   logout(): void {
-    if (confirm('დარწმუნებული ხართ რომ გამოწერთ?')) {
+    if (confirm('დარწმუნებული ხართ რომ გსურთ გამოსვლა?')) {
       this.socketService.disconnect?.();
       this.smsService.clearAuthToken();
       this.smsService.clearState();

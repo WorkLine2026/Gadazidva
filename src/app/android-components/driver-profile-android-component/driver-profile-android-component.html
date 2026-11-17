@@ -30,13 +30,36 @@
       <div class="hero-card__info">
         <h2 class="hero-card__name">{{ firstName }} {{ lastName }}</h2>
         <p class="hero-card__email">{{ email }}</p>
-        <div class="hero-card__role">მძღოლი</div>
+        <div class="hero-card__role">{{ getRoleLabel() }}</div>
+
+        <!-- ⭐ რეიტინგი -->
+        <div class="rating-row">
+          <ng-container *ngIf="ratingCount > 0; else noRating">
+            <app-star-rating [value]="ratingAvg" [readonly]="true" size="sm"></app-star-rating>
+            <span class="rating-row__text">{{ ratingAvg | number:'1.1-1' }} ({{ ratingCount }})</span>
+          </ng-container>
+          <ng-template #noRating>
+            <span class="rating-row__text rating-row__text--empty">ჯერ შეფასება არ გაქვთ</span>
+          </ng-template>
+        </div>
       </div>
       <div class="hero-card__status" [class.verified]="phoneVerified">
         <span class="dot"></span>
         {{ phoneVerified ? 'ტელეფონი დადასტურებულია' : 'ტელეფონი არ არის დადასტურებული' }}
       </div>
       <div class="hero-card__phone">{{ formatPhone(phone) }}</div>
+
+      <div class="hero-card__stats">
+        <div class="stat-chip">
+          <div class="stat-chip__value">{{ driverTrips.length }}</div>
+          <div class="stat-chip__label">მგზავრობა</div>
+        </div>
+        <div class="stat-chip">
+          <div class="stat-chip__value">{{ userRequests.length }}</div>
+          <div class="stat-chip__label">განცხადება</div>
+        </div>
+      </div>
+
       <div class="hero-card__actions">
         <button class="btn-filled" (click)="toggleEditMode()">
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
@@ -102,60 +125,137 @@
           <div class="field">
             <label>მოდელი</label>
             <input formControlName="carModel" [class.invalid]="isFieldInvalid('carModel')" />
+            <span class="hint" *ngIf="isFieldInvalid('carModel')">მოდელი აუცილებელია</span>
           </div>
           <div class="field">
             <label>ნომერი (AA-000-AA)</label>
             <input formControlName="carPlate" [class.invalid]="isFieldInvalid('carPlate')" />
-            <span class="hint" *ngIf="isFieldInvalid('carPlate')">ფორმატი: AA-000-AA</span>
+            <span class="hint" *ngIf="isFieldInvalid('carPlate')">სწორი ფორმატი: AA-000-AA</span>
           </div>
         </div>
         <div class="field">
           <label>მართვის მოწმობის ნომერი</label>
           <input formControlName="driverLicenseNumber" [class.invalid]="isFieldInvalid('driverLicenseNumber')" />
+          <span class="hint" *ngIf="isFieldInvalid('driverLicenseNumber')">ლიცენზია აუცილებელია</span>
         </div>
         <div class="form-actions">
           <button type="button" class="btn-filled" (click)="saveProfile()" [disabled]="isSaving">
-            {{ isSaving ? 'ინახება…' : 'შენახვა' }}
+            {{ isSaving ? 'ინახება…' : '💾 შენახვა' }}
           </button>
           <button type="button" class="btn-text" (click)="cancelEdit()">გაუქმება</button>
         </div>
-        <div class="error-banner" *ngIf="errorMessage">{{ errorMessage }}</div>
+        <div class="error-banner" *ngIf="errorMessage">⚠️ {{ errorMessage }}</div>
       </form>
     </section>
 
     <!-- ===== SECTIONS (Offers, Trips, etc.) ===== -->
     <ng-container *ngIf="!isEditing">
-      <!-- Incoming Trip Requests -->
+
+      <!-- ❌ სენდერის მიერ უარყოფილი შეთავაზებები -->
+      <section class="section" *ngIf="rejectedPickupOffers.length > 0">
+        <div class="section-header">
+          <h3>❌ სენდერის მიერ უარყოფილი შეთავაზებები</h3>
+          <button class="btn-tonal btn-sm" (click)="toggleSection('rejectedPickupOffers')">
+            {{ isSectionOpen('rejectedPickupOffers') ? '▲ დამალვა' : '▼ ნახვა' }}
+            <span class="mini-badge">{{ rejectedPickupOffers.length }}</span>
+          </button>
+        </div>
+        <div class="card-list" *ngIf="isSectionOpen('rejectedPickupOffers')">
+          <div class="list-card" *ngFor="let offer of rejectedPickupOffers">
+            <div class="route">
+              <span>{{ parcelOf(offer)?.from }}</span>
+              <span class="arrow">→</span>
+              <span>{{ parcelOf(offer)?.to }}</span>
+            </div>
+            <p>
+              📦 გამგზავნი:
+              <strong>{{ senderOf(offer)?.firstName }} {{ senderOf(offer)?.lastName }}</strong>-მა უარყო
+              თქვენი მოთხოვნა ამ ნივთის წაღებაზე
+            </p>
+            <div class="list-card__footer">
+              <span class="time">{{ formatDateTime(offer.createdAt) }}</span>
+              <button class="btn-text btn-sm danger" (click)="dismissRejectedOffer(offer)"
+                      [disabled]="dismissingOfferId === offer._id">
+                {{ dismissingOfferId === offer._id ? 'იშლება…' : '🗑️ წაშლა' }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ❌ თქვენს მიერ უარყოფილი მოთხოვნები -->
+      <section class="section" *ngIf="rejectedTripRequests.length > 0">
+        <div class="section-header">
+          <h3>❌ თქვენს მიერ უარყოფილი მოთხოვნები</h3>
+          <button class="btn-tonal btn-sm" (click)="toggleSection('rejectedTripRequests')">
+            {{ isSectionOpen('rejectedTripRequests') ? '▲ დამალვა' : '▼ ნახვა' }}
+            <span class="mini-badge">{{ rejectedTripRequests.length }}</span>
+          </button>
+        </div>
+        <div class="card-list" *ngIf="isSectionOpen('rejectedTripRequests')">
+          <div class="list-card" *ngFor="let req of rejectedTripRequests">
+            <div class="route" *ngIf="tripOf(req)">
+              <span>{{ tripOf(req)?.from }}</span>
+              <span class="arrow">→</span>
+              <span>{{ tripOf(req)?.to }}</span>
+            </div>
+            <p>
+              📨 <strong>{{ senderOfTripRequest(req)?.firstName }} {{ senderOfTripRequest(req)?.lastName }}</strong>-ის
+              მოთხოვნა თქვენს მგზავრობაზე
+            </p>
+            <p class="message" *ngIf="req.message">"{{ req.message }}"</p>
+            <div class="list-card__footer">
+              <span class="time">{{ formatDateTime(req.createdAt) }}</span>
+              <button class="btn-text btn-sm danger" (click)="dismissRejectedTripRequest(req)"
+                      [disabled]="dismissingRequestId === req._id">
+                {{ dismissingRequestId === req._id ? 'იშლება…' : '🗑️ წაშლა' }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 📨 თქვენს მგზავრობებზე გაგზავნილი მოთხოვნები (pending) -->
       <section class="section" *ngIf="incomingTripRequests.length > 0">
         <div class="section-header">
-          <h3>📨 ახალი მოთხოვნები</h3>
+          <h3>📨 თქვენს მგზავრობებზე გაგზავნილი მოთხოვნები</h3>
+          <button class="btn-tonal btn-sm" (click)="toggleSection('incomingTripRequests')">
+            {{ isSectionOpen('incomingTripRequests') ? '▲ დამალვა' : '▼ ნახვა' }}
+            <span class="mini-badge">{{ incomingTripRequests.length }}</span>
+          </button>
         </div>
-        <div class="card-list">
+        <div class="card-list" *ngIf="isSectionOpen('incomingTripRequests')">
           <div class="list-card" *ngFor="let req of incomingTripRequests">
             <p>
-              <strong>{{ senderOfTripRequest(req)?.firstName }} {{ senderOfTripRequest(req)?.lastName }}</strong>
-              სურს ნივთის გაგზავნა თქვენს მგზავრობაზე
+              📦 <strong>{{ senderOfTripRequest(req)?.firstName }} {{ senderOfTripRequest(req)?.lastName }}</strong>-ს
+              სურს თქვენს მგზავრობაზე ნივთის გაგზავნა
             </p>
             <p class="message" *ngIf="req.message">"{{ req.message }}"</p>
             <div class="list-card__footer">
               <span class="time">{{ formatDateTime(req.createdAt) }}</span>
               <div class="actions">
                 <button class="btn-filled btn-sm" (click)="respondToTripRequest(req, true)"
-                        [disabled]="respondingTripRequestId === req._id">დათანხმება</button>
+                        [disabled]="respondingTripRequestId === req._id">
+                  {{ respondingTripRequestId === req._id ? '...' : '✅ დათანხმება' }}
+                </button>
                 <button class="btn-tonal btn-sm" (click)="respondToTripRequest(req, false)"
-                        [disabled]="respondingTripRequestId === req._id">უარყოფა</button>
+                        [disabled]="respondingTripRequestId === req._id">❌ უარყოფა</button>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      <!-- Incoming Offers -->
+      <!-- 📥 ნივთის წაღების მსურველები -->
       <section class="section" *ngIf="incomingOffers.length > 0">
         <div class="section-header">
-          <h3>📥 ნივთის წაღების მსურველები</h3>
+          <h3>📥 თქვენი ნივთის წაღების მსურველები</h3>
+          <button class="btn-tonal btn-sm" (click)="toggleSection('incomingOffers')">
+            {{ isSectionOpen('incomingOffers') ? '▲ დამალვა' : '▼ ნახვა' }}
+            <span class="mini-badge">{{ incomingOffers.length }}</span>
+          </button>
         </div>
-        <div class="card-list">
+        <div class="card-list" *ngIf="isSectionOpen('incomingOffers')">
           <div class="list-card clickable" *ngFor="let offer of incomingOffers" (click)="openOfferDetails(offer)">
             <div class="route">
               <span>{{ parcelOf(offer)?.from }}</span>
@@ -163,8 +263,8 @@
               <span>{{ parcelOf(offer)?.to }}</span>
             </div>
             <p>
-              <strong>{{ senderOf(offer)?.firstName }} {{ senderOf(offer)?.lastName }}</strong>
-              სურს ნივთის გაგზავნა
+              📦 <strong>{{ senderOf(offer)?.firstName }} {{ senderOf(offer)?.lastName }}</strong>-ს
+              სურს თავისი ნივთის გაგზავნა
             </p>
             <div class="list-card__footer">
               <span class="time">{{ formatDateTime(offer.createdAt) }}</span>
@@ -174,18 +274,23 @@
         </div>
       </section>
 
-      <!-- In Progress -->
+      <!-- 🚚 მიმდინარე მიწოდებები -->
       <section class="section" *ngIf="inProgressOffers.length > 0">
         <div class="section-header">
           <h3>🚚 მიმდინარე მიწოდებები</h3>
+          <button class="btn-tonal btn-sm" (click)="toggleSection('inProgressOffers')">
+            {{ isSectionOpen('inProgressOffers') ? '▲ დამალვა' : '▼ ნახვა' }}
+            <span class="mini-badge">{{ inProgressOffers.length }}</span>
+          </button>
         </div>
-        <div class="card-list">
+        <div class="card-list" *ngIf="isSectionOpen('inProgressOffers')">
           <div class="list-card" *ngFor="let offer of inProgressOffers">
             <div class="route">
               <span>{{ parcelOf(offer)?.from }}</span>
               <span class="arrow">→</span>
               <span>{{ parcelOf(offer)?.to }}</span>
             </div>
+            <p>ნივთი მიწოდების პროცესშია</p>
             <p *ngIf="isCurrentUserDriver(offer)">
               გამგზავნი: {{ senderOf(offer)?.firstName }} {{ senderOf(offer)?.lastName }}
             </p>
@@ -194,112 +299,196 @@
                       class="btn-filled btn-sm"
                       (click)="markDriverComplete(offer)"
                       [disabled]="completingOfferId === offer._id">
-                {{ completingOfferId === offer._id ? '...' : 'მიწოდება დასრულდა' }}
+                {{ completingOfferId === offer._id ? 'ინახება…' : '✅ მიწოდება დასრულდა' }}
               </button>
-              <span *ngIf="offer.driverConfirmedComplete" class="waiting">გამგზავნის დადასტურების მოლოდინში</span>
+              <span *ngIf="offer.driverConfirmedComplete" class="waiting">⏳ გამგზავნის დადასტურების მოლოდინში</span>
             </div>
           </div>
         </div>
       </section>
 
-      <!-- Completed -->
+      <!-- 🚚 ჩემი წაღებული ნივთები -->
       <section class="section" *ngIf="pickedUpCompleted.length > 0">
         <div class="section-header">
-          <h3>✅ ჩემი წაღებული ნივთები</h3>
+          <h3>🚚 ჩემი წაღებული ნივთები</h3>
+          <button class="btn-tonal btn-sm" (click)="toggleSection('pickedUpCompleted')">
+            {{ isSectionOpen('pickedUpCompleted') ? '▲ დამალვა' : '▼ ნახვა' }}
+            <span class="mini-badge">{{ pickedUpCompleted.length }}</span>
+          </button>
         </div>
-        <div class="card-list">
+        <div class="card-list" *ngIf="isSectionOpen('pickedUpCompleted')">
           <div class="list-card" *ngFor="let offer of pickedUpCompleted">
             <div class="route">
               <span>{{ parcelOf(offer)?.from }}</span>
               <span class="arrow">→</span>
               <span>{{ parcelOf(offer)?.to }}</span>
             </div>
-            <p>მიწოდებულია — {{ senderOf(offer)?.firstName }} {{ senderOf(offer)?.lastName }}</p>
+            <p>✅ მიწოდებულია — გამგზავნი: {{ senderOf(offer)?.firstName }} {{ senderOf(offer)?.lastName }}</p>
             <div class="list-card__footer">
               <span class="time">{{ formatDateTime(offer.completedAt) }}</span>
+              <div class="actions">
+                <button *ngIf="!hasReviewed(offer)"
+                        class="btn-filled btn-sm"
+                        (click)="openReview(offer)">
+                  ⭐ შეაფასე გამგზავნი
+                </button>
+                <span *ngIf="hasReviewed(offer)" class="reviewed-badge">⭐ შეფასებულია</span>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      <!-- Rejected -->
-      <section class="section" *ngIf="rejectedPickupOffers.length > 0 || rejectedTripRequests.length > 0">
-        <div class="section-header">
-          <h3>❌ უარყოფილი</h3>
-        </div>
-        <div class="card-list">
-          <div class="list-card" *ngFor="let offer of rejectedPickupOffers">
-            <div class="route">
-              <span>{{ parcelOf(offer)?.from }}</span>
-              <span class="arrow">→</span>
-              <span>{{ parcelOf(offer)?.to }}</span>
-            </div>
-            <p>სენდერმა უარყო თქვენი შეთავაზება</p>
-            <div class="list-card__footer">
-              <span class="time">{{ formatDateTime(offer.createdAt) }}</span>
-              <button class="btn-text btn-sm danger" (click)="dismissRejectedOffer(offer)"
-                      [disabled]="dismissingOfferId === offer._id">წაშლა</button>
-            </div>
-          </div>
-          <div class="list-card" *ngFor="let req of rejectedTripRequests">
-            <p>
-              {{ senderOfTripRequest(req)?.firstName }} {{ senderOfTripRequest(req)?.lastName }}-ის მოთხოვნა
-            </p>
-            <div class="list-card__footer">
-              <span class="time">{{ formatDateTime(req.createdAt) }}</span>
-              <button class="btn-text btn-sm danger" (click)="dismissRejectedTripRequest(req)"
-                      [disabled]="dismissingRequestId === req._id">წაშლა</button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- MY TRIPS -->
+      <!-- 🚗 ჩემი მგზავრობები -->
       <section class="section">
         <div class="section-header">
           <h3>🚗 ჩემი მგზავრობები</h3>
-          <button class="btn-filled btn-sm" (click)="openPickupFlow()">+ ახალი</button>
+          <div class="actions">
+            <button class="btn-filled btn-sm" (click)="openPickupFlow()">+ ახალი მგზავრობა</button>
+            <button class="btn-tonal btn-sm" (click)="toggleSection('driverTrips')">
+              {{ isSectionOpen('driverTrips') ? '▲ დამალვა' : '▼ ნახვა' }}
+              <span class="mini-badge" *ngIf="driverTrips.length > 0">{{ driverTrips.length }}</span>
+            </button>
+          </div>
         </div>
-        <div *ngIf="isLoadingTrips" class="loading-inline">მგზავრობები იტვირთება…</div>
-        <div *ngIf="!isLoadingTrips && driverTrips.length === 0" class="empty-state">
-          <div class="empty-icon">🛣️</div>
-          <p>მგზავრობა ჯერ არ გაქვთ</p>
-          <button class="btn-filled" (click)="openPickupFlow()">დაგეგმე პირველი რეისი</button>
-        </div>
-        <div class="card-list" *ngIf="!isLoadingTrips && driverTrips.length > 0">
-          <div class="list-card trip-card" *ngFor="let trip of driverTrips">
-            <div class="route">
-              <span>{{ trip.from }}</span>
-              <span class="arrow">→</span>
-              <span>{{ trip.to }}</span>
-            </div>
-            <div class="trip-meta">
-              <div>
-                <span class="label">გამგზავრება</span>
-                <span class="value">{{ formatDateTime(trip.departureDate) }}</span>
+
+        <ng-container *ngIf="isSectionOpen('driverTrips')">
+          <div *ngIf="isLoadingTrips" class="loading-inline">მგზავრობები იტვირთება…</div>
+
+          <div *ngIf="!isLoadingTrips && driverTrips.length === 0" class="empty-state">
+            <div class="empty-icon">🛣️</div>
+            <p>მგზავრობა ჯერ არ გაქვთ</p>
+            <p class="sub">დაგეგმეთ პირველი მარშრუტი და დაიწყეთ შემოსავლის მიღება</p>
+            <button class="btn-filled" (click)="openPickupFlow()">დაგეგმე პირველი რეისი</button>
+          </div>
+
+          <div class="card-list" *ngIf="!isLoadingTrips && driverTrips.length > 0">
+            <div class="list-card trip-card" *ngFor="let trip of driverTrips">
+
+              <div class="trip-media">
+                <img
+                  *ngIf="trip.images && trip.images.length > 0"
+                  [src]="trip.images[0]"
+                  [alt]="trip.from + ' → ' + trip.to"
+                  loading="lazy" />
+                <div class="trip-media__placeholder" *ngIf="!trip.images || trip.images.length === 0">🚗</div>
+                <span class="trip-media__count" *ngIf="trip.images && trip.images.length > 1">
+                  +{{ trip.images.length - 1 }}
+                </span>
               </div>
-              <div>
-                <span class="label">თავისუფალი</span>
-                <span class="value">{{ trip.availableSpace }} კგ</span>
+
+              <div class="route">
+                <span>{{ trip.from }}</span>
+                <span class="arrow">→</span>
+                <span>{{ trip.to }}</span>
               </div>
-              <div>
-                <span class="label">ფასი</span>
-                <span class="value">{{ trip.pricePerKg }} ₾/კგ</span>
+              <div class="trip-meta">
+                <div>
+                  <span class="label">გამგზავრება</span>
+                  <span class="value">{{ formatDateTime(trip.departureDate) }}</span>
+                </div>
+                <div>
+                  <span class="label">თავისუფალი წონა</span>
+                  <span class="value">{{ trip.availableSpace }} კგ</span>
+                </div>
+                <div>
+                  <span class="label">ფასი</span>
+                  <span class="value">{{ trip.pricePerKg }} ₾/კგ</span>
+                </div>
               </div>
-            </div>
-            <div class="earnings" *ngIf="trip.acceptedShippings?.length">
-              ✓ {{ trip.acceptedShippings.length }} შეკვეთა · {{ getTripEarnings(trip) }}
-            </div>
-            <div class="list-card__footer">
-              <span class="id">№ {{ trip._id.slice(0, 8) }}</span>
-              <div class="actions">
-                <button class="btn-text btn-sm danger" (click)="deleteTrip(trip._id)"
-                        [disabled]="deletingTripId === trip._id">წაშლა</button>
-                <button class="btn-tonal btn-sm" (click)="viewTripDetails(trip._id)">დეტალები</button>
+              <div class="earnings" *ngIf="trip.acceptedShippings && trip.acceptedShippings.length > 0">
+                <span>✓ მიღებული {{ trip.acceptedShippings.length }} შეკვეთა</span>
+                <span class="earnings-value">{{ getTripEarnings(trip) }}</span>
+              </div>
+              <div class="list-card__footer">
+                <span class="id">№ {{ trip._id.slice(0, 8) }}</span>
+                <div class="actions">
+                  <button *ngIf="canDeleteTrip(trip)"
+                          class="btn-text btn-sm danger"
+                          (click)="deleteTrip(trip._id)"
+                          [disabled]="deletingTripId === trip._id">
+                    {{ deletingTripId === trip._id ? 'იშლება…' : '🗑️ წაშლა' }}
+                  </button>
+                  <button class="btn-tonal btn-sm" (click)="viewTripDetails(trip._id)">დეტალები →</button>
+                </div>
               </div>
             </div>
           </div>
+        </ng-container>
+      </section>
+
+      <!-- 📦 ჩემი განცხადებები (მძღოლსაც შეუძლია ამანათის გაგზავნა) -->
+      <section class="section">
+        <div class="section-header">
+          <h3>📦 ჩემი განცხადებები</h3>
+          <div class="actions">
+            <button class="btn-filled btn-sm" (click)="openSendItemFlow()">+ ახალი განცხადება</button>
+            <button class="btn-tonal btn-sm" (click)="toggleSection('userRequests')">
+              {{ isSectionOpen('userRequests') ? '▲ დამალვა' : '▼ ნახვა' }}
+              <span class="mini-badge" *ngIf="userRequests.length > 0">{{ userRequests.length }}</span>
+            </button>
+          </div>
         </div>
+
+        <ng-container *ngIf="isSectionOpen('userRequests')">
+          <div *ngIf="isLoadingRequests" class="loading-inline">განცხადებები იტვირთება…</div>
+
+          <div *ngIf="!isLoadingRequests && userRequests.length === 0" class="empty-state">
+            <div class="empty-icon">📭</div>
+            <p>განცხადება ჯერ არ გაქვთ</p>
+            <p class="sub">გამოაგზავნეთ პირველი ამანათი ერთ წუთში</p>
+            <button class="btn-filled" (click)="openSendItemFlow()">გამოაგზავნე პირველი ამანათი</button>
+          </div>
+
+          <div class="card-list" *ngIf="!isLoadingRequests && userRequests.length > 0">
+            <div class="list-card trip-card" *ngFor="let request of userRequests">
+
+              <div class="trip-media">
+                <img
+                  *ngIf="request.images && request.images.length > 0"
+                  [src]="request.images[0]"
+                  [alt]="request.from + ' → ' + request.to"
+                  loading="lazy" />
+                <div class="trip-media__placeholder" *ngIf="!request.images || request.images.length === 0">📦</div>
+                <span class="trip-media__count" *ngIf="request.images && request.images.length > 1">
+                  +{{ request.images.length - 1 }}
+                </span>
+              </div>
+
+              <div class="route">
+                <span>{{ request.from }}</span>
+                <span class="arrow">→</span>
+                <span>{{ request.to }}</span>
+              </div>
+              <div class="trip-meta trip-meta--request">
+                <div>
+                  <span class="label">წონა</span>
+                  <span class="value">{{ request.weight }} კგ</span>
+                </div>
+                <div>
+                  <span class="label">ღირებულება</span>
+                  <span class="value">{{ request.value }} ₾</span>
+                </div>
+                <div>
+                  <span class="label">თარიღი</span>
+                  <span class="value">{{ formatDate(request.createdAt) }}</span>
+                </div>
+              </div>
+              <div class="list-card__footer">
+                <span class="id">№ {{ request._id.slice(0, 8) }}</span>
+                <div class="actions">
+                  <button *ngIf="canDeleteRequest(request)"
+                          class="btn-text btn-sm danger"
+                          (click)="deleteRequest(request._id)"
+                          [disabled]="deletingRequestId === request._id">
+                    {{ deletingRequestId === request._id ? 'იშლება…' : '🗑️ წაშლა' }}
+                  </button>
+                  <button class="btn-tonal btn-sm" (click)="viewRequestDetails(request._id)">დეტალები →</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </ng-container>
       </section>
 
       <!-- SETTINGS -->
@@ -362,7 +551,7 @@
       <div class="modal-handle"></div>
       <button class="modal-close" (click)="closeOfferDetails()">✕</button>
       <div *ngIf="selectedOffer" class="offer-detail">
-        <h3>ნივთის წაღების მოთხოვნა</h3>
+        <h3>🚚 ნივთის წაღების მოთხოვნა</h3>
         <div class="detail-rows">
           <div><span>გამგზავნი</span><strong>{{ senderOf(selectedOffer)?.firstName }} {{ senderOf(selectedOffer)?.lastName }}</strong></div>
           <div><span>ტელეფონი</span><strong>{{ formatPhone(senderOf(selectedOffer)?.phone) }}</strong></div>
@@ -373,14 +562,27 @@
         </div>
         <div class="form-actions">
           <button class="btn-filled" (click)="respondToOffer(selectedOffer, true)"
-                  [disabled]="respondingOfferId === selectedOffer._id">დათანხმება</button>
+                  [disabled]="respondingOfferId === selectedOffer._id">
+            {{ respondingOfferId === selectedOffer._id ? 'იგზავნება…' : '✅ დათანხმება' }}
+          </button>
           <button class="btn-tonal" (click)="respondToOffer(selectedOffer, false)"
-                  [disabled]="respondingOfferId === selectedOffer._id">უარყოფა</button>
+                  [disabled]="respondingOfferId === selectedOffer._id">❌ უარყოფა</button>
         </div>
       </div>
     </div>
   </div>
 
+  <!-- ⭐ Review Modal -->
+  <app-review-modal
+    *ngIf="showReviewModal"
+    [offerId]="reviewOfferId"
+    [targetName]="reviewTargetName"
+    [targetRole]="reviewTargetRole"
+    (submitted)="onReviewSubmitted()"
+    (closed)="closeReview()">
+  </app-review-modal>
+
+  <!-- Delete Account Modal -->
   <app-delete-account-modal
     *ngIf="showDeleteAccountModal"
     [userEmail]="email"

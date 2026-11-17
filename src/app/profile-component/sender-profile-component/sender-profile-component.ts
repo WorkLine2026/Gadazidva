@@ -780,7 +780,7 @@ export class SenderProfileComponent implements OnInit, OnDestroy {
   }
 
   logout(): void {
-    if (confirm('დარწმუნებული ხართ რომ გამოწერთ?')) {
+    if (confirm('დარწმუნებული ხართ რომ გსურთ გამოსვლა?')) {
       this.socketService.disconnect?.();
       this.smsService.clearAuthToken();
       this.smsService.clearState();

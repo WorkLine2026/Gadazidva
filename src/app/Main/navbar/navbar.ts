@@ -113,7 +113,8 @@ export class NavbarComponent implements OnInit, OnDestroy {
   // ================= ROLE-BASED ACTIONS =================
 
   /**
-   * გამგზავნს → "ამანათის გაგზავნა", მძღოლს → "მგზავრობის დამატება".
+   * გამგზავნს → "ამანათის გაგზავნა".
+   * მძღოლს → "მგზავრობის დამატება" (მთავარი) + "ამანათის გაგზავნა" (მეორეხარისხოვანი).
    * თუ როლი ჯერ უცნობია, ორივეს ვაჩვენებთ.
    */
   get actions(): NavAction[] {
@@ -122,7 +123,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
 
     switch (this.currentUser?.role) {
       case 'driver':
-        return [trip];
+        return [trip, { ...send, kind: 'secondary' }];
       case 'sender':
         return [send];
       default:

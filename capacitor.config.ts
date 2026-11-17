@@ -1,7 +1,7 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'Ggzavna.ge',
+  appId: 'ge.ggzavna.app',
   appName: 'Ggzavna',
   webDir: 'dist/gadazidva/browser'
 };
