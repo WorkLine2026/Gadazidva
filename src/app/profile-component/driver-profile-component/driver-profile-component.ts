@@ -1,7 +1,7 @@
 import {
   Component, OnInit, OnDestroy, ChangeDetectorRef,
   ViewChild, TemplateRef, ViewContainerRef, EmbeddedViewRef,
-  Renderer2, PLATFORM_ID, Inject
+  ElementRef, Renderer2, PLATFORM_ID, Inject
 } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -128,6 +128,24 @@ export class DriverProfileComponent implements OnInit, OnDestroy {
   private chatPortalView: EmbeddedViewRef<any> | null = null;
   private viewportResizeHandler = () => this.updateChatViewportHeight();
 
+  // 💬 შეტყობინებების მოდალი — გადააქვს <body>-ში, რომ მშობლის
+  // transform/animation-მა position:fixed არ გააფუჭოს (ეკრანის შუაში გაჩნდეს)
+  private conversationsModalEl?: HTMLElement;
+
+  @ViewChild('conversationsModal')
+  set conversationsModalRef(ref: ElementRef<HTMLElement> | undefined) {
+    if (ref) {
+      if (this.isBrowser) {
+        this.conversationsModalEl = ref.nativeElement;
+        document.body.appendChild(ref.nativeElement);
+      }
+    } else if (this.conversationsModalEl) {
+      // *ngIf გახდა false — ელემენტი ხელითაც ვშლით, თუ Angular-მა ვერ წაშალა
+      this.conversationsModalEl.remove();
+      this.conversationsModalEl = undefined;
+    }
+  }
+
   private lastHandledNotification: any = null;
   private destroy$ = new Subject<void>();
 
@@ -194,6 +212,10 @@ export class DriverProfileComponent implements OnInit, OnDestroy {
     this.destroy$.next();
     this.destroy$.complete();
     this.unmountChatFromBody();
+
+    // 💬 body-ში გადატანილი შეტყობინებების მოდალის წაშლა
+    this.conversationsModalEl?.remove();
+    this.conversationsModalEl = undefined;
 
     // ✅ window/document მხოლოდ ბრაუზერში
     if (this.isBrowser) {

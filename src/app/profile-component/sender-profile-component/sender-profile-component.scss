@@ -910,9 +910,13 @@ $font: 'Noto Sans Georgian', 'BPG Nino Mtavruli', 'Segoe UI', system-ui, sans-se
   position: fixed;
   inset: 0;
   z-index: 1000;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;            // მობილურზე ბრაუზერის ბარის გათვალისწინებით
   display: grid;
-  place-items: center;
+  place-items: center;       // ზუსტად ეკრანის შუაში
   padding: 20px;
+  box-sizing: border-box;
   background: rgba(14, 22, 58, 0.72);
   backdrop-filter: blur(6px);
   animation: fade-in 0.2s ease both;
@@ -923,6 +927,7 @@ $font: 'Noto Sans Georgian', 'BPG Nino Mtavruli', 'Segoe UI', system-ui, sans-se
   width: 100%;
   max-width: 520px;
   max-height: 88vh;
+  max-height: 88dvh;
   overflow-y: auto;
   padding: 28px;
   background: #fff;
@@ -935,6 +940,27 @@ $font: 'Noto Sans Georgian', 'BPG Nino Mtavruli', 'Segoe UI', system-ui, sans-se
   h3 { margin: 0 0 18px; padding-right: 36px; font-size: 20px; font-weight: 900; color: $navy; }
 
   @include mobile { padding: 20px; border-radius: $radius-md; }
+}
+
+// 💬 შეტყობინებების მოდალი
+.modal-panel--conversations {
+  display: flex;
+  flex-direction: column;
+  padding: 0;                // ზედმეტი თეთრი ჩარჩო რომ არ ჩანდეს
+  height: min(640px, 88vh);
+  height: min(640px, 88dvh);
+  overflow: hidden;
+
+  app-conversations-list {
+    display: block;
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+  }
+
+  .modal-close { z-index: 2; }
+
+  @include mobile { padding: 0; }
 }
 
 .modal-close {

@@ -145,6 +145,26 @@ export class DriverProfileAndroidComponent implements OnInit, OnDestroy {
   private injectedPortalStyles: HTMLStyleElement[] = [];
   private bodyOverflowBeforeLock: string | null = null;
 
+  // ===== 💬 CONVERSATIONS MODAL PORTAL =====
+  // შეტყობინებების მოდალი გადააქვს document.body-ში, რომ ShadowDom-ის გარეთ
+  // მყოფმა მშობელმა (transform/animation) position:fixed არ გააფუჭოს და
+  // მოდალი ზუსტად ეკრანის შუაში გაჩნდეს.
+  private conversationsModalEl: HTMLElement | null = null;
+  private conversationsMovedToBody = false;
+  private injectedConversationsStyles: HTMLStyleElement[] = [];
+  private bodyOverflowBeforeConversationsLock: string | null = null;
+
+  // setter: ელემენტის შექმნისთანავე (პირველ paint-მდე) გადააქვს body-ში;
+  // *ngIf-ით წაშლისას (undefined) ასუფთავებს სტილებს და scroll-lock-ს.
+  @ViewChild('conversationsModalRoot')
+  set conversationsModalRootRef(ref: ElementRef<HTMLElement> | undefined) {
+    if (ref) {
+      this.moveConversationsToBody(ref.nativeElement);
+    } else {
+      this.cleanupConversationsPortal();
+    }
+  }
+
   // 🖥️ SSR/PRERENDER SAFETY — document.body/document.head მხოლოდ ბრაუზერშია უსაფრთხო
   private isBrowser: boolean;
 
@@ -207,6 +227,11 @@ export class DriverProfileAndroidComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.restoreChatModalFromBody();
+
+    // 💬 body-ში გადატანილი შეტყობინებების მოდალის წაშლა
+    this.conversationsModalEl?.remove();
+    this.cleanupConversationsPortal();
+
     this.destroy$.next();
     this.destroy$.complete();
   }
@@ -814,6 +839,54 @@ export class DriverProfileAndroidComponent implements OnInit, OnDestroy {
     this.selectedConversation = null;
   }
 
+  // ============================================================
+  // 💬 CONVERSATIONS MODAL → document.body
+  // ============================================================
+  private moveConversationsToBody(el: HTMLElement): void {
+    if (!this.isBrowser || this.conversationsMovedToBody) return;
+
+    // ShadowDom-ის სტილები body-ში გადატანილ ელემენტს აღარ ეხება,
+    // ამიტომ ვაკოპირებთ document.head-ში (როგორც ჩატისთვის)
+    this.injectedConversationsStyles = this.cloneShadowStylesToHead('data-conversations-portal-style');
+
+    this.conversationsModalEl = el;
+    this.renderer.appendChild(document.body, el);
+    this.conversationsMovedToBody = true;
+
+    this.bodyOverflowBeforeConversationsLock = document.body.style.overflow || '';
+    this.renderer.setStyle(document.body, 'overflow', 'hidden');
+  }
+
+  private cleanupConversationsPortal(): void {
+    if (!this.isBrowser || !this.conversationsMovedToBody) return;
+
+    this.injectedConversationsStyles.forEach(styleEl => styleEl.remove());
+    this.injectedConversationsStyles = [];
+
+    this.renderer.setStyle(document.body, 'overflow', this.bodyOverflowBeforeConversationsLock ?? '');
+    this.bodyOverflowBeforeConversationsLock = null;
+
+    this.conversationsModalEl = null;
+    this.conversationsMovedToBody = false;
+  }
+
+  private cloneShadowStylesToHead(marker: string): HTMLStyleElement[] {
+    const shadowRoot = this.hostEl.nativeElement.shadowRoot;
+    if (!shadowRoot) return [];
+
+    const clones: HTMLStyleElement[] = [];
+    shadowRoot.querySelectorAll('style').forEach(styleEl => {
+      const clone = styleEl.cloneNode(true) as HTMLStyleElement;
+      clone.setAttribute(marker, '');
+      document.head.appendChild(clone);
+      clones.push(clone);
+    });
+    return clones;
+  }
+
+  // ============================================================
+  // 💬 CHAT MODAL → document.body
+  // ============================================================
   private moveChatModalToBody(): void {
     if (!this.isBrowser) return;
 
@@ -858,17 +931,7 @@ export class DriverProfileAndroidComponent implements OnInit, OnDestroy {
 
   private injectPortalStyles(): void {
     if (!this.isBrowser) return;
-
-    const shadowRoot = this.hostEl.nativeElement.shadowRoot;
-    if (!shadowRoot) return;
-
-    const styleEls = shadowRoot.querySelectorAll('style');
-    styleEls.forEach(styleEl => {
-      const clone = styleEl.cloneNode(true) as HTMLStyleElement;
-      clone.setAttribute('data-chat-modal-portal-style', '');
-      document.head.appendChild(clone);
-      this.injectedPortalStyles.push(clone);
-    });
+    this.injectedPortalStyles = this.cloneShadowStylesToHead('data-chat-modal-portal-style');
   }
 
   private removePortalStyles(): void {

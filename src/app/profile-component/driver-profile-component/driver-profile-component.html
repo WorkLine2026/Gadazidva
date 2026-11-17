@@ -622,9 +622,13 @@
 
 </div>
 
-<!-- Conversations Modal -->
-<div class="modal-backdrop" *ngIf="showConversations" (click)="toggleConversations()">
-  <div class="modal-panel" (click)="$event.stopPropagation()">
+<!-- =========================================================
+     Conversations Modal
+     #conversationsModal — TS-ში გადააქვს <body>-ში, რომ
+     მშობლის transform/animation-მა position:fixed არ გააფუჭოს
+     ========================================================= -->
+<div class="modal-backdrop" #conversationsModal *ngIf="showConversations" (click)="toggleConversations()">
+  <div class="modal-panel modal-panel--conversations" (click)="$event.stopPropagation()">
     <button class="modal-close" (click)="toggleConversations()">✕</button>
     <app-conversations-list
       [currentUserId]="userId"

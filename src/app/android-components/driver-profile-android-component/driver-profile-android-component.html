@@ -520,11 +520,12 @@
 
   <!-- ===== MODALS ===== -->
 
-  <!-- Conversations — Bottom Sheet -->
-  <div class="modal-backdrop sheet" *ngIf="showConversations" (click)="toggleConversations()">
-    <div class="modal-sheet" (click)="$event.stopPropagation()">
-      <div class="modal-handle"></div>
-      <button class="modal-close" (click)="toggleConversations()">✕</button>
+  <!-- Conversations — ეკრანის შუაში (Center Dialog).
+       #conversationsModalRoot — TS-ში გადააქვს document.body-ში (როგორც ჩატს),
+       რომ მშობლის transform/animation-მა position:fixed არ გააფუჭოს -->
+  <div #conversationsModalRoot class="conv-backdrop" *ngIf="showConversations" (click)="toggleConversations()">
+    <div class="conv-dialog" (click)="$event.stopPropagation()">
+      <button class="conv-close" (click)="toggleConversations()" aria-label="დახურვა">✕</button>
       <app-conversations-list
         [currentUserId]="userId"
         (conversationSelected)="onConversationSelected($event)">
