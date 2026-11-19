@@ -340,6 +340,7 @@
   flex-direction: column;
   align-items: center;
   gap: 12px;
+  min-width: 0;              // ← ბარათი შიგთავსის გამო აღარ გაიწელება
   padding: 24px 16px 16px;
   text-align: center;
   background: var(--surface-container-low);
@@ -446,12 +447,26 @@
     width: 100%;
   }
 
+  // ✅ გასწორებული: ორი ღილაკი ბარათის შუაში, ტოლი სიგანით
   &__actions {
     width: 100%;
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    // minmax(0, 1fr) — სვეტებს ბარათის გარეთ გასვლას უკრძალავს
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    justify-content: center;
+    align-items: center;
     gap: 8px;
     margin-top: 4px;
+
+    > button {
+      width: 100%;
+      min-width: 0;
+      padding: 0 12px;
+      gap: 6px;
+      font-size: 13px;
+      justify-content: center;
+      text-align: center;
+    }
   }
 }
 
