@@ -1,0 +1,457 @@
+<!-- ===== საერთო ცხრილის შაბლონი: rows + cols ===== -->
+<ng-template #tbl let-rows="rows" let-cols="cols">
+  <div class="tw" *ngIf="rows?.length; else noRows">
+    <table>
+      <thead>
+        <tr><th *ngFor="let c of cols">{{ c.h }}</th></tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let r of rows">
+          <td *ngFor="let c of cols" [class.wrap]="c.f === 'description' || c.f === 'message' || c.f === 'body' || c.f === 'comment'">
+            <span *ngIf="isStatusCol(c.f); else plain" class="tag" [ngClass]="r[c.f]">{{ statusLabel(r[c.f]) }}</span>
+            <ng-template #plain>{{ cell(r, c.f) }}</ng-template>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <ng-template #noRows><div class="tw"><div class="empty">ჩანაწერი არ არის</div></div></ng-template>
+</ng-template>
+
+<!-- ===== პაგინაციის შაბლონი ===== -->
+<ng-template #pager let-key="key">
+  <div class="pager" *ngIf="L(key).total > 0">
+    <button class="btn sm" (click)="goPage(key, -1)" [disabled]="L(key).page <= 1">← წინა</button>
+    <span>გვერდი {{ L(key).page }} / {{ L(key).totalPages }} (სულ: {{ L(key).total }})</span>
+    <button class="btn sm" (click)="goPage(key, 1)" [disabled]="L(key).page >= L(key).totalPages">შემდეგი →</button>
+  </div>
+</ng-template>
+
+<!-- ===== ფილტრების ზოლი ===== -->
+<ng-template #filterBar let-key="key">
+  <div class="bar">
+    <input *ngIf="cfgSearch(key)" type="search" placeholder="ძებნა..." style="min-width:240px"
+           [ngModel]="L(key).search" (ngModelChange)="L(key).search = $event" (keyup.enter)="applyFilters(key)" />
+    <select [ngModel]="L(key).filter" (ngModelChange)="L(key).filter = $event; applyFilters(key)">
+      <option *ngFor="let f of F(key)" [value]="f.value">{{ f.label }}</option>
+    </select>
+    <button class="btn pri" *ngIf="cfgSearch(key)" (click)="applyFilters(key)">ძებნა</button>
+    <button class="btn" (click)="load(key)">⟳ განახლება</button>
+    <span class="loading" *ngIf="L(key).loading">იტვირთება...</span>
+  </div>
+</ng-template>
+
+<div class="adm">
+  <!-- ===== გვერდითი მენიუ ===== -->
+  <aside class="side">
+    <h2>Ggzavna · ადმინი</h2>
+    <button *ngFor="let t of tabs" [class.on]="tab === t.key" (click)="setTab(t.key)">{{ t.icon }} {{ t.label }}</button>
+    <button (click)="logout()">🚪 გასვლა</button>
+  </aside>
+
+  <main>
+    <!-- =====================================================
+         მიმოხილვა
+         ===================================================== -->
+    <section *ngIf="tab === 'dashboard'">
+      <h1>მიმოხილვა</h1>
+      <div class="bar"><button class="btn" (click)="loadStats()">⟳ განახლება</button>
+        <span class="loading" *ngIf="statsLoading">იტვირთება...</span></div>
+
+      <ng-container *ngIf="stats">
+        <div class="cards">
+          <div class="card"><b>{{ stats.users.total }}</b><span>მომხმარებელი</span>
+            <small>გამგზავნი: {{ stats.users.senders }} · მძღოლი: {{ stats.users.drivers }} · ადმინი: {{ stats.users.admins }}</small>
+            <small>დაბლოკილი: {{ stats.users.blocked }} · ახალი (7 დღე): {{ stats.users.newLast7Days }}</small></div>
+          <div class="card o"><b>{{ stats.requests.total }}</b><span>განცხადება</span>
+            <small>ახალი (7 დღე): {{ stats.requests.newLast7Days }}</small>
+            <small>ჯამური ღირებულება: {{ stats.requests.totalValue }} ₾</small>
+            <div class="chips"><span class="chip" *ngFor="let s of stats.requests.byStatus | keyvalue">{{ statusLabel(s.key) }}: {{ s.value }}</span></div></div>
+          <div class="card"><b>{{ stats.trips.total }}</b><span>მგზავრობა</span>
+            <small>ახალი (7 დღე): {{ stats.trips.newLast7Days }}</small>
+            <div class="chips"><span class="chip" *ngFor="let s of stats.trips.byStatus | keyvalue">{{ statusLabel(s.key) }}: {{ s.value }}</span></div></div>
+          <div class="card o"><b>{{ stats.offers.total }}</b><span>წაღების შეთავაზება</span>
+            <div class="chips"><span class="chip" *ngFor="let s of stats.offers.byStatus | keyvalue">{{ statusLabel(s.key) }}: {{ s.value }}</span></div></div>
+          <div class="card"><b>{{ stats.tripRequests.total }}</b><span>მგზავრობის მოთხოვნა</span>
+            <div class="chips"><span class="chip" *ngFor="let s of stats.tripRequests.byStatus | keyvalue">{{ statusLabel(s.key) }}: {{ s.value }}</span></div></div>
+          <div class="card o"><b>{{ stats.reviews?.total || 0 }}</b><span>შეფასება</span></div>
+          <div class="card"><b>{{ stats.notifications?.total || 0 }}</b><span>შეტყობინება</span></div>
+          <div class="card o"><b>{{ stats.messages?.total || 0 }}</b><span>ჩატის შეტყობინება</span></div>
+          <div class="card"><b>{{ stats.deletedUsers?.total || 0 }}</b><span>წაშლილი ანგარიში</span></div>
+        </div>
+
+        <h3>ბოლო განცხადებები</h3>
+        <div class="tw"><table>
+          <thead><tr><th>გამგზავნი</th><th>საიდან</th><th>სად</th><th>წონა</th><th>ღირებულება</th><th>სტატუსი</th><th>თარიღი</th></tr></thead>
+          <tbody><tr *ngFor="let r of stats.recent.requests">
+            <td>{{ r.senderName }}</td><td>{{ r.from }}</td><td>{{ r.to }}</td><td>{{ r.weight }} კგ</td><td>{{ r.value }} ₾</td>
+            <td><span class="tag" [ngClass]="r.status">{{ statusLabel(r.status) }}</span></td><td>{{ fmt(r.createdAt) }}</td></tr></tbody>
+        </table></div>
+
+        <h3>ბოლო მგზავრობები</h3>
+        <div class="tw"><table>
+          <thead><tr><th>მძღოლი</th><th>საიდან</th><th>სად</th><th>გასვლა</th><th>თავისუფალი</th><th>სტატუსი</th></tr></thead>
+          <tbody><tr *ngFor="let t of stats.recent.trips">
+            <td>{{ t.driverName }}</td><td>{{ t.from }}</td><td>{{ t.to }}</td><td>{{ fmt(t.departureDate) }}</td><td>{{ t.availableSpace }} კგ</td>
+            <td><span class="tag" [ngClass]="t.status">{{ statusLabel(t.status) }}</span></td></tr></tbody>
+        </table></div>
+
+        <h3>ბოლო მომხმარებლები</h3>
+        <div class="tw"><table>
+          <thead><tr><th>სახელი</th><th>ელფოსტა</th><th>ტელეფონი</th><th>როლი</th><th>რეგისტრაცია</th></tr></thead>
+          <tbody><tr *ngFor="let u of stats.recent.users" class="click" (click)="openUser(u._id)">
+            <td>{{ fullName(u) }}</td><td>{{ u.email }}</td><td>{{ u.phone }}</td><td>{{ ROLE_LABELS[u.role] }}</td><td>{{ fmt(u.createdAt) }}</td></tr></tbody>
+        </table></div>
+      </ng-container>
+    </section>
+
+    <!-- =====================================================
+         მომხმარებლები
+         ===================================================== -->
+    <section *ngIf="tab === 'users'">
+      <h1>მომხმარებლები</h1>
+      <ng-container *ngTemplateOutlet="filterBar; context: { key: 'users' }"></ng-container>
+      <div class="tw"><table>
+        <thead><tr><th>სახელი</th><th>პირადი №</th><th>ელფოსტა</th><th>ტელეფონი</th><th>დადასტ.</th><th>როლი</th><th>მანქანა</th><th>ნომერი</th><th>რეიტინგი</th><th>სტატუსი</th><th>რეგისტრაცია</th><th>მოქმედება</th></tr></thead>
+        <tbody>
+          <tr *ngFor="let u of lists.users.items">
+            <td><a href="javascript:void(0)" (click)="openUser(u._id)">{{ fullName(u) }}</a></td>
+            <td>{{ u.personalNumber }}</td><td>{{ u.email }}</td><td>{{ u.phone }}</td>
+            <td>{{ fmt(u.phoneVerified) }}</td>
+            <td><select [ngModel]="u.role" (ngModelChange)="changeRole(u, $event)">
+              <option value="sender">გამგზავნი</option><option value="driver">მძღოლი</option><option value="admin">ადმინი</option></select></td>
+            <td>{{ fmt(u.carModel) }}</td><td>{{ fmt(u.carPlate) }}</td>
+            <td>{{ u.ratingAvg || 0 }} ({{ u.ratingCount || 0 }})</td>
+            <td><span class="tag banned" *ngIf="u.isBanned" [title]="u.bannedReason">დაბლოკილი</span><span class="tag active" *ngIf="!u.isBanned">აქტიური</span></td>
+            <td>{{ fmt(u.createdAt) }}</td>
+            <td><div class="act">
+              <button class="btn sm" (click)="openUser(u._id)">დეტალები</button>
+              <button class="btn sm" (click)="toggleBan(u)">{{ u.isBanned ? 'განბლოკვა' : 'დაბლოკვა' }}</button>
+              <button class="btn sm danger" (click)="deleteUser(u)">წაშლა</button>
+            </div></td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="empty" *ngIf="!lists.users.items.length && !lists.users.loading">მომხმარებელი ვერ მოიძებნა</div></div>
+      <ng-container *ngTemplateOutlet="pager; context: { key: 'users' }"></ng-container>
+    </section>
+
+    <!-- =====================================================
+         განცხადებები
+         ===================================================== -->
+    <section *ngIf="tab === 'requests'">
+      <h1>განცხადებები (გაგზავნები)</h1>
+      <ng-container *ngTemplateOutlet="filterBar; context: { key: 'requests' }"></ng-container>
+      <div class="tw"><table>
+        <thead><tr><th>გამგზავნი</th><th>გამგზავნის ტელ.</th><th>ელფოსტა</th><th>მიმღების ტელ.</th><th>საიდან</th><th>სად</th><th>თარიღი</th><th>წონა</th><th>ღირებულება</th><th>აღწერა</th><th>შენიშვნა</th><th>ფოტო</th><th>სტატუსი</th><th>მძღოლი</th><th>მძღოლის ტელ.</th><th>მგზავრობა (ID)</th><th>მიღების დრო</th><th>ჩაბარების დრო</th><th>შექმნილია</th><th>მოქმედება</th></tr></thead>
+        <tbody>
+          <tr *ngFor="let r of lists.requests.items">
+            <td><a href="javascript:void(0)" (click)="openUser(r.senderId)">{{ r.senderName }}</a></td>
+            <td>{{ r.senderPhone }}</td><td>{{ r.senderEmail }}</td><td>{{ r.recipientPhone }}</td>
+            <td>{{ r.from }}</td><td>{{ r.to }}</td><td>{{ fmt(r.shipDate) }}</td>
+            <td>{{ r.weight }} კგ</td><td>{{ r.value }} ₾</td>
+            <td class="wrap">{{ r.description }}</td><td class="wrap">{{ fmt(r.notes) }}</td>
+            <td><ng-container *ngIf="r.images?.length; else noImg"><a *ngFor="let i of r.images; let n = index" [href]="i" target="_blank">{{ n + 1 }} </a></ng-container><ng-template #noImg>—</ng-template></td>
+            <td><select [ngModel]="r.status" (ngModelChange)="setRequestStatus(r, $event)">
+              <option *ngFor="let s of REQUEST_STATUSES" [value]="s">{{ statusLabel(s) }}</option></select></td>
+            <td><a href="javascript:void(0)" *ngIf="r.acceptedBy; else noDrv" (click)="openUser(r.acceptedBy)">{{ r.acceptedByName || r.acceptedBy }}</a><ng-template #noDrv>—</ng-template></td>
+            <td>{{ fmt(r.acceptedByPhone) }}</td>
+            <td>{{ fmt(r.acceptedTrip) }}</td>
+            <td>{{ fmt(r.acceptedAt) }}</td>
+            <td>{{ fmt(r.deliveredAt) }}</td>
+            <td>{{ fmt(r.createdAt) }}</td>
+            <td><button class="btn sm danger" (click)="deleteRequest(r)">წაშლა</button></td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="empty" *ngIf="!lists.requests.items.length && !lists.requests.loading">განცხადება ვერ მოიძებნა</div></div>
+      <ng-container *ngTemplateOutlet="pager; context: { key: 'requests' }"></ng-container>
+    </section>
+
+    <!-- =====================================================
+         მგზავრობები
+         ===================================================== -->
+    <section *ngIf="tab === 'trips'">
+      <h1>მგზავრობები</h1>
+      <ng-container *ngTemplateOutlet="filterBar; context: { key: 'trips' }"></ng-container>
+      <div class="tw"><table>
+        <thead><tr><th>მძღოლი</th><th>ტელეფონი</th><th>პირადი №</th><th>საიდან</th><th>სად</th><th>გასვლა</th><th>თავისუფალი</th><th>ფასი/კგ</th><th>მანქანა</th><th>ნომერი</th><th>კომენტარი</th><th>ფოტო</th><th>მიღებული ნივთები</th><th>სტატუსი</th><th>დაიწყო</th><th>დასრულდა</th><th>შექმნილია</th><th>მოქმედება</th></tr></thead>
+        <tbody>
+          <ng-container *ngFor="let t of lists.trips.items">
+            <tr>
+              <td><a href="javascript:void(0)" (click)="openUser(t.driverId)">{{ t.driverName }}</a></td>
+              <td>{{ fmt(t.senderPhone) }}</td><td>{{ fmt(t.personalNumber) }}</td>
+              <td>{{ t.from }}</td><td>{{ t.to }}</td><td>{{ fmt(t.departureDate) }}</td>
+              <td>{{ t.availableSpace }} კგ</td><td>{{ t.pricePerKg ? t.pricePerKg + ' ₾' : 'შეთანხმებით' }}</td>
+              <td>{{ fmt(t.carModel) }}</td><td>{{ fmt(t.carPlate) }}</td><td class="wrap">{{ fmt(t.comments) }}</td>
+              <td><ng-container *ngIf="t.images?.length; else noImg2"><a *ngFor="let i of t.images; let n = index" [href]="i" target="_blank">{{ n + 1 }} </a></ng-container><ng-template #noImg2>—</ng-template></td>
+              <td>{{ t.acceptedShippings?.length || 0 }}</td>
+              <td><select [ngModel]="t.status" (ngModelChange)="setTripStatus(t, $event)">
+                <option *ngFor="let s of TRIP_STATUSES" [value]="s">{{ statusLabel(s) }}</option></select></td>
+              <td>{{ fmt(t.startedAt) }}</td><td>{{ fmt(t.completedAt) }}</td>
+              <td>{{ fmt(t.createdAt) }}</td>
+              <td><div class="act">
+                <button class="btn sm" (click)="cancelTrip(t)" [disabled]="t.status === 'cancelled'">გაუქმება</button>
+                <button class="btn sm danger" (click)="deleteTrip(t)">წაშლა</button>
+              </div></td>
+            </tr>
+            <tr *ngIf="t.acceptedShippings?.length">
+              <td colspan="18" style="background:#fafbfd">
+                <b>მიღებული ნივთები ({{ t.acceptedShippings.length }}):</b>
+                <span class="chip" style="margin-left:6px" *ngFor="let p of t.acceptedShippings">{{ p.from }} → {{ p.to }} · {{ p.weight }} კგ · {{ statusLabel(p.status) }}</span>
+              </td>
+            </tr>
+          </ng-container>
+        </tbody>
+      </table>
+      <div class="empty" *ngIf="!lists.trips.items.length && !lists.trips.loading">მგზავრობა ვერ მოიძებნა</div></div>
+      <ng-container *ngTemplateOutlet="pager; context: { key: 'trips' }"></ng-container>
+    </section>
+
+    <!-- =====================================================
+         წაღების შეთავაზებები (მძღოლი → ნივთი)
+         ===================================================== -->
+    <section *ngIf="tab === 'offers'">
+      <h1>წაღების შეთავაზებები (მძღოლი → ნივთი)</h1>
+      <ng-container *ngTemplateOutlet="filterBar; context: { key: 'offers' }"></ng-container>
+      <div class="tw"><table>
+        <thead><tr><th>ნივთი</th><th>ნივთის სტატუსი</th><th>მძღოლი</th><th>მძღოლის ტელ.</th><th>მანქანა</th><th>გამგზავნი</th><th>გამგზავნის ტელ.</th><th>შეთავაზების სტატუსი</th><th>მძღოლმა დაასრულა</th><th>გამგზავნმა დაადასტურა</th><th>შეფასება (გ / მ)</th><th>შექმნილია</th><th>პასუხი</th><th>დასრულდა</th><th></th></tr></thead>
+        <tbody>
+          <tr *ngFor="let o of lists.offers.items">
+            <td>{{ o.parcelId?.from }} → {{ o.parcelId?.to }}<br /><small>{{ o.parcelId?.weight }} კგ · {{ o.parcelId?.value }} ₾</small></td>
+            <td><span class="tag" [ngClass]="o.parcelId?.status">{{ statusLabel(o.parcelId?.status) }}</span></td>
+            <td><a href="javascript:void(0)" (click)="openUser(o.driverId?._id)">{{ fullName(o.driverId) }}</a></td>
+            <td>{{ fmt(o.driverId?.phone) }}</td>
+            <td>{{ fmt(o.driverId?.carModel) }} {{ o.driverId?.carPlate }}</td>
+            <td><a href="javascript:void(0)" (click)="openUser(o.senderId?._id)">{{ fullName(o.senderId) }}</a></td>
+            <td>{{ fmt(o.senderId?.phone) }}</td>
+            <td><span class="tag" [ngClass]="o.status">{{ statusLabel(o.status) }}</span></td>
+            <td>{{ fmt(o.driverConfirmedComplete) }}</td><td>{{ fmt(o.senderConfirmedComplete) }}</td>
+            <td>{{ fmt(o.reviewedBySender) }} / {{ fmt(o.reviewedByDriver) }}</td>
+            <td>{{ fmt(o.createdAt) }}</td><td>{{ fmt(o.respondedAt) }}</td><td>{{ fmt(o.completedAt) }}</td>
+            <td><button class="btn sm danger" (click)="deleteOffer(o)">წაშლა</button></td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="empty" *ngIf="!lists.offers.items.length && !lists.offers.loading">შეთავაზება ვერ მოიძებნა</div></div>
+      <ng-container *ngTemplateOutlet="pager; context: { key: 'offers' }"></ng-container>
+    </section>
+
+    <!-- =====================================================
+         მგზავრობის მოთხოვნები (გამგზავნი → მგზავრობა)
+         ===================================================== -->
+    <section *ngIf="tab === 'tripRequests'">
+      <h1>მგზავრობის მოთხოვნები (გამგზავნი → მგზავრობა)</h1>
+      <ng-container *ngTemplateOutlet="filterBar; context: { key: 'tripRequests' }"></ng-container>
+      <div class="tw"><table>
+        <thead><tr><th>მგზავრობა</th><th>გასვლა</th><th>მგზავრობის სტატუსი</th><th>მძღოლი</th><th>მძღოლის ტელ.</th><th>გამგზავნი</th><th>გამგზავნის ტელ.</th><th>შეტყობინება</th><th>სტატუსი</th><th>შექმნილია</th><th>პასუხი</th><th></th></tr></thead>
+        <tbody>
+          <tr *ngFor="let r of lists.tripRequests.items">
+            <td>{{ r.tripId?.from }} → {{ r.tripId?.to }}</td>
+            <td>{{ fmt(r.tripId?.departureDate) }}</td>
+            <td><span class="tag" [ngClass]="r.tripId?.status">{{ statusLabel(r.tripId?.status) }}</span></td>
+            <td><a href="javascript:void(0)" (click)="openUser(r.driverId?._id)">{{ fullName(r.driverId) }}</a></td>
+            <td>{{ fmt(r.driverId?.phone) }}</td>
+            <td><a href="javascript:void(0)" (click)="openUser(r.senderId?._id)">{{ fullName(r.senderId) }}</a></td>
+            <td>{{ fmt(r.senderId?.phone) }}</td>
+            <td class="wrap">{{ fmt(r.message) }}</td>
+            <td><span class="tag" [ngClass]="r.status">{{ statusLabel(r.status) }}</span></td>
+            <td>{{ fmt(r.createdAt) }}</td><td>{{ fmt(r.respondedAt) }}</td>
+            <td><button class="btn sm danger" (click)="deleteTripRequest(r)">წაშლა</button></td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="empty" *ngIf="!lists.tripRequests.items.length && !lists.tripRequests.loading">მოთხოვნა ვერ მოიძებნა</div></div>
+      <ng-container *ngTemplateOutlet="pager; context: { key: 'tripRequests' }"></ng-container>
+    </section>
+
+    <!-- =====================================================
+         შეფასებები
+         ===================================================== -->
+    <section *ngIf="tab === 'reviews'">
+      <h1>შეფასებები</h1>
+      <ng-container *ngTemplateOutlet="filterBar; context: { key: 'reviews' }"></ng-container>
+      <ng-container *ngTemplateOutlet="tbl; context: { rows: lists.reviews.items, cols: REVIEW_LIVE_COLS }"></ng-container>
+      <ng-container *ngTemplateOutlet="pager; context: { key: 'reviews' }"></ng-container>
+    </section>
+
+    <!-- =====================================================
+         შეტყობინებები (ზარი)
+         ===================================================== -->
+    <section *ngIf="tab === 'notifications'">
+      <h1>შეტყობინებები (ზარი)</h1>
+      <ng-container *ngTemplateOutlet="filterBar; context: { key: 'notifications' }"></ng-container>
+      <ng-container *ngTemplateOutlet="tbl; context: { rows: lists.notifications.items, cols: NOTIF_LIVE_COLS }"></ng-container>
+      <ng-container *ngTemplateOutlet="pager; context: { key: 'notifications' }"></ng-container>
+    </section>
+
+    <!-- =====================================================
+         ჩატის შეტყობინებები
+         ===================================================== -->
+    <section *ngIf="tab === 'messages'">
+      <h1>ჩატის შეტყობინებები</h1>
+      <ng-container *ngTemplateOutlet="filterBar; context: { key: 'messages' }"></ng-container>
+      <ng-container *ngTemplateOutlet="tbl; context: { rows: lists.messages.items, cols: MSG_LIVE_COLS }"></ng-container>
+      <ng-container *ngTemplateOutlet="pager; context: { key: 'messages' }"></ng-container>
+    </section>
+
+    <!-- =====================================================
+         წაშლილი მომხმარებლები (არქივი)
+         ===================================================== -->
+    <section *ngIf="tab === 'deleted'">
+      <h1>წაშლილი მომხმარებლები (არქივი)</h1>
+      <ng-container *ngTemplateOutlet="filterBar; context: { key: 'deleted' }"></ng-container>
+      <div class="tw"><table>
+        <thead><tr><th>სახელი</th><th>პირადი №</th><th>ელფოსტა</th><th>ტელეფონი</th><th>როლი</th><th>განცხ.</th><th>მგზავრ.</th><th>შეთავაზ.</th><th>მოთხოვნ.</th><th>შეფას.</th><th>შეტყობ.</th><th>ჩატი</th><th>ვინ წაშალა</th><th>მიზეზი</th><th>წაშლის თარიღი</th><th></th></tr></thead>
+        <tbody>
+          <tr *ngFor="let d of lists.deleted.items" class="click" (click)="openDeleted(d._id)">
+            <td>{{ d.firstName }} {{ d.lastName }}</td><td>{{ fmt(d.personalNumber) }}</td><td>{{ fmt(d.email) }}</td><td>{{ fmt(d.phone) }}</td>
+            <td>{{ ROLE_LABELS[d.role] || fmt(d.role) }}</td>
+            <td>{{ d.stats?.parcelsCount || 0 }}</td><td>{{ d.stats?.tripsCount || 0 }}</td><td>{{ d.stats?.offersCount || 0 }}</td>
+            <td>{{ d.stats?.tripRequestsCount || 0 }}</td><td>{{ d.stats?.reviewsCount || 0 }}</td>
+            <td>{{ d.stats?.notificationsCount || 0 }}</td><td>{{ d.stats?.messagesCount || 0 }}</td>
+            <td>{{ d.deletedBy === 'admin' ? 'ადმინმა' : 'თვითონ' }}</td>
+            <td class="wrap">{{ fmt(d.reason) }}</td>
+            <td>{{ fmt(d.deletedAt) }}</td>
+            <td><button class="btn sm" (click)="openDeleted(d._id); $event.stopPropagation()">სრულად</button></td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="empty" *ngIf="!lists.deleted.items.length && !lists.deleted.loading">არქივი ცარიელია</div></div>
+      <ng-container *ngTemplateOutlet="pager; context: { key: 'deleted' }"></ng-container>
+    </section>
+  </main>
+</div>
+
+<!-- =====================================================
+     მომხმარებლის დეტალები (modal)
+     ===================================================== -->
+<div class="ov" *ngIf="userDetail || userDetailLoading" (click)="closeUser()">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <div class="loading" *ngIf="userDetailLoading">იტვირთება...</div>
+    <ng-container *ngIf="userDetail">
+      <div class="mh">
+        <h2>{{ fullName(userDetail.user) }}
+          <span class="tag" [ngClass]="userDetail.user.isBanned ? 'banned' : 'active'">{{ userDetail.user.isBanned ? 'დაბლოკილი' : 'აქტიური' }}</span></h2>
+        <div class="act">
+          <button class="btn" (click)="toggleBan(userDetail.user)">{{ userDetail.user.isBanned ? 'განბლოკვა' : 'დაბლოკვა' }}</button>
+          <button class="btn danger" (click)="deleteUser(userDetail.user)">მომხმარებლის წაშლა</button>
+          <button class="btn pri" (click)="closeUser()">✕ დახურვა</button>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div class="kv" *ngFor="let f of USER_FIELDS"><small>{{ f.h }}</small><div>{{ cell(userDetail.user, f.f) }}</div></div>
+        <div class="kv" *ngIf="userDetail.user.driverLicensePhotoUrl"><small>მართვის მოწმობის ფოტო</small>
+          <div><a [href]="userDetail.user.driverLicensePhotoUrl" target="_blank">გახსნა ↗</a></div></div>
+        <div class="kv"><small>შეთავაზებები (როგორც მძღოლი)</small><div>{{ userDetail.offers?.asDriver || 0 }}</div></div>
+        <div class="kv"><small>შეთავაზებები (როგორც გამგზავნი)</small><div>{{ userDetail.offers?.asSender || 0 }}</div></div>
+      </div>
+
+      <h3>განცხადებები ({{ userDetail.requests?.length || 0 }})</h3>
+      <ng-container *ngTemplateOutlet="tbl; context: { rows: userDetail.requests, cols: PARCEL_COLS }"></ng-container>
+
+      <h3>მგზავრობები ({{ userDetail.trips?.length || 0 }})</h3>
+      <ng-container *ngTemplateOutlet="tbl; context: { rows: userDetail.trips, cols: TRIP_COLS }"></ng-container>
+
+      <ng-container *ngIf="userExtras">
+        <h3>წაღების შეთავაზებები ({{ userExtras.offers?.length || 0 }})</h3>
+        <ng-container *ngTemplateOutlet="tbl; context: { rows: userExtras.offers, cols: OFFER_USER_COLS }"></ng-container>
+
+        <h3>მგზავრობის მოთხოვნები ({{ userExtras.tripRequests?.length || 0 }})</h3>
+        <ng-container *ngTemplateOutlet="tbl; context: { rows: userExtras.tripRequests, cols: TRIPREQ_USER_COLS }"></ng-container>
+
+        <h3>დაწერილი შეფასებები ({{ userExtras.reviewsGiven?.length || 0 }})</h3>
+        <ng-container *ngTemplateOutlet="tbl; context: { rows: userExtras.reviewsGiven, cols: REVIEW_LIVE_COLS }"></ng-container>
+
+        <h3>მიღებული შეფასებები ({{ userExtras.reviewsReceived?.length || 0 }})</h3>
+        <ng-container *ngTemplateOutlet="tbl; context: { rows: userExtras.reviewsReceived, cols: REVIEW_LIVE_COLS }"></ng-container>
+
+        <h3>შეტყობინებები (ზარი) — სულ {{ userExtras.counts?.notifications || 0 }}, ბოლო 100</h3>
+        <ng-container *ngTemplateOutlet="tbl; context: { rows: userExtras.notifications, cols: NOTIF_LIVE_COLS }"></ng-container>
+
+        <h3>ჩატი — სულ {{ userExtras.counts?.messages || 0 }}, ბოლო 100</h3>
+        <ng-container *ngTemplateOutlet="tbl; context: { rows: userExtras.messages, cols: MSG_LIVE_COLS }"></ng-container>
+      </ng-container>
+      <div class="loading" *ngIf="!userExtras">დამატებითი მონაცემები იტვირთება...</div>
+    </ng-container>
+  </div>
+</div>
+
+<!-- =====================================================
+     წაშლილი მომხმარებლის სრული არქივი (modal)
+     ===================================================== -->
+<div class="ov" *ngIf="deleted || deletedLoading" (click)="closeDeleted()">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <div class="loading" *ngIf="deletedLoading">იტვირთება...</div>
+    <ng-container *ngIf="deleted">
+      <div class="mh">
+        <h2>🗄️ {{ deleted.firstName }} {{ deleted.lastName }} — წაშლილი ანგარიში</h2>
+        <button class="btn pri" (click)="closeDeleted()">✕ დახურვა</button>
+      </div>
+
+      <div class="warn">
+        წაშლა: {{ fmt(deleted.deletedAt) }} · წაშალა: <b>{{ deleted.deletedBy === 'admin' ? 'ადმინმა' : 'თვითონ მომხმარებელმა' }}</b>
+        <ng-container *ngIf="deleted.deletedById"> (ID: {{ deleted.deletedById }})</ng-container>
+        · მიზეზი: {{ fmt(deleted.reason) }} · ორიგინალი ID: {{ deleted.originalId }}
+      </div>
+
+      <div class="chips" style="margin-bottom:6px">
+        <span class="chip" *ngFor="let s of deleted.stats | keyvalue">{{ statLabel(s.key) }}: {{ s.value }}</span>
+      </div>
+
+      <div class="tabs">
+        <button [class.on]="delTab === 'profile'" (click)="setDelTab('profile')">პროფილი</button>
+        <button *ngFor="let s of DELETED_SECTIONS" [class.on]="delTab === s.key" (click)="setDelTab(s.key)">
+          {{ s.label }} ({{ relatedRows(s.key).length }})</button>
+        <button [class.on]="delTab === 'messages'" (click)="setDelTab('messages')">ჩატი ({{ deleted.stats?.messagesCount || 0 }})</button>
+        <button [class.on]="delTab === 'raw'" (click)="setDelTab('raw')">RAW JSON</button>
+      </div>
+
+      <!-- პროფილი: snapshot-ის ყველა ველი -->
+      <div class="grid" *ngIf="delTab === 'profile'">
+        <div class="kv" *ngFor="let f of deleted.data | keyvalue">
+          <small>{{ f.key }}</small>
+          <div>
+            <ng-container *ngIf="f.key === 'driverLicensePhotoUrl' && f.value; else val"><a [href]="f.value" target="_blank">გახსნა ↗</a></ng-container>
+            <ng-template #val>{{ f.key === 'role' ? (ROLE_LABELS[f.value] || fmt(f.value)) : fmt(f.value) }}</ng-template>
+          </div>
+        </div>
+      </div>
+
+      <!-- related სექციები -->
+      <ng-container *ngFor="let s of DELETED_SECTIONS">
+        <ng-container *ngIf="delTab === s.key">
+          <ng-container *ngTemplateOutlet="tbl; context: { rows: relatedRows(s.key), cols: s.cols }"></ng-container>
+        </ng-container>
+      </ng-container>
+
+      <!-- ჩატის ისტორია -->
+      <ng-container *ngIf="delTab === 'messages'">
+        <div class="loading" *ngIf="msgLoading">იტვირთება...</div>
+        <div class="tw" *ngIf="msgs.length; else noMsgs">
+          <table>
+            <thead><tr><th>მიმართულება</th><th *ngFor="let c of MSG_COLS">{{ c.h }}</th></tr></thead>
+            <tbody>
+              <tr *ngFor="let m of msgs">
+                <td [ngClass]="msgDirection(m)">{{ msgDirection(m) === 'msg-out' ? '↑ გაგზავნა' : '↓ მიღება' }}</td>
+                <td *ngFor="let c of MSG_COLS" [class.wrap]="c.f === 'message'">{{ cell(m, c.f) }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <ng-template #noMsgs><div class="tw" *ngIf="!msgLoading"><div class="empty">ჩატის ისტორია არ არის</div></div></ng-template>
+        <div class="pager" *ngIf="msgTotal > 0">
+          <button class="btn sm" (click)="loadMessages(msgPage - 1)" [disabled]="msgPage <= 1">← წინა</button>
+          <span>გვერდი {{ msgPage }} / {{ msgTotalPages }} (სულ: {{ msgTotal }})</span>
+          <button class="btn sm" (click)="loadMessages(msgPage + 1)" [disabled]="msgPage >= msgTotalPages">შემდეგი →</button>
+        </div>
+      </ng-container>
+
+      <!-- RAW -->
+      <pre *ngIf="delTab === 'raw'" style="background:#14213d;color:#dfe6f3;padding:14px;border-radius:6px;overflow:auto;max-height:60vh;font-size:12px">{{ deleted | json }}</pre>
+    </ng-container>
+  </div>
+</div>
+
+<div class="toast" *ngIf="toast" [class.err]="toast.err">{{ toast.text }}</div>

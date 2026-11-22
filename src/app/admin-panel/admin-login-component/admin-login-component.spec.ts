@@ -1,5 +1,4 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-
 import { AdminLoginComponent } from './admin-login-component';
 
 describe('AdminLoginComponent', () => {
@@ -13,7 +12,7 @@ describe('AdminLoginComponent', () => {
 
     fixture = TestBed.createComponent(AdminLoginComponent);
     component = fixture.componentInstance;
-    await fixture.whenStable();
+    fixture.detectChanges();
   });
 
   it('should create', () => {

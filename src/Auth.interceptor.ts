@@ -21,9 +21,14 @@ export class AuthInterceptor implements HttpInterceptor {
   constructor(private router: Router) {}
 
   intercept(request: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
+    // ადმინ-ლოგინი: არც token ემატება, არც 401-ზე გადამისამართება
+    if (request.url.includes('/admin/login')) {
+      return next.handle(request);
+    }
+
     const token = this.getAuthToken();
     const isPublic = this.publicUrls.some(url => request.url.includes(url));
-
+    const isAdminCall = request.url.includes('/api/admin');
 
     if (!isPublic && token) {
       request = request.clone({
@@ -31,9 +36,6 @@ export class AuthInterceptor implements HttpInterceptor {
           Authorization: `Bearer ${token}`
         }
       });
-      
-    } else if (!isPublic) {
-      
     }
 
     return next.handle(request).pipe(
@@ -41,7 +43,7 @@ export class AuthInterceptor implements HttpInterceptor {
         if (!isPublic && (error.status === 401 || error.status === 403)) {
           console.error(`❌ ${error.status} Unauthorized/Forbidden`);
           localStorage.removeItem('authToken');
-          this.router.navigate(['/login']);
+          this.router.navigate([isAdminCall ? '/admin/login' : '/login']);
         }
         return throwError(() => error);
       })
@@ -52,4 +54,3 @@ export class AuthInterceptor implements HttpInterceptor {
     return localStorage.getItem('authToken') || '';
   }
 }
-

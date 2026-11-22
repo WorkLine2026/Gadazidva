@@ -1,83 +1,54 @@
-import { Component } from '@angular/core';
+import { Component, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormsModule } from '@angular/forms';
+import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { SmsVerificationService } from '../../services/smsverifikation.service';
+import { finalize } from 'rxjs/operators';
+import { environment } from '../../environment/environment';
+
+// იგივე გასაღები, რასაც ინტერცეპტორი და guard კითხულობს
+const TOKEN_KEY = 'authToken';
 
 @Component({
   selector: 'app-admin-login',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './admin-login-component.html',
   styleUrls: ['./admin-login-component.scss']
 })
 export class AdminLoginComponent {
-  showPassword = false;
-  isLoading = false;
-  errorMessage = '';
+  private http = inject(HttpClient);
+  private router = inject(Router);
+  private cdr = inject(ChangeDetectorRef);
 
-  loginForm: FormGroup;
+  email = '';
+  password = '';
+  show = false;
+  loading = false;
+  error = '';
 
-  constructor(
-    private fb: FormBuilder,
-    private smsService: SmsVerificationService,
-    private router: Router
-  ) {
-    this.loginForm = this.fb.group({
-      email: ['', [Validators.required, Validators.email]],
-      password: ['', Validators.required]
-    });
-  }
+  submit() {
+    if (this.loading) return;
+    this.loading = true;
+    this.error = '';
 
-  onSubmit(): void {
-    this.errorMessage = '';
-
-    if (this.loginForm.invalid) {
-      this.loginForm.markAllAsTouched();
-      this.errorMessage = 'შეიყვანეთ ელფოსტა და პაროლი';
-      return;
-    }
-
-    this.isLoading = true;
-    const { email, password } = this.loginForm.value;
-
-    // ✅ SmsVerificationService.login(email, password) — ნამდვილი სიგნატურის მიხედვით
-    this.smsService.login(email.trim(), password).subscribe({
-      next: (res) => {
-        this.isLoading = false;
-
-        if (!res?.success || !res.user) {
-          this.errorMessage = res?.message || 'ავტორიზაცია ვერ მოხერხდა';
-          return;
+    this.http
+      .post<any>(`${environment.apiUrl}/admin/login`, { email: this.email.trim(), password: this.password })
+      .pipe(
+        finalize(() => {
+          this.loading = false;
+          this.cdr.detectChanges();
+        })
+      )
+      .subscribe({
+        next: (r) => {
+          localStorage.setItem(TOKEN_KEY, r.token);
+          this.router.navigateByUrl('/admin');
+        },
+        error: (e) => {
+          this.error = e?.error?.message || 'შესვლა ვერ მოხერხდა';
+          this.cdr.detectChanges();
         }
-
-        if (res.user.role !== 'admin') {
-          // ჩვეულებრივ user-ს ადმინის panel-ში არ ვუშვებთ
-          this.smsService.clearAuthToken();
-          this.errorMessage = 'თქვენ არ გაქვთ ადმინისტრატორის უფლებები';
-          return;
-        }
-
-        this.router.navigate(['/admin/dashboard']);
-      },
-      error: (err) => {
-        this.isLoading = false;
-        console.error('❌ admin login შეცდომა:', err);
-        this.errorMessage =
-          err?.error?.message || 'ელფოსტა ან პაროლი არასწორია';
-      }
-    });
-  }
-
-  togglePasswordVisibility(): void {
-    this.showPassword = !this.showPassword;
-  }
-
-  get email() {
-    return this.loginForm.get('email');
-  }
-
-  get password() {
-    return this.loginForm.get('password');
+      });
   }
 }

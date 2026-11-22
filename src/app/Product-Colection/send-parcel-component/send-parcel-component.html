@@ -7,7 +7,7 @@
         <span>←</span>
         <span>უკან</span>
       </button>
-      <h1 class="send-title">📦 განცხადების დადება</h1>
+      <h1 class="send-title">📦 განცხადების დამატება</h1>
       <div></div>
     </div>
 
@@ -39,11 +39,11 @@
     <div *ngIf="currentStep === 'details'" class="step-content">
       <div class="section-header">
         <h2>რისი გაგზავნა გსურთ?</h2>
-        <p>შეაეთ ძირითადი ინფორმაცია</p>
+        <p>შეავსეთ ძირითადი ინფორმაცია</p>
       </div>
 
       <form [formGroup]="detailsForm" class="details-form">
-        <!-- ✅ From & To Cities — ტექსტური input + ავტოკომპლიტ dropdown -->
+        <!-- From & To Cities -->
         <div class="form-row-2">
           <div class="form-group autocomplete-wrapper">
             <label class="form-label">საიდან (ქალაქი)</label>
@@ -51,7 +51,7 @@
               type="text"
               class="form-input"
               formControlName="from"
-              placeholder="დაწერეთ ან აირჩიეთ ქალაქი"
+              placeholder="ჩაწერეთ ან აირჩიეთ ქალაქი"
               autocomplete="off"
               [class.has-error]="isFieldInvalid('from')"
               (input)="onFromInput($event)"
@@ -79,13 +79,13 @@
               type="text"
               class="form-input"
               formControlName="to"
-              placeholder="დაწერეთ ან აირჩიეთ ქალაქი"
+              placeholder="ჩაწერეთ ან აირჩიეთ ქალაქი"
               autocomplete="off"
               [class.has-error]="isFieldInvalid('to')"
               (input)="onToInput($event)"
               (focus)="onToFocus()"
             />
-            <span class="error-text" *ngIf="isFieldInvalid('to')">დანიშნულების არჩევა აუცილებელია</span>
+            <span class="error-text" *ngIf="isFieldInvalid('to')">დანიშნულების ადგილის არჩევა აუცილებელია</span>
 
             <ul class="autocomplete-dropdown" *ngIf="showToDropdown && filteredToCities.length > 0">
               <li
@@ -120,14 +120,14 @@
           <textarea 
             class="form-input form-textarea" 
             formControlName="description"
-            placeholder="მაგ. საბუთები, ტანსაცმელი, ტექნიკა, წიგნები..."
+            placeholder="მაგ.: საბუთები, ტანსაცმელი, ტექნიკა, წიგნები..."
             rows="3"
             [class.has-error]="isFieldInvalid('description')"
           ></textarea>
-          <span class="error-text" *ngIf="isFieldInvalid('description')">აღწერა აუცილებელია</span>
+          <span class="error-text" *ngIf="isFieldInvalid('description')">აღწერის შევსება აუცილებელია</span>
         </div>
 
-        <!-- Weight & Value (info only, no price calculation) -->
+        <!-- Weight & Value -->
         <div class="form-row-2">
           <div class="form-group">
             <label class="form-label">მიახლოებითი წონა (კგ)</label>
@@ -140,7 +140,7 @@
               step="0.1"
               [class.has-error]="isFieldInvalid('weight')"
             />
-            <span class="error-text" *ngIf="isFieldInvalid('weight')">წონა უნდა იყოს 0.1+ კგ</span>
+            <span class="error-text" *ngIf="isFieldInvalid('weight')">წონა უნდა იყოს მინიმუმ 0.1 კგ</span>
           </div>
 
           <div class="form-group">
@@ -153,12 +153,11 @@
               min="1"
               [class.has-error]="isFieldInvalid('value')"
             />
-            <span class="error-text" *ngIf="isFieldInvalid('value')">ღირებულება აუცილებელია (უსაფრთხოებისთვის)</span>
+            <span class="error-text" *ngIf="isFieldInvalid('value')">ღირებულების მითითება აუცილებელია (უსაფრთხოებისთვის)</span>
           </div>
         </div>
 
-        <!-- ✅ NEW: Parcel Photos Upload -->
-          <!-- ✅ NEW: Parcel Photos Upload -->
+        <!-- Parcel Photos Upload -->
         <div class="form-group">
           <label class="form-label">გზავნილის ფოტო (არასავალდებულო, მაქს. 3)</label>
 
@@ -179,7 +178,7 @@
               *ngIf="imagePreviews.length < maxImages && !isProcessingImages"
             >
               <span class="upload-icon">📷</span>
-              <span>ატვირთეთ ფოტო</span>
+              <span>ფოტოს ატვირთვა</span>
               <span class="upload-hint">{{ imagePreviews.length }}/{{ maxImages }}</span>
             </label>
 
@@ -212,7 +211,7 @@
           <textarea 
             class="form-input form-textarea" 
             formControlName="notes"
-            placeholder="მაგ. რთული, ფრაგილური, სტაფილოს ელემენტი..."
+            placeholder="მაგ.: მსხვრევადი ნივთი, საჭიროებს განსაკუთრებულ სიფრთხილეს..."
             rows="2"
           ></textarea>
         </div>
@@ -220,7 +219,7 @@
         <!-- Contact Info -->
         <div class="form-row-2">
           <div class="form-group">
-            <label class="form-label">თქვენი ტელეფონი</label>
+            <label class="form-label">თქვენი ტელეფონის ნომერი</label>
             <input 
               type="tel" 
               class="form-input" 
@@ -228,11 +227,11 @@
               placeholder="+995 5XX XXX XXX"
               [class.has-error]="isFieldInvalid('senderPhone')"
             />
-            <span class="error-text" *ngIf="isFieldInvalid('senderPhone')">ტელეფონი აუცილებელია</span>
+            <span class="error-text" *ngIf="isFieldInvalid('senderPhone')">ტელეფონის ნომერი აუცილებელია</span>
           </div>
 
           <div class="form-group">
-            <label class="form-label">მიმღების ტელეფონი</label>
+            <label class="form-label">მიმღების ტელეფონის ნომერი</label>
             <input 
               type="tel" 
               class="form-input" 
@@ -240,7 +239,7 @@
               placeholder="+995 5XX XXX XXX"
               [class.has-error]="isFieldInvalid('recipientPhone')"
             />
-            <span class="error-text" *ngIf="isFieldInvalid('recipientPhone')">მიმღების ტელეფონი აუცილებელია</span>
+            <span class="error-text" *ngIf="isFieldInvalid('recipientPhone')">მიმღების ტელეფონის ნომერი აუცილებელია</span>
           </div>
         </div>
 
@@ -252,7 +251,7 @@
             (click)="submitDetails()"
             [disabled]="isLoading"
           >
-            {{ isLoading ? 'დამუშავ...' : '→ შემდეგი' }}
+            {{ isLoading ? 'მუშავდება...' : '→ შემდეგი' }}
           </button>
         </div>
       </form>
@@ -262,14 +261,13 @@
     <div *ngIf="currentStep === 'confirmation'" class="step-content">
       <div class="section-header">
         <h2>დადასტურება</h2>
-        <p>მოამოწმეთ ინფორმაცია</p>
+        <p>გადაამოწმეთ შეყვანილი ინფორმაცია</p>
       </div>
 
       <!-- SUMMARY CARD -->
       <div class="summary-card">
-        <h3 class="summary-title">📦 გაგზავნის დეტალები</h3>
+        <h3 class="summary-title">📦 გზავნილის დეტალები</h3>
 
-        <!-- ✅ NEW: Photo thumbnails on confirmation step -->
         <div class="summary-images" *ngIf="imagePreviews.length > 0">
           <img
             *ngFor="let preview of imagePreviews"
@@ -315,7 +313,7 @@
         </div>
 
         <div class="info-box">
-          <p>💡 მძღოლები თქვენთან დაუკავშირდებიან თანხის შესახებ და ხელმოწერილი ხელშეკრულების გამო.</p>
+          <p>💡 მძღოლები თავად დაგიკავშირდებიან ტრანსპორტირების ღირებულებისა და პირობების შესათანხმებლად.</p>
         </div>
       </div>
 
@@ -335,7 +333,7 @@
           (click)="submitRequest()"
           [disabled]="isSaving"
         >
-          {{ isSaving ? 'დამუშავ...' : '✓ განცხადების დადება' }}
+          {{ isSaving ? 'ქვეყნდება...' : '✓ განცხადების გამოქვეყნება' }}
         </button>
       </div>
     </div>
@@ -344,13 +342,13 @@
     <div *ngIf="currentStep === 'success'" class="step-content">
       <div class="success-container">
         <div class="success-icon">✓</div>
-        <h2>განცხადება წარმატებით დაიქვიათ!</h2>
+        <h2>განცხადება წარმატებით გამოქვეყნდა!</h2>
         <p>განცხადების ნომერი: <strong>{{ stepData.requestId }}</strong></p>
         
         <div class="success-info">
-          <p>📱 მძღოლები თქვენთან ნახელმისი დაუკავშირდებიან</p>
-          <p>💬 შეუძლიათ პირდაპირ წერთ ან ზარ დაგუძახოთ</p>
-          <p>💰 ფასი შეთანხმდება პირად კონტაქტში</p>
+          <p>📱 დაინტერესებული მძღოლები მალე დაგიკავშირდებიან</p>
+          <p>💬 შეძლებთ დაკავშირებას როგორც ჩატით, ისე სატელეფონო ზარით</p>
+          <p>💰 ღირებულებაზე შეთანხმება მოხდება პირადი კომუნიკაციისას</p>
         </div>
 
         <div class="form-actions">

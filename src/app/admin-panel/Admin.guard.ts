@@ -1,27 +1,30 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
-import { of } from 'rxjs';
-import { map, catchError } from 'rxjs/operators';
-import { SmsVerificationService, UserProfile } from '../services/smsverifikation.service';
+
+const TOKEN_KEY = 'authToken';
+
+function readRole(token: string): string | null {
+  try {
+    const payload = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+    const json = JSON.parse(decodeURIComponent(escape(atob(payload))));
+    if (json.exp && json.exp * 1000 < Date.now()) return null; // ვადაგასული
+    return json.role || null;
+  } catch {
+    return null;
+  }
+}
 
 export const adminGuard: CanActivateFn = () => {
-  const smsService = inject(SmsVerificationService);
   const router = inject(Router);
+  const token = localStorage.getItem(TOKEN_KEY);
 
-  if (!smsService.isAuthenticated()) {
+  if (!token) {
     return router.createUrlTree(['/admin/login']);
   }
 
-  const check = (user: UserProfile | null | undefined) =>
-    user?.role === 'admin' ? true : router.createUrlTree(['/home']);
+  const role = readRole(token);
+  if (role === 'admin') return true;
 
-  const current = smsService.getCurrentUser();
-  if (current) return check(current);
-
-  // ✅ გვერდის განახლებისას token არსებობს, მაგრამ user ჯერ არ ჩატვირთულა —
-  // ამიტომ პროფილს ველოდებით, სანამ role-ს შევამოწმებთ
-  return smsService.getProfile().pipe(
-    map((res) => check(res.user)),
-    catchError(() => of(router.createUrlTree(['/admin/login'])))
-  );
+  localStorage.removeItem(TOKEN_KEY);
+  return router.createUrlTree(['/admin/login']);
 };
