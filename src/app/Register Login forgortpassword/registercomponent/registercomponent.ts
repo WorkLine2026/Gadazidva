@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnDestroy, OnInit, ChangeDetectorRef, HostListener } from '@angular/core';
+import { Component, OnDestroy, OnInit, ChangeDetectorRef, HostListener, ViewChild, ElementRef } from '@angular/core';
 import {
   AbstractControl,
   FormBuilder,
@@ -81,6 +81,15 @@ export class RegisterComponent implements OnInit, OnDestroy {
   hasReadTerms = false;        // ერთხელ მაინც გახსნა + ბოლომდე გადაიკითხა
   termsScrolledToEnd = false;  // მოდალის მიმდინარე სესიისთვის
 
+  // მოდალს <body>-ში გადავიტანთ, რომ ყოველთვის ეკრანის ცენტრში იყოს
+  // (მშობლის transform/filter-ის გამო position:fixed არ გადაინაცვლებს)
+  @ViewChild('termsModalRoot')
+  set termsModalRoot(ref: ElementRef<HTMLElement> | undefined) {
+    if (ref && typeof document !== 'undefined') {
+      document.body.appendChild(ref.nativeElement);
+    }
+  }
+
   constructor(
     private fb: FormBuilder,
     private smsService: SmsVerificationService,
@@ -99,6 +108,7 @@ export class RegisterComponent implements OnInit, OnDestroy {
     this.revokeLicensePreview();
     if (typeof document !== 'undefined') {
       document.body.style.overflow = '';
+      document.querySelector('.terms-modal-backdrop')?.remove();
     }
   }
 
