@@ -1,6 +1,6 @@
 // =====================================================
 // "დაგვიკავშირდით" გვერდი — ნარინჯისფერი + მუქი ლურჯი
-// კლასების სახელები HTML-ის იდენტურია, HTML-ის შეცვლა არ სჭირდება
+// კლასების სახელები HTML-ის იდენტურია
 // =====================================================
 
 :host {
@@ -451,6 +451,14 @@
     color: var(--muted);
   }
 
+  // ახალი: იმეილისა და ტელეფონის ველები გვერდიგვერდ
+  &-fields {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
   &-input {
     display: block;
     width: 100%;
@@ -478,6 +486,13 @@
       background: var(--white);
       border-color: var(--orange);
       box-shadow: 0 0 0 4px rgba(255, 106, 0, 0.18);
+    }
+
+    // ახალი: ერთსტრიქონიანი input-ები textarea-ს სტილს არ იმემკვიდრებს
+    &--field {
+      min-height: 0;
+      height: 52px;
+      resize: none;
     }
   }
 
@@ -546,6 +561,21 @@
   }
 }
 
+// ახალი: ვალიდაციის შეტყობინებები ველებსა და textarea-ს შორის
+.support-team__problem-fields + .support-team__problem-status {
+  margin-top: 0;
+  margin-bottom: 12px;
+}
+
+.support-team__problem-status + .support-team__problem-status {
+  margin-top: 0;
+  margin-bottom: 12px;
+}
+
+.support-team__problem-status + .support-team__problem-input {
+  margin-top: 0;
+}
+
 .support-team__secure {
   display: inline-flex;
   align-items: center;
@@ -569,6 +599,11 @@
 
   .support-team__problem {
     padding: 20px 16px;
+
+    // ახალი: მობილურზე ველები ერთმანეთის ქვეშ
+    &-fields {
+      grid-template-columns: 1fr;
+    }
 
     &-footer {
       flex-direction: column-reverse;

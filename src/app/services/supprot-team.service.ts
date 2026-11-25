@@ -9,39 +9,49 @@ export interface ContactInfo {
   email: string;
 }
 
+export interface ProblemPayload {
+  text: string;
+  email: string;
+  phone: string;
+}
+
 @Injectable({
   providedIn: 'root',
 })
 export class SupprotTeamService {
   private readonly http = inject(HttpClient);
 
-
   private readonly apiUrl = `${environment.apiUrl}/support/problem`;
 
   private readonly contact: ContactInfo = {
-    phoneNumber: '+995555649476', // შეცვალეთ რეალურ ნომერზე 
+    phoneNumber: '+995555649476', // შეცვალეთ რეალურ ნომერზე
     phoneDisplay: '+995 555 64 94 76',
     email: 'Ggzavna.info@gmail.com',
   };
+
+  // მხოლოდ ციფრები, "+"-ის გარეშე: 995555649476
+  private get digits(): string {
+    return this.contact.phoneNumber.replace(/\D/g, '');
+  }
 
   getContact(): ContactInfo {
     return this.contact;
   }
 
   get viberLink(): string {
-    return `viber://chat?number=%2B${this.contact.phoneNumber}`;
+    return `viber://chat?number=%2B${this.digits}`;
   }
 
   get whatsappLink(): string {
-    return `https://wa.me/${this.contact.phoneNumber}`;
+    return `https://wa.me/${this.digits}`;
   }
 
   get telegramLink(): string {
-    return `https://t.me/${this.contact.phoneNumber}`;
+    return `https://t.me/+${this.digits}`;
   }
 
   get telLink(): string {
-    return `tel:+${this.contact.phoneNumber}`;
+    return `tel:+${this.digits}`;
   }
 
   get mailLink(): string {
@@ -49,10 +59,10 @@ export class SupprotTeamService {
   }
 
   /**
-   * აგზავნის მომხმარებლის პრობლემას backend-ზე,
+   * აგზავნის მომხმარებლის პრობლემას, იმეილს და ტელეფონს backend-ზე,
    * საიდანაც ის Gmail-ის საშუალებით მხარდაჭერის გუნდამდე მიდის.
    */
-  sendProblem(text: string): Observable<{ success: boolean; message: string }> {
-    return this.http.post<{ success: boolean; message: string }>(this.apiUrl, { text });
+  sendProblem(payload: ProblemPayload): Observable<{ success: boolean; message: string }> {
+    return this.http.post<{ success: boolean; message: string }>(this.apiUrl, payload);
   }
 }

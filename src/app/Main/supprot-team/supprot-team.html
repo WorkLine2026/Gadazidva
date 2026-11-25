@@ -75,10 +75,7 @@
         <span class="support-team__arrow">↗</span>
       </a>
 
-      <a
-        class="support-team__contact support-team__contact--mail"
-        [href]="mailLink"
-      >
+      <a class="support-team__contact support-team__contact--mail" [href]="mailLink">
         <span class="support-team__contact-icon">✉️</span>
 
         <span class="support-team__contact-info">
@@ -89,10 +86,7 @@
         <span class="support-team__arrow">↗</span>
       </a>
 
-      <a
-        class="support-team__contact support-team__contact--tel"
-        [href]="telLink"
-      >
+      <a class="support-team__contact support-team__contact--tel" [href]="telLink">
         <span class="support-team__contact-icon">📱</span>
 
         <span class="support-team__contact-info">
@@ -117,11 +111,46 @@
         </div>
       </div>
 
+      <div class="support-team__problem-fields">
+        <input
+          class="support-team__problem-input support-team__problem-input--field"
+          type="email"
+          placeholder="თქვენი ელ-ფოსტა"
+          autocomplete="email"
+          [ngModel]="email()"
+          (ngModelChange)="email.set($event)"
+          name="email"
+        />
+
+        <input
+          class="support-team__problem-input support-team__problem-input--field"
+          type="tel"
+          placeholder="ტელეფონის ნომერი (მაგ: 555 12 34 56)"
+          autocomplete="tel"
+          [ngModel]="phone()"
+          (ngModelChange)="phone.set($event)"
+          name="phone"
+        />
+      </div>
+
+      @if (email() && !isEmailValid()) {
+        <p class="support-team__problem-status support-team__problem-status--error">
+          ელ-ფოსტის ფორმატი არასწორია
+        </p>
+      }
+
+      @if (phone() && !isPhoneValid()) {
+        <p class="support-team__problem-status support-team__problem-status--error">
+          ტელეფონის ნომერი არასწორია
+        </p>
+      }
+
       <textarea
         class="support-team__problem-input"
         rows="5"
         placeholder="აღწერეთ თქვენი პრობლემა..."
-        [(ngModel)]="problemText"
+        [ngModel]="problemText()"
+        (ngModelChange)="problemText.set($event)"
         name="problemText"
       ></textarea>
 
@@ -134,7 +163,7 @@
         <button
           class="support-team__problem-submit"
           type="button"
-          [disabled]="!problemText().trim() || isSending()"
+          [disabled]="!canSubmit()"
           (click)="sendProblem()"
         >
           <span>
