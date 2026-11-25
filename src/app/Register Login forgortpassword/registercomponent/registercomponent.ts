@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnDestroy, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnDestroy, OnInit, ChangeDetectorRef, HostListener } from '@angular/core';
 import {
   AbstractControl,
   FormBuilder,
@@ -13,30 +13,26 @@ import { Router, RouterModule } from '@angular/router';
 import { timeout, catchError, finalize } from 'rxjs/operators';
 import { of, TimeoutError } from 'rxjs';
 import { SmsVerificationService } from '../../services/smsverifikation.service';
+import { RulesComponent } from '../../Main/rules/rules'; // ⚠️ შეცვალე შენი რეალური path-ით
 
 type UserRole = 'sender' | 'driver';
 type RegistrationStep = 'form' | 'verification';
 
 const RESEND_COOLDOWN_SECONDS = 30;
 const ALLOWED_LICENSE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'pdf'];
-const MAX_LICENSE_FILE_SIZE_MB = 1; // ✅ 1MB — კომპრესირებული სურათისთვის ან PDF-ისთვის
-const MAX_ORIGINAL_LICENSE_FILE_SIZE_MB = 30; // ✅ ამაზე დიდ საწყის ფაილს არც ვცდით დამუშავებას
-
-// ✅ ფაილის ატვირთვას (განსაკუთრებით მართვის მოწმობის ფოტოს) შეიძლება
-// ნელა ატვირთვის შემთხვევაში მეტი დრო დასჭირდეს, ამიტომ 30 წამი ვუთმობთ
+const MAX_LICENSE_FILE_SIZE_MB = 1;
+const MAX_ORIGINAL_LICENSE_FILE_SIZE_MB = 30;
 const REGISTER_REQUEST_TIMEOUT_MS = 30000;
 
-// ✅ ფაილის ტიპის ვალიდატორი (მართვის მოწმობის ფოტოსთვის)
 function requiredFileType(allowedExtensions: string[]): ValidatorFn {
   return (control: AbstractControl): ValidationErrors | null => {
     const file: File | null = control.value;
-    if (!file) return null; // required-ს ცალკე ვალიდატორი ამოწმებს
+    if (!file) return null;
     const ext = file.name.split('.').pop()?.toLowerCase();
     return ext && allowedExtensions.includes(ext) ? null : { invalidFileType: true };
   };
 }
 
-// ✅ ფაილის ზომის ვალიდატორი
 function maxFileSize(maxSizeMB: number): ValidatorFn {
   return (control: AbstractControl): ValidationErrors | null => {
     const file: File | null = control.value;
@@ -49,7 +45,7 @@ function maxFileSize(maxSizeMB: number): ValidatorFn {
   selector: 'app-register',
   templateUrl: './registercomponent.html',
   styleUrls: ['./registercomponent.scss'],
-  imports: [CommonModule, ReactiveFormsModule, RouterModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, RulesComponent],
   standalone: true,
 })
 export class RegisterComponent implements OnInit, OnDestroy {
@@ -72,13 +68,18 @@ export class RegisterComponent implements OnInit, OnDestroy {
   showCodeHint = true;
   generatedCodeHint: string | null = null;
 
-  // ✅ მართვის მოწმობის ფოტოს state
+  // მართვის მოწმობის ფოტოს state
   licenseFileName: string | null = null;
   licensePreviewUrl: string | null = null;
   licenseFileError: string | null = null;
-  isProcessingLicenseFile = false; // ✅ compression მიმდინარეობის indicator
+  isProcessingLicenseFile = false;
   showConfirmPassword: any;
   showPassword: any;
+
+  // ======================== Terms modal state ========================
+  isTermsModalOpen = false;
+  hasReadTerms = false;        // ერთხელ მაინც გახსნა + ბოლომდე გადაიკითხა
+  termsScrolledToEnd = false;  // მოდალის მიმდინარე სესიისთვის
 
   constructor(
     private fb: FormBuilder,
@@ -96,6 +97,9 @@ export class RegisterComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.clearCooldownTimer();
     this.revokeLicensePreview();
+    if (typeof document !== 'undefined') {
+      document.body.style.overflow = '';
+    }
   }
 
   private initForm(): void {
@@ -113,7 +117,7 @@ export class RegisterComponent implements OnInit, OnDestroy {
         carModel: [''],
         carPlate: [''],
         driverLicenseNumber: [''],
-        licensePhoto: [null], // ✅ ახალი კონტროლი — File | null
+        licensePhoto: [null],
       },
       { validators: this.passwordMatchValidator }
     );
@@ -168,11 +172,7 @@ export class RegisterComponent implements OnInit, OnDestroy {
     licensePhoto?.updateValueAndValidity();
   }
 
-  // ✅ FIX: აღარ ვცვლით confirmPassword-ის errors-ს ამ ვალიდატორის შიგნიდან.
-  // group-validator-ში sibling-კონტროლზე setErrors()-ის გამოძახება რეენტრანტულად
-  // არღვევს Angular-ის ვალიდატორების კომპოზიციის state-ს (_rawValidators),
-  // რაც browser-ში ჩუმად "გადის", მაგრამ SSR prerender-ზე crash-ს იძლევა.
-  // ამის ნაცვლად mismatch-ს group-level error-ად ვაბრუნებთ.
+  // group-level error, რათა sibling-კონტროლზე setErrors() არ გამოვიძახოთ
   private passwordMatchValidator(control: AbstractControl): ValidationErrors | null {
     const password = control.get('password');
     const confirmPassword = control.get('confirmPassword');
@@ -188,8 +188,6 @@ export class RegisterComponent implements OnInit, OnDestroy {
     const control = this.registerForm.get(fieldName);
     if (!control) return false;
 
-    // ✅ FIX: confirmPassword-ის mismatch ახლა group-ის errors-შია,
-    // ამიტომ ორივეს ვამოწმებთ — თავად control-ის validity-ს და group-ის passwordMismatch-ს
     if (fieldName === 'confirmPassword') {
       const mismatch = this.registerForm.hasError('passwordMismatch');
       return (control.invalid || mismatch) && (control.dirty || control.touched);
@@ -208,6 +206,76 @@ export class RegisterComponent implements OnInit, OnDestroy {
     const control = this.verificationForm.get('code');
     if (!control) return false;
     return control.invalid && (control.dirty || control.touched);
+  }
+
+  // ======================== Terms modal ========================
+
+  openTermsModal(event: Event): void {
+    event.preventDefault();
+    event.stopPropagation();
+
+    this.isTermsModalOpen = true;
+    // თუ უკვე წაკითხული აქვს, ღილაკი მაშინვე აქტიურია
+    this.termsScrolledToEnd = this.hasReadTerms;
+    document.body.style.overflow = 'hidden';
+
+    // მოკლე ეკრანზე scroll შეიძლება საერთოდ არ იყოს საჭირო
+    setTimeout(() => this.checkTermsScroll(), 50);
+  }
+
+  closeTermsModal(): void {
+    this.isTermsModalOpen = false;
+    document.body.style.overflow = '';
+  }
+
+  onTermsScroll(event: Event): void {
+    this.evaluateScroll(event.target as HTMLElement);
+  }
+
+  private checkTermsScroll(): void {
+    const el = document.getElementById('termsScrollBody');
+    if (el) this.evaluateScroll(el);
+  }
+
+  private evaluateScroll(el: HTMLElement): void {
+    if (this.termsScrolledToEnd) return;
+    const threshold = 24; // px ტოლერანტობა
+    if (el.scrollTop + el.clientHeight >= el.scrollHeight - threshold) {
+      this.termsScrolledToEnd = true;
+      this.cdr.detectChanges();
+    }
+  }
+
+  // ქვემოთ ჩასქროლვის ღილაკი
+  scrollTermsToBottom(): void {
+    const el = document.getElementById('termsScrollBody');
+    if (!el) return;
+    el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
+  }
+
+  acceptTerms(): void {
+    if (!this.termsScrolledToEnd) return;
+
+    this.hasReadTerms = true;
+    const control = this.registerForm.get('agreeTerms');
+    control?.setValue(true);
+    control?.markAsDirty();
+    control?.markAsTouched();
+
+    this.closeTermsModal();
+  }
+
+  // ჩეკბოქსზე პირდაპირ დაჭერა: თუ არ წაუკითხავს, ვხსნით მოდალს
+  onTermsCheckboxClick(event: Event): void {
+    if (!this.hasReadTerms) {
+      event.preventDefault();
+      this.openTermsModal(event);
+    }
+  }
+
+  @HostListener('document:keydown.escape')
+  onEsc(): void {
+    if (this.isTermsModalOpen) this.closeTermsModal();
   }
 
   // ======================== ლიცენზიის ფოტოს ატვირთვა + კომპრესია ========================
@@ -237,7 +305,6 @@ export class RegisterComponent implements OnInit, OnDestroy {
 
     const isPdf = ext === 'pdf';
 
-    // ✅ PDF-ს ვერ დავამუშავებთ Canvas-ით — თუ ზომაში ვერ ეტევა, პირდაპირ ვამბობთ უარს
     if (isPdf) {
       if (file.size > maxFinalSizeBytes) {
         this.licenseFileError = `PDF ფაილის ზომა არ უნდა აღემატებოდეს ${MAX_LICENSE_FILE_SIZE_MB}MB-ს`;
@@ -253,7 +320,6 @@ export class RegisterComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // ✅ სურათებისთვის — ვცდით კომპრესიას, თუ ზომა აღემატება ლიმიტს
     this.isProcessingLicenseFile = true;
     this.cdr.detectChanges();
 
@@ -292,7 +358,7 @@ export class RegisterComponent implements OnInit, OnDestroy {
     this.licenseFileName = file.name;
 
     if (file.type === 'application/pdf') {
-      this.licensePreviewUrl = null; // PDF-ისთვის მხოლოდ ხატულა ვაჩვენებთ, არა preview
+      this.licensePreviewUrl = null;
       return;
     }
 
@@ -306,7 +372,6 @@ export class RegisterComponent implements OnInit, OnDestroy {
     }
   }
 
-  // ✅ სურათს ამცირებს resize + quality-ის ეტაპობრივი შემცირებით, სანამ maxSizeBytes-ს არ ჩაეტევა
   private async compressImage(file: File, maxSizeBytes: number): Promise<File> {
     if (file.size <= maxSizeBytes) {
       return file;
@@ -348,7 +413,6 @@ export class RegisterComponent implements OnInit, OnDestroy {
       blob = await this.canvasToBlob(canvas, quality);
     }
 
-    // ✅ თუ quality-ის დაწევითაც ვერ ჩავეტიეთ ზომაში — დამატებით ვამცირებთ განზომილებას
     if (blob.size > maxSizeBytes) {
       const scaleFactor = Math.sqrt(maxSizeBytes / blob.size);
       canvas.width = Math.max(1, Math.round(width * scaleFactor));
@@ -428,17 +492,11 @@ export class RegisterComponent implements OnInit, OnDestroy {
     };
 
     this.smsService.sendRegistrationCode(payload, licenseFile).pipe(
-      // ✅ თუ სერვერი REGISTER_REQUEST_TIMEOUT_MS-ში არ უპასუხებს — ვთვლით, რომ
-      // request "ჩაიხრჩო" და ვაგდებთ error-ს, spinner აღარასდროს დარჩება უსასრულოდ
       timeout(REGISTER_REQUEST_TIMEOUT_MS),
-      // ✅ ნებისმიერი შეცდომა (network, timeout, server error) ერთნაირად
-      // მოვექცეთ — ყოველთვის ვაჩვენოთ მკაფიო error-ტექსტი, არასდროს "გავიყინოთ"
       catchError((err) => {
         if (err instanceof TimeoutError) {
           this.errorMessage = 'სერვერი დიდხანს არ პასუხობს — გადაამოწმეთ ინტერნეტი და სცადეთ თავიდან';
         } else if (err.status === 400 && err.error?.message?.includes('exist')) {
-          // ტელეფონი უკვე დარეგისტრირებულია, მაგრამ ვერიფიცირებული არაა —
-          // მაინც გადავიდეთ კოდის შეყვანის გვერდზე
           return of({ success: true, message: 'ok' } as SendCodeResponseLike);
         } else if (err.status === 0) {
           this.errorMessage = 'კავშირის შეცდომა — ვერ დავუკავშირდით სერვერს';
@@ -447,14 +505,12 @@ export class RegisterComponent implements OnInit, OnDestroy {
         }
         return of(null);
       }),
-      // ✅ დაფაროს ყველა შემთხვევა (success, error, unsubscribe) —
-      // spinner ყოველთვის ჩერდება, რაც არ უნდა მოხდეს
       finalize(() => {
         this.isSendingCode = false;
         this.cdr.detectChanges();
       })
     ).subscribe((res) => {
-      if (!res) return; // უკვე დამუშავებულია catchError-ში, errorMessage დაყენებულია
+      if (!res) return;
 
       if (res.success) {
         if (res.code) {
@@ -469,27 +525,6 @@ export class RegisterComponent implements OnInit, OnDestroy {
 
       this.cdr.detectChanges();
     });
-  }
-
-  downloadTerms(event: Event): void {
-    event.preventDefault();
-    event.stopPropagation();
-
-    const fileUrl = 'https://files.catbox.moe/qevi2n.pdf';
-
-    fetch(fileUrl)
-      .then(response => response.blob())
-      .then(blob => {
-        const blobUrl = window.URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = blobUrl;
-        link.download = 'წესები-და-კონფიდენციალურობა.pdf';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(blobUrl);
-      })
-      .catch(error => console.error('Error downloading file:', error));
   }
 
   onVerifyCode(): void {
@@ -571,7 +606,7 @@ export class RegisterComponent implements OnInit, OnDestroy {
     this.isLoading = true;
     this.cdr.detectChanges();
 
-    const role = this.activeRole; // ✅ route-ის ასარჩევად ვინახავთ reset-მდე
+    const role = this.activeRole;
 
     this.clearCooldownTimer();
     this.revokeLicensePreview();
@@ -579,9 +614,10 @@ export class RegisterComponent implements OnInit, OnDestroy {
     this.verificationForm.reset();
     this.generatedCodeHint = null;
     this.licenseFileName = null;
+    this.hasReadTerms = false;
+    this.termsScrolledToEnd = false;
     this.currentStep = 'form';
 
-    // ✅ როლის მიხედვით სწორ პროფილზე გადასვლა
     if (role === 'driver') {
       this.router.navigate(['/driverProfile']);
     } else {
@@ -599,7 +635,6 @@ export class RegisterComponent implements OnInit, OnDestroy {
   }
 }
 
-// ✅ დამხმარე ტიპი catchError-ის fallback-ისთვის
 interface SendCodeResponseLike {
   success: boolean;
   message: string;
