@@ -102,6 +102,10 @@
 @keyframes m3-spin {
   to { transform: rotate(360deg); }
 }
+@keyframes conv-pop {
+  from { opacity: 0; transform: scale(0.94); }
+  to   { opacity: 1; transform: scale(1); }
+}
 
 // ============================================================
 // RIPPLE / STATE LAYER (სუფთა CSS)
@@ -447,7 +451,7 @@
     width: 100%;
   }
 
-  // ✅ გასწორებული: ორი ღილაკი ბარათის შუაში, ტოლი სიგანით
+  // ორი ღილაკი ბარათის შუაში, ტოლი სიგანით
   &__actions {
     width: 100%;
     display: grid;
@@ -1043,7 +1047,7 @@
 }
 
 // ============================================================
-// MODAL — Bottom Sheet (M3)
+// MODAL — Bottom Sheet (M3) — გამოიყენება offer-detail-ისთვის
 // ============================================================
 .modal-backdrop {
   position: fixed;
@@ -1145,6 +1149,110 @@
 }
 
 // ============================================================
+// CONVERSATIONS — ცენტრში გახსნილი დიალოგი
+// ⚠️ top-level და ცვლადების (var(--...)) გარეშეა შეგნებულად:
+// TS ამ ელემენტს document.body-ში გადააქვს და სტილებს document.head-ში
+// აკოპირებს, ამიტომ :host და .android-profile წესები იქ აღარ მუშაობს.
+// ============================================================
+.conv-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 99998;
+  display: flex;
+  align-items: center;       // ← ვერტიკალურად ცენტრში
+  justify-content: center;   // ← ჰორიზონტალურად ცენტრში
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  padding: calc(16px + env(safe-area-inset-top, 0px)) 16px calc(16px + env(safe-area-inset-bottom, 0px));
+  box-sizing: border-box;
+  background: rgba(0, 0, 0, 0.4);
+  animation: m3-fade 0.2s ease both;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.conv-dialog {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 560px;
+  height: min(75vh, 620px);
+  height: min(75dvh, 620px);
+  box-sizing: border-box;
+  overflow: hidden;
+  background: #f7f5fb;
+  color: #1b1b1f;
+  border-radius: 28px;
+  box-shadow: 0 4px 8px 3px rgba(0, 0, 0, 0.15), 0 1px 3px rgba(0, 0, 0, 0.3);
+  font-family: Roboto, 'Noto Sans Georgian', 'FiraGO', system-ui, -apple-system, sans-serif;
+  font-size: 14px;
+  line-height: 20px;
+  animation: conv-pop 0.22s cubic-bezier(0.2, 0, 0, 1) both;
+
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  &__header {
+    flex: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 12px 8px 12px 24px;
+    border-bottom: 1px solid #c7c5d0;
+    background: #f1eff6;
+  }
+
+  &__title {
+    margin: 0;
+    font-size: 20px;
+    line-height: 28px;
+    font-weight: 500;
+    color: #1b1b1f;
+  }
+
+  &__close {
+    flex: none;
+    width: 40px;
+    height: 40px;
+    display: grid;
+    place-items: center;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: #46464f;
+    font-size: 16px;
+    font-family: inherit;
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-appearance: none;
+    appearance: none;
+
+    &:active {
+      background: rgba(0, 0, 0, 0.12);
+    }
+  }
+
+  &__body {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+
+    > * {
+      display: block;
+    }
+  }
+}
+
+// ============================================================
 // CHAT — FULLSCREEN
 // ⚠️ top-level და ცვლადების გარეშეა შეგნებულად: TS ამ ელემენტს
 // document.body-ში გადააქვს და სტილებს document.head-ში აკოპირებს,
@@ -1187,7 +1295,9 @@
 @media (prefers-reduced-motion: reduce) {
   .android-profile *,
   .android-profile *::before,
-  .android-profile *::after {
+  .android-profile *::after,
+  .conv-backdrop,
+  .conv-dialog {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
   }

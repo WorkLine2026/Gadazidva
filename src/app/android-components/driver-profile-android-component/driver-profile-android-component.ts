@@ -37,6 +37,8 @@ interface ParcelRequest {
   images?: string[];
 }
 
+type PortalKey = 'conversations' | 'chat';
+
 const PICKUP_NOTIFICATION_TYPES = [
   'pickup_offer',
   'pickup_offer_accepted',
@@ -83,9 +85,6 @@ export class DriverProfileAndroidComponent implements OnInit, OnDestroy {
   errorMessage: string | null = null;
 
   // 🛠️ FIX: profileForm იქმნება ერთხელ, სინქრონულად ngOnInit-ში.
-  // FormGroup-ის ობიექტი აღარასდროს იცვლება ახლით — მხოლოდ patchValue-ით
-  // ახლდება, რაც არ არღვევს უკვე bound [formGroup] დირექტივას და
-  // ხსნის prerender-ის დროს "_rawValidators of undefined" შეცდომას.
   profileForm!: FormGroup;
 
   // ✅ თითოეული სექციის გახსნა/დახურვის მდგომარეობა (accordion)
@@ -137,31 +136,34 @@ export class DriverProfileAndroidComponent implements OnInit, OnDestroy {
   isDeletingAccount = false;
   deleteAccountError: string | null = null;
 
-  // ===== CHAT MODAL PORTAL =====
-  @ViewChild('chatModalRoot') chatModalRoot?: ElementRef<HTMLElement>;
-  private chatModalOriginalParent: Node | null = null;
-  private chatModalOriginalNextSibling: Node | null = null;
-  private chatModalMovedToBody = false;
-  private injectedPortalStyles: HTMLStyleElement[] = [];
-  private bodyOverflowBeforeLock: string | null = null;
+  // ============================================================
+  // 🪟 BODY PORTALS (შეტყობინებების დიალოგი + ჩატი)
+  // ------------------------------------------------------------
+  // ორივე მოდალი ელემენტის შექმნისთანავე (ViewChild setter-ით, პირველ paint-მდე)
+  // გადადის document.body-ში. ადრე ჩატი setTimeout-ით გადადიოდა, ამიტომ
+  // ერთი კადრის განმავლობაში ShadowDom-ის შიგნით, არასწორ ადგილას ჩანდა
+  // ("ცოტა ზემოთ" იხსნებოდა). body-ის scroll-lock-ს ახლა ერთი მთვლელი მართავს,
+  // რომ ერთი მოდალიდან მეორეზე გადასვლისას body არ გაჭედოს.
+  // ============================================================
+  private portals = new Map<PortalKey, { el: HTMLElement; styles: HTMLStyleElement[] }>();
+  private bodyScrollLocks = 0;
+  private bodyOverflowBeforeLock = '';
 
-  // ===== 💬 CONVERSATIONS MODAL PORTAL =====
-  // შეტყობინებების მოდალი გადააქვს document.body-ში, რომ ShadowDom-ის გარეთ
-  // მყოფმა მშობელმა (transform/animation) position:fixed არ გააფუჭოს და
-  // მოდალი ზუსტად ეკრანის შუაში გაჩნდეს.
-  private conversationsModalEl: HTMLElement | null = null;
-  private conversationsMovedToBody = false;
-  private injectedConversationsStyles: HTMLStyleElement[] = [];
-  private bodyOverflowBeforeConversationsLock: string | null = null;
-
-  // setter: ელემენტის შექმნისთანავე (პირველ paint-მდე) გადააქვს body-ში;
-  // *ngIf-ით წაშლისას (undefined) ასუფთავებს სტილებს და scroll-lock-ს.
   @ViewChild('conversationsModalRoot')
   set conversationsModalRootRef(ref: ElementRef<HTMLElement> | undefined) {
     if (ref) {
-      this.moveConversationsToBody(ref.nativeElement);
+      this.attachPortal('conversations', ref.nativeElement);
     } else {
-      this.cleanupConversationsPortal();
+      this.detachPortal('conversations');
+    }
+  }
+
+  @ViewChild('chatModalRoot')
+  set chatModalRootRef(ref: ElementRef<HTMLElement> | undefined) {
+    if (ref) {
+      this.attachPortal('chat', ref.nativeElement);
+    } else {
+      this.detachPortal('chat');
     }
   }
 
@@ -186,9 +188,6 @@ export class DriverProfileAndroidComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    // 🛠️ FIX: FormGroup-ის ინსტანცია იქმნება ერთხელ და დაუყოვნებლივ,
-    // სანამ template-მა [formGroup]="profileForm" პირველად დააბაინდოს
-    // (auth-შემოწმებამდეც, რომ redirect-ის დროს profileForm არასდროს იყოს undefined).
     this.initProfileForm();
 
     if (!this.smsService.isAuthenticated()) {
@@ -226,11 +225,9 @@ export class DriverProfileAndroidComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.restoreChatModalFromBody();
-
-    // 💬 body-ში გადატანილი შეტყობინებების მოდალის წაშლა
-    this.conversationsModalEl?.remove();
-    this.cleanupConversationsPortal();
+    // body-ში გადატანილი მოდალების წაშლა + სტილებისა და scroll-lock-ის გასუფთავება
+    this.detachPortal('conversations');
+    this.detachPortal('chat');
 
     this.destroy$.next();
     this.destroy$.complete();
@@ -246,7 +243,6 @@ export class DriverProfileAndroidComponent implements OnInit, OnDestroy {
   }
 
   // ===== DATA LOADING =====
-  // ✅ FIX: ყველა HTTP subscription-ს აქვს takeUntil(this.destroy$).
   private loadUserData(): void {
     this.isLoading = true;
     this.cdr.detectChanges();
@@ -418,12 +414,6 @@ export class DriverProfileAndroidComponent implements OnInit, OnDestroy {
     this.driverLicenseNumber = user.driverLicenseNumber ?? '';
   }
 
-  /**
-   * 🛠️ FIX: აღარ ქმნის ახალ FormGroup ინსტანციას ყოველ გამოძახებაზე.
-   * პირველი გამოძახება (ngOnInit-იდან) ქმნის ცარიელ ფორმას სწორი
-   * validator-ებით. ყოველი შემდგომი გამოძახება მხოლოდ patchValue-ით
-   * ანახლებს უკვე არსებულ ინსტანციას.
-   */
   private initProfileForm(): void {
     if (!this.profileForm) {
       this.profileForm = this.fb.group({
@@ -828,46 +818,70 @@ export class DriverProfileAndroidComponent implements OnInit, OnDestroy {
     }
     this.showChatModal = true;
     this.showConversations = false;
-    this.cdr.detectChanges();
 
-    setTimeout(() => this.moveChatModalToBody(), 0);
+    // ✅ აქ აღარ არის setTimeout: ჩატი body-ში გადადის ViewChild setter-ით,
+    // ელემენტის შექმნისთანავე, პირველ paint-მდე.
+    this.cdr.detectChanges();
   }
 
   closeChatModal(): void {
-    this.restoreChatModalFromBody();
     this.showChatModal = false;
     this.selectedConversation = null;
+    this.cdr.detectChanges();
   }
 
   // ============================================================
-  // 💬 CONVERSATIONS MODAL → document.body
+  // 🪟 PORTAL HELPERS
   // ============================================================
-  private moveConversationsToBody(el: HTMLElement): void {
-    if (!this.isBrowser || this.conversationsMovedToBody) return;
 
-    // ShadowDom-ის სტილები body-ში გადატანილ ელემენტს აღარ ეხება,
-    // ამიტომ ვაკოპირებთ document.head-ში (როგორც ჩატისთვის)
-    this.injectedConversationsStyles = this.cloneShadowStylesToHead('data-conversations-portal-style');
+  /** ელემენტს გადააქვს document.body-ში და ShadowDom-ის სტილებს head-ში აკოპირებს */
+  private attachPortal(key: PortalKey, el: HTMLElement): void {
+    if (!this.isBrowser) return;
 
-    this.conversationsModalEl = el;
+    const existing = this.portals.get(key);
+    if (existing?.el === el) return;
+    if (existing) this.detachPortal(key);
+
+    // 1) ჯერ სტილები (რომ გადატანის კადრში ელემენტი უსტილოდ არ დარჩეს)
+    const styles = this.cloneShadowStylesToHead(`data-${key}-portal-style`);
+
+    // 2) შემდეგ ელემენტი body-ში
     this.renderer.appendChild(document.body, el);
-    this.conversationsMovedToBody = true;
 
-    this.bodyOverflowBeforeConversationsLock = document.body.style.overflow || '';
-    this.renderer.setStyle(document.body, 'overflow', 'hidden');
+    this.portals.set(key, { el, styles });
+    this.lockBodyScroll();
   }
 
-  private cleanupConversationsPortal(): void {
-    if (!this.isBrowser || !this.conversationsMovedToBody) return;
+  /** სტილების წაშლა, scroll-lock-ის მოხსნა; ელემენტს Angular თვითონ შლის (*ngIf) */
+  private detachPortal(key: PortalKey): void {
+    if (!this.isBrowser) return;
 
-    this.injectedConversationsStyles.forEach(styleEl => styleEl.remove());
-    this.injectedConversationsStyles = [];
+    const portal = this.portals.get(key);
+    if (!portal) return;
 
-    this.renderer.setStyle(document.body, 'overflow', this.bodyOverflowBeforeConversationsLock ?? '');
-    this.bodyOverflowBeforeConversationsLock = null;
+    portal.el.remove(); // უსაფრთხოა, თუ უკვე წაშლილია
+    portal.styles.forEach(styleEl => styleEl.remove());
+    this.portals.delete(key);
 
-    this.conversationsModalEl = null;
-    this.conversationsMovedToBody = false;
+    this.unlockBodyScroll();
+  }
+
+  private lockBodyScroll(): void {
+    if (this.bodyScrollLocks === 0) {
+      this.bodyOverflowBeforeLock = document.body.style.overflow || '';
+      this.renderer.setStyle(document.body, 'overflow', 'hidden');
+    }
+    this.bodyScrollLocks++;
+  }
+
+  private unlockBodyScroll(): void {
+    if (this.bodyScrollLocks === 0) return;
+
+    this.bodyScrollLocks--;
+    if (this.bodyScrollLocks === 0) {
+      this.renderer.setStyle(document.body, 'overflow', this.bodyOverflowBeforeLock);
+      this.bodyOverflowBeforeLock = '';
+    }
   }
 
   private cloneShadowStylesToHead(marker: string): HTMLStyleElement[] {
@@ -882,63 +896,6 @@ export class DriverProfileAndroidComponent implements OnInit, OnDestroy {
       clones.push(clone);
     });
     return clones;
-  }
-
-  // ============================================================
-  // 💬 CHAT MODAL → document.body
-  // ============================================================
-  private moveChatModalToBody(): void {
-    if (!this.isBrowser) return;
-
-    const el = this.chatModalRoot?.nativeElement;
-    if (!el || this.chatModalMovedToBody) return;
-
-    this.injectPortalStyles();
-
-    this.chatModalOriginalParent = el.parentNode;
-    this.chatModalOriginalNextSibling = el.nextSibling;
-
-    this.renderer.appendChild(document.body, el);
-    this.chatModalMovedToBody = true;
-
-    this.bodyOverflowBeforeLock = document.body.style.overflow || '';
-    this.renderer.setStyle(document.body, 'overflow', 'hidden');
-  }
-
-  private restoreChatModalFromBody(): void {
-    if (!this.isBrowser) return;
-    if (!this.chatModalMovedToBody) return;
-
-    const el = this.chatModalRoot?.nativeElement;
-
-    if (el && this.chatModalOriginalParent) {
-      if (this.chatModalOriginalNextSibling) {
-        this.renderer.insertBefore(this.chatModalOriginalParent, el, this.chatModalOriginalNextSibling);
-      } else {
-        this.renderer.appendChild(this.chatModalOriginalParent, el);
-      }
-    }
-
-    this.renderer.setStyle(document.body, 'overflow', this.bodyOverflowBeforeLock ?? '');
-    this.bodyOverflowBeforeLock = null;
-
-    this.removePortalStyles();
-
-    this.chatModalMovedToBody = false;
-    this.chatModalOriginalParent = null;
-    this.chatModalOriginalNextSibling = null;
-  }
-
-  private injectPortalStyles(): void {
-    if (!this.isBrowser) return;
-    this.injectedPortalStyles = this.cloneShadowStylesToHead('data-chat-modal-portal-style');
-  }
-
-  private removePortalStyles(): void {
-    if (!this.isBrowser) return;
-
-    this.injectedPortalStyles.forEach(styleEl => styleEl.remove());
-    this.injectedPortalStyles = [];
   }
 
   logout(): void {

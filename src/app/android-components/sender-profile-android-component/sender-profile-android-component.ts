@@ -36,6 +36,14 @@ interface ParcelRequest {
   images?: string[];
 }
 
+interface PortalEntry {
+  el: HTMLElement;
+  parent: Node | null;
+  nextSibling: Node | null;
+}
+
+type PortalKey = 'chat' | 'conversations';
+
 const PICKUP_NOTIFICATION_TYPES = [
   'pickup_offer',
   'pickup_offer_accepted',
@@ -123,11 +131,11 @@ export class SenderProfileAndroidComponent implements OnInit, OnDestroy {
   isDeletingAccount = false;
   deleteAccountError: string | null = null;
 
-  // ===== CHAT MODAL PORTAL =====
+  // ===== BODY PORTAL (შეტყობინებები + ჩატი) =====
   @ViewChild('chatModalRoot') chatModalRoot?: ElementRef<HTMLElement>;
-  private chatModalOriginalParent: Node | null = null;
-  private chatModalOriginalNextSibling: Node | null = null;
-  private chatModalMovedToBody = false;
+  @ViewChild('conversationsRoot') conversationsRoot?: ElementRef<HTMLElement>;
+
+  private portals = new Map<PortalKey, PortalEntry>();
   private injectedPortalStyles: HTMLStyleElement[] = [];
   private bodyOverflowBeforeLock: string | null = null;
 
@@ -187,7 +195,8 @@ export class SenderProfileAndroidComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.restoreChatModalFromBody();
+    this.portalRestore('conversations');
+    this.portalRestore('chat');
     this.destroy$.next();
     this.destroy$.complete();
   }
@@ -628,10 +637,32 @@ export class SenderProfileAndroidComponent implements OnInit, OnDestroy {
   }
 
   // ============================================================
-  // 💬 ჩატი
+  // 💬 შეტყობინებები (ცენტრში გახსნილი დიალოგი) და ჩატი
   // ============================================================
   toggleConversations(): void {
-    this.showConversations = !this.showConversations;
+    if (this.showConversations) {
+      this.closeConversations();
+    } else {
+      this.openConversations();
+    }
+  }
+
+  private openConversations(): void {
+    this.showConversations = true;
+    this.cdr.detectChanges();
+
+    // ელემენტი DOM-ში რომ გაჩნდეს, მერე გადააქვს document.body-ში,
+    // რომ position: fixed ზუსტად ეკრანის ცენტრს დაეყრდნოს
+    setTimeout(() => {
+      if (!this.showConversations) return;
+      this.portalToBody('conversations', this.conversationsRoot?.nativeElement);
+    }, 0);
+  }
+
+  closeConversations(): void {
+    this.portalRestore('conversations');
+    this.showConversations = false;
+    this.cdr.detectChanges();
   }
 
   onConversationSelected(conversation: Conversation): void {
@@ -661,63 +692,77 @@ export class SenderProfileAndroidComponent implements OnInit, OnDestroy {
     };
 
     this.socketService.registerConversationMeta(conversationId, recipientId, recipientName);
+
+    // შეტყობინებების დიალოგს ჯერ body-დან ვაბრუნებთ, მერე ვხურავთ
+    this.portalRestore('conversations');
     this.showConversations = false;
     this.showChatModal = true;
     this.cdr.detectChanges();
 
-    setTimeout(() => this.moveChatModalToBody(), 0);
+    setTimeout(() => this.portalToBody('chat', this.chatModalRoot?.nativeElement), 0);
   }
 
   closeChatModal(): void {
-    this.restoreChatModalFromBody();
+    this.portalRestore('chat');
     this.showChatModal = false;
     this.selectedConversation = null;
   }
 
-  private moveChatModalToBody(): void {
-    if (!this.isBrowser) return;
-
-    const el = this.chatModalRoot?.nativeElement;
-    if (!el || this.chatModalMovedToBody) return;
+  // ============================================================
+  // 🌐 BODY PORTAL — ზოგადი ლოგიკა (შეტყობინებები + ჩატი)
+  // ============================================================
+  private portalToBody(key: PortalKey, el?: HTMLElement): void {
+    if (!this.isBrowser || !el || this.portals.has(key)) return;
 
     this.injectPortalStyles();
 
-    this.chatModalOriginalParent = el.parentNode;
-    this.chatModalOriginalNextSibling = el.nextSibling;
+    this.portals.set(key, {
+      el,
+      parent: el.parentNode,
+      nextSibling: el.nextSibling
+    });
 
     this.renderer.appendChild(document.body, el);
-    this.chatModalMovedToBody = true;
+    this.lockBodyScroll();
+  }
 
+  private portalRestore(key: PortalKey): void {
+    if (!this.isBrowser) return;
+
+    const entry = this.portals.get(key);
+    if (!entry) return;
+    this.portals.delete(key);
+
+    const { el, parent, nextSibling } = entry;
+
+    if (parent) {
+      if (nextSibling && nextSibling.parentNode === parent) {
+        this.renderer.insertBefore(parent, el, nextSibling);
+      } else {
+        this.renderer.appendChild(parent, el);
+      }
+    }
+
+    if (this.portals.size === 0) {
+      this.unlockBodyScroll();
+      this.removePortalStyles();
+    }
+  }
+
+  private lockBodyScroll(): void {
+    if (this.bodyOverflowBeforeLock !== null) return;
     this.bodyOverflowBeforeLock = document.body.style.overflow || '';
     this.renderer.setStyle(document.body, 'overflow', 'hidden');
   }
 
-  private restoreChatModalFromBody(): void {
-    if (!this.isBrowser) return;
-    if (!this.chatModalMovedToBody) return;
-
-    const el = this.chatModalRoot?.nativeElement;
-
-    if (el && this.chatModalOriginalParent) {
-      if (this.chatModalOriginalNextSibling) {
-        this.renderer.insertBefore(this.chatModalOriginalParent, el, this.chatModalOriginalNextSibling);
-      } else {
-        this.renderer.appendChild(this.chatModalOriginalParent, el);
-      }
-    }
-
-    this.renderer.setStyle(document.body, 'overflow', this.bodyOverflowBeforeLock ?? '');
+  private unlockBodyScroll(): void {
+    if (this.bodyOverflowBeforeLock === null) return;
+    this.renderer.setStyle(document.body, 'overflow', this.bodyOverflowBeforeLock);
     this.bodyOverflowBeforeLock = null;
-
-    this.removePortalStyles();
-
-    this.chatModalMovedToBody = false;
-    this.chatModalOriginalParent = null;
-    this.chatModalOriginalNextSibling = null;
   }
 
   private injectPortalStyles(): void {
-    if (!this.isBrowser) return;
+    if (!this.isBrowser || this.injectedPortalStyles.length > 0) return;
 
     const shadowRoot = this.hostEl.nativeElement.shadowRoot;
     if (!shadowRoot) return;

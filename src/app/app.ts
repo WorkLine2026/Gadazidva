@@ -10,6 +10,9 @@ import { ToastNotificationsComponent } from './chat/toast-notifications-componen
 import { PullToRefreshDirective } from './android-components/directives/pull-to-refresh.directive';
 import { Pushnofication } from './chat/pushnofication/pushnofication';
 
+// Meta Pixel (იტვირთება index.html-იდან)
+declare const fbq: any;
+
 @Component({
   selector: 'app-root',
   imports: [
@@ -28,10 +31,6 @@ import { Pushnofication } from './chat/pushnofication/pushnofication';
 export class App implements OnInit {
   protected readonly title = signal('gadazidva');
 
-  // ✅ SSR-ზე (prerender) Capacitor.isNativePlatform() ჩვეულებრივ
-  // false-ს აბრუნებს, მაგრამ ქვემოთ isBrowser მაინც ცალკეა საჭირო
-  // scroll-reset ლოგიკისთვის, რადგან ეს არის ის, რაც პირდაპირ
-  // window/document-ს ეხება ყოველ ნავიგაციაზე.
   protected readonly isNativeApp = Capacitor.isNativePlatform();
 
   private readonly isBrowser: boolean;
@@ -47,9 +46,7 @@ export class App implements OnInit {
     this.router.events
       .pipe(filter(event => event instanceof NavigationEnd))
       .subscribe(() => {
-        // ✅ SSR-ის დროსაც ხდება route-ების "ნავიგაცია" (prerender-ის
-        // ყოველი გვერდისთვის), ამიტომ NavigationEnd აქაც გამოიწვევა —
-        // window/document კი მხოლოდ ბრაუზერშია ხელმისაწვდომი.
+        // SSR/prerender-ზე window და document არ არსებობს
         if (!this.isBrowser) {
           return;
         }
@@ -57,8 +54,11 @@ export class App implements OnInit {
         window.scrollTo(0, 0);
         document.documentElement.scrollTop = 0;
         document.body.scrollTop = 0;
-        setTimeout(() => {
-        }, 100);
+
+        // Meta Pixel: PageView ყოველ route-ზე (პირველ ჩატვირთვაზეც)
+        if (typeof fbq !== 'undefined') {
+          fbq('track', 'PageView');
+        }
       });
   }
 }

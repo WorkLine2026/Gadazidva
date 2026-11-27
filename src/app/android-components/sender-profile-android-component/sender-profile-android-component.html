@@ -344,15 +344,23 @@
 
   <!-- ===== MODALS ===== -->
 
-  <!-- Conversations — Bottom Sheet -->
-  <div class="modal-backdrop sheet" *ngIf="showConversations" (click)="toggleConversations()">
-    <div class="modal-sheet" (click)="$event.stopPropagation()">
-      <div class="modal-handle"></div>
-      <button class="modal-close" (click)="toggleConversations()">✕</button>
-      <app-conversations-list
-        [currentUserId]="userId"
-        (conversationSelected)="onConversationSelected($event)">
-      </app-conversations-list>
+  <!-- ✅ Conversations — ეკრანის ცენტრში (იხსნება აქ, მერე document.body-ში გადააქვს TS) -->
+  <div #conversationsRoot class="conv-backdrop" *ngIf="showConversations" (click)="closeConversations()">
+    <div class="conv-dialog"
+         role="dialog"
+         aria-modal="true"
+         aria-label="შეტყობინებები"
+         (click)="$event.stopPropagation()">
+      <div class="conv-dialog__header">
+        <h3 class="conv-dialog__title">შეტყობინებები</h3>
+        <button type="button" class="conv-dialog__close" (click)="closeConversations()" aria-label="დახურვა">✕</button>
+      </div>
+      <div class="conv-dialog__body">
+        <app-conversations-list
+          [currentUserId]="userId"
+          (conversationSelected)="onConversationSelected($event)">
+        </app-conversations-list>
+      </div>
     </div>
   </div>
 

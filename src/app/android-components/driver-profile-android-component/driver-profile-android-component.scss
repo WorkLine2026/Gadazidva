@@ -1,6 +1,6 @@
 // ============================================================
 // Gagzavna.ge — Driver Profile (Android) — Material Design 3
-// ShadowDom. HTML/TS უცვლელია.
+// ShadowDom. HTML უცვლელია.
 // ============================================================
 
 :host {
@@ -445,7 +445,7 @@
     width: 100%;
   }
 
-  // ✅ გასწორებული: ორი ღილაკი ბარათის შუაში, ტოლი სიგანით
+  // ორი ღილაკი ბარათის შუაში, ტოლი სიგანით
   &__actions {
     width: 100%;
     display: grid;
@@ -1103,8 +1103,10 @@
 }
 
 // ============================================================
-// MODAL — Bottom Sheet (M3) + Center Dialog (შეტყობინებები)
-// scrim literal ფერით, რადგან fullscreen ვარიანტი body-ში გადადის
+// MODAL — Bottom Sheet (M3)
+// ✅ FIX: აქ აღარ არის height: 100vh/100dvh. position:fixed + inset:0
+// თავისით ფარავს ზუსტად ხილულ ეკრანს — დამატებითი სიმაღლე მობილურზე
+// ბრაუზერის ზოლებთან ერთად ელემენტს "ზემოთ" ჩამოაცურებდა.
 // ============================================================
 .modal-backdrop {
   position: fixed;
@@ -1112,8 +1114,6 @@
   z-index: 1000;
   display: flex;
   width: 100%;
-  height: 100vh;
-  height: 100dvh;            // მობილურზე ბრაუზერის ბარის გათვალისწინებით
   box-sizing: border-box;
   background: rgba(0, 0, 0, 0.32);
   animation: m3-fade 0.2s ease both;
@@ -1142,19 +1142,17 @@
 // ============================================================
 // 💬 შეტყობინებების დიალოგი — ეკრანის შუაში
 // ⚠️ top-level და ცვლადების (var(--…)) გარეშეა შეგნებულად: TS ამ ელემენტს
-// document.body-ში გადააქვს (ჩატის მსგავსად) და სტილებს document.head-ში
-// აკოპირებს, ამიტომ :host-ის ცვლადები და .android-profile წესები იქ აღარ მუშაობს.
+// document.body-ში გადააქვს და სტილებს document.head-ში აკოპირებს,
+// ამიტომ :host-ის ცვლადები და .android-profile წესები იქ აღარ მუშაობს.
 // ============================================================
 .conv-backdrop {
   position: fixed;
   inset: 0;
   z-index: 99998;
   display: flex;
-  align-items: center;
-  justify-content: center;
+  align-items: center;       // ვერტიკალურად ცენტრში
+  justify-content: center;   // ჰორიზონტალურად ცენტრში
   width: 100%;
-  height: 100vh;
-  height: 100dvh;
   padding: 16px;
   box-sizing: border-box;
   background: rgba(0, 0, 0, 0.32);
@@ -1171,8 +1169,8 @@
   flex-direction: column;
   width: 100%;
   max-width: 520px;
-  height: min(640px, 88vh);
-  height: min(640px, 88dvh);
+  height: min(640px, calc(100vh - 32px));
+  height: min(640px, calc(100dvh - 32px));
   box-sizing: border-box;
   overflow: hidden;
   background: #f7f5fb;
@@ -1281,9 +1279,7 @@
 
 // ============================================================
 // CHAT — FULLSCREEN
-// ⚠️ top-level და ცვლადების გარეშეა შეგნებულად: TS ამ ელემენტს
-// document.body-ში გადააქვს და სტილებს document.head-ში აკოპირებს,
-// ამიტომ :host და .android-profile წესები იქ აღარ მუშაობს.
+// ⚠️ top-level და ცვლადების გარეშეა შეგნებულად (იგივე მიზეზით, რაც ზემოთ).
 // ============================================================
 .modal-backdrop.fullscreen {
   position: fixed;
@@ -1292,8 +1288,6 @@
   display: flex;
   flex-direction: column;
   width: 100%;
-  height: 100vh;
-  height: 100dvh;
   background: #ffffff;
   overflow: hidden;
   animation: none;
