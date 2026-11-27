@@ -13,7 +13,8 @@ import { Router, RouterModule } from '@angular/router';
 import { timeout, catchError, finalize } from 'rxjs/operators';
 import { of, TimeoutError } from 'rxjs';
 import { SmsVerificationService } from '../../services/smsverifikation.service';
-import { RulesComponent } from '../../Main/rules/rules'; // ⚠️ შეცვალე შენი რეალური path-ით
+import { RulesComponent } from '../../Main/rules/rules';
+import { MetaPixelService } from '../../services/meta-pixel.service';
 
 type UserRole = 'sender' | 'driver';
 type RegistrationStep = 'form' | 'verification';
@@ -94,7 +95,8 @@ export class RegisterComponent implements OnInit, OnDestroy {
     private fb: FormBuilder,
     private smsService: SmsVerificationService,
     private router: Router,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private pixel: MetaPixelService
   ) {}
 
   ngOnInit(): void {
@@ -613,27 +615,30 @@ export class RegisterComponent implements OnInit, OnDestroy {
   }
 
   private completeRegistration(): void {
-    this.isLoading = true;
-    this.cdr.detectChanges();
+  this.isLoading = true;
+  this.cdr.detectChanges();
 
-    const role = this.activeRole;
+  const role = this.activeRole;
 
-    this.clearCooldownTimer();
-    this.revokeLicensePreview();
-    this.registerForm.reset();
-    this.verificationForm.reset();
-    this.generatedCodeHint = null;
-    this.licenseFileName = null;
-    this.hasReadTerms = false;
-    this.termsScrolledToEnd = false;
-    this.currentStep = 'form';
+  // ✅ Meta Pixel: რეგისტრაცია წარმატებით დასრულდა (SMS კოდი დადასტურდა)
+  this.pixel.track('CompleteRegistration', { content_name: role });
 
-    if (role === 'driver') {
-      this.router.navigate(['/driverProfile']);
-    } else {
-      this.router.navigate(['/senderProfile']);
-    }
+  this.clearCooldownTimer();
+  this.revokeLicensePreview();
+  this.registerForm.reset();
+  this.verificationForm.reset();
+  this.generatedCodeHint = null;
+  this.licenseFileName = null;
+  this.hasReadTerms = false;
+  this.termsScrolledToEnd = false;
+  this.currentStep = 'form';
+
+  if (role === 'driver') {
+    this.router.navigate(['/driverProfile']);
+  } else {
+    this.router.navigate(['/senderProfile']);
   }
+}
 
   private markFormGroupTouched(formGroup: FormGroup): void {
     Object.values(formGroup.controls).forEach(control => {

@@ -7,6 +7,7 @@ import { takeUntil } from 'rxjs/operators';
 import { ParcelService, ParcelRequest, DriverTrip } from '../../services/Parcel.service';
 import { SmsVerificationService } from '../../services/smsverifikation.service';
 import { SeoService } from '../../services/seo.service';
+import { MetaPixelService } from '../../services/meta-pixel.service'; // ✅ ახალი
 
 interface Step {
   id: number;
@@ -125,7 +126,8 @@ export class HomeComponent implements OnInit, OnDestroy {
     private parcelService: ParcelService,
     private smsService: SmsVerificationService,
     private cdr: ChangeDetectorRef,
-    private seo: SeoService
+    private seo: SeoService,
+    private pixel: MetaPixelService // ✅ ახალი
   ) {}
 
   ngOnInit(): void {
@@ -252,6 +254,9 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   /** გამგზავნი: შესულს → /send, სტუმარს → /register */
   startAsSender(): void {
+    // ✅ Meta Pixel: ამანათის გაგზავნის განზრახვა
+    this.pixel.trackCustom('StartAsSender', { logged_in: this.isLoggedIn });
+
     this.isLoggedIn
       ? this.router.navigate(['/send'])
       : this.router.navigate(['/register'], { queryParams: { role: 'sender' } });
@@ -259,6 +264,9 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   /** მძღოლი: შესულს → /pickup, სტუმარს → /register */
   startAsDriver(): void {
+    // ✅ Meta Pixel: მძღოლად დაწყების განზრახვა
+    this.pixel.trackCustom('StartAsDriver', { logged_in: this.isLoggedIn });
+
     this.isLoggedIn
       ? this.router.navigate(['/pickup'])
       : this.router.navigate(['/register'], { queryParams: { role: 'driver' } });
@@ -266,6 +274,11 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   /** /listing გვერდმა უნდა წაიკითხოს ?from=&to= (იხ. ინსტრუქცია) */
   search(): void {
+    // ✅ Meta Pixel: მარშრუტის ძიება
+    this.pixel.track('Search', {
+      search_string: `${this.searchFrom || 'ნებისმიერი'} - ${this.searchTo || 'ნებისმიერი'}`,
+    });
+
     const queryParams: Record<string, string> = {};
     if (this.searchFrom) queryParams['from'] = this.searchFrom;
     if (this.searchTo) queryParams['to'] = this.searchTo;

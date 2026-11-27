@@ -5,6 +5,7 @@ import { CommonModule } from '@angular/common';
 import { ParcelService, DriverTrip } from '../../services/Parcel.service';
 import { SmsVerificationService } from '../../services/smsverifikation.service';
 import { Location } from '@angular/common';
+import { MetaPixelService } from '../../services/meta-pixel.service';
 
 type PickupStep = 'trip-plan' | 'success';
 
@@ -92,7 +93,8 @@ export class PickupParcelComponent implements OnInit {
     private smsService: SmsVerificationService,
     private cdr: ChangeDetectorRef,
     private elementRef: ElementRef,
-    private location: Location
+    private location: Location,
+    private pixel: MetaPixelService
   ) {}
 
   ngOnInit(): void {
@@ -386,6 +388,7 @@ export class PickupParcelComponent implements OnInit {
 
           // ✅ ყველა listener-ს აცნობით (პროფილის კომპონენტი მოუსმენს)
           this.parcelService.notifyTripCreated(tripData);
+           this.pixel.trackCustom('TripCreated');
         } else {
           this.errorMessage = res.message || 'მგზავრობა ვერ განათავსდა';
         }

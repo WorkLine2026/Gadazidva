@@ -5,6 +5,7 @@ import { CommonModule } from '@angular/common';
 import { ParcelService, ParcelRequest } from '../../services/Parcel.service';
 import { SmsVerificationService } from '../../services/smsverifikation.service';
 import { Location } from '@angular/common';
+import { MetaPixelService } from '../../services/meta-pixel.service';
 
 type SendStep = 'details' | 'confirmation' | 'success';
 
@@ -58,7 +59,8 @@ export class SendParcelComponent implements OnInit {
     private parcelService: ParcelService,
     private smsService: SmsVerificationService,
     private cdr: ChangeDetectorRef,
-    private elementRef: ElementRef
+    private elementRef: ElementRef,
+    private pixel: MetaPixelService
   ) {}
 
   ngOnInit(): void {
@@ -389,20 +391,22 @@ export class SendParcelComponent implements OnInit {
       : this.stepData.parcelDetails;
 
     this.parcelService.createParcelRequest(payload).subscribe({
-      next: (res) => {
-        this.isSaving = false;
+   next: (res) => {
+  this.isSaving = false;
 
-        if (res.success) {
-          // ✅ requestId-ის მიღება სწორი გზით
-          this.stepData.requestId = res.requestId || res.data?._id || 'უცნობი';
-          this.successMessage = 'განცხადება წარმატებით დაიქვიათ!';
-          this.currentStep = 'success';
-        } else {
-          this.errorMessage = res.message || 'განცხადება ვერ დამატდა';
-        }
+  if (res.success) {
+    this.stepData.requestId = res.requestId || res.data?._id || 'უცნობი';
+    this.successMessage = 'განცხადება წარმატებით დაიქვიათ!';
+    this.currentStep = 'success';
 
-        this.cdr.detectChanges();
-      },
+    // ✅ Meta Pixel: ამანათის განცხადება წარმატებით შეიქმნა
+    this.pixel.track('Lead', { content_name: 'parcel_request' });
+  } else {
+    this.errorMessage = res.message || 'განცხადება ვერ დამატდა';
+  }
+
+  this.cdr.detectChanges();
+},
       error: (err) => {
         this.isSaving = false;
         this.errorMessage = err.error?.message || 'შეცდომა: განცხადება ვერ დამატდა. გთხოვთ, სცადეთ ხელახლა';
